@@ -1,38 +1,49 @@
 /**
- * Giả lập gửi request lên API Gateway.
- * Thời gian phản hồi giả lập: 1.5 giây.
+ * Gửi ảnh lên API Gateway thật.
  */
-export const recognizeArtifactAPI = async (imageBase64, forceError = null) => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      // 1. Giả lập mất kết nối mạng
-      if (forceError === 'network' || !navigator.onLine) {
-        return reject(new Error("NETWORK_ERROR"));
-      }
+export const recognizeArtifactAPI = async (imageBase64, lang = 'vi') => {
+  try {
+    // Gọi API thật của BE đang chạy trên cổng 8000
+    // LƯU Ý: Khi deploy lên server thật, cần thay đổi URL này.
+    const response = await fetch('http://localhost:8000/api/v1/recognize', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        image_base64: imageBase64,
+        lang: lang // Truyền ngôn ngữ vào BE
+      })
+    });
 
-      // 2. Giả lập ảnh mờ / không nhận diện được (edge case)
-      if (forceError === 'blur') {
-        return resolve({
-          status: "error",
-          error_code: "LOW_CONFIDENCE",
-          message: "Ảnh quá tối hoặc không chứa hiện vật trong hệ thống.",
-          confidence_score: 0.3
-        });
-      }
+    const data = await response.json();
 
-      // 3. Giả lập thành công
-      resolve({
+    if (!response.ok) {
+      throw new Error(data.message || "NETWORK_ERROR");
+    }
+
+    if (data.success) {
+      return {
         status: "success",
         data: {
-          artifact_id: "HUE_001",
-          artifact_name: "Ngọ Môn",
-          text_response: "Đây là cổng chính phía Nam của Hoàng thành Huế, được xây dựng năm 1833 dưới triều vua Minh Mạng. Cổng có 5 lối đi, lối chính giữa dành riêng cho vua. Kiến trúc phần trên gọi là lầu Ngũ Phụng.",
-          audio_url: "mock_audio", // Will be handled by Web Speech API in our mock
-          confidence_score: 0.95
+          artifact_id: data.artifact_id,
+          artifact_name: data.artifact_name,
+          text_response: data.response_text,
+          confidence_score: data.confidence_score
         }
-      });
-    }, 1500); // delay 1.5s
-  });
+      };
+    } else {
+      return {
+        status: "error",
+        error_code: data.error_code,
+        message: data.message,
+        confidence_score: data.confidence_score
+      };
+    }
+  } catch (error) {
+    console.error("Lỗi kết nối API:", error);
+    throw new Error("NETWORK_ERROR");
+  }
 };
 
 /**

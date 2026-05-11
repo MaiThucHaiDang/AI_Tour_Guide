@@ -3,14 +3,15 @@ import CameraScanner from './components/CameraScanner';
 import ScanningLoader from './components/ScanningLoader';
 import ResultView from './components/ResultView';
 import ErrorPopup from './components/ErrorPopup';
+import HomeScreen from './components/HomeScreen';
 import { compressImage } from './utils/imageUtils';
 import { recognizeArtifactAPI } from './services/apiService';
 
 function App() {
-  const [appState, setAppState] = useState('camera'); // 'camera', 'scanning', 'result'
+  const [appState, setAppState] = useState('home'); // 'home', 'camera', 'scanning', 'result'
   const [resultData, setResultData] = useState(null);
   const [error, setError] = useState(null); // { type: 'network' | 'blur', message: string }
-  const [mockMode, setMockMode] = useState('success'); // 'success', 'blur', 'network'
+  const [language, setLanguage] = useState('vi'); // 'vi' hoặc 'en'
 
   const handleCapture = async (photoBase64) => {
     try {
@@ -25,11 +26,8 @@ function App() {
       const compressedSize = Math.round((compressedBase64.length * 3) / 4 / 1024);
       console.log(`Original: ${originalSize}KB, Compressed: ${compressedSize}KB`);
 
-      // Gửi lên API Gateway (giả lập)
-      const response = await recognizeArtifactAPI(
-        compressedBase64,
-        mockMode === 'success' ? null : mockMode
-      );
+      // Gửi lên API Gateway (Thực tế)
+      const response = await recognizeArtifactAPI(compressedBase64, language);
 
       if (response.status === 'success') {
         setResultData(response.data);
@@ -60,28 +58,43 @@ function App() {
     setError(null);
   };
 
+  const resetToHome = () => {
+    setAppState('home');
+    setResultData(null);
+    setError(null);
+  };
+
+  const handleSelectFeature = (feature) => {
+    if (feature === 'camera') {
+      setAppState('camera');
+    } else if (feature === 'chat') {
+      // Tính năng 2 chưa có, hiển thị tạm thông báo
+      alert(language === 'vi' ? 'Tính năng Hỏi đáp AI đang được phát triển!' : 'AI Chat feature is under development!');
+    }
+  };
+
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-
-      {/* Dev Tools / Mock Controls */}
+      
+      {/* Nút Back về Home khi đang ở Camera */}
       {appState === 'camera' && (
-        <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 50, display: 'flex', gap: 5 }}>
-          <button
-            onClick={() => setMockMode('success')}
-            style={{ padding: '5px 10px', fontSize: 12, backgroundColor: mockMode === 'success' ? 'green' : '#333', borderRadius: 4, color: 'white' }}
-          >Thành công</button>
-          <button
-            onClick={() => setMockMode('blur')}
-            style={{ padding: '5px 10px', fontSize: 12, backgroundColor: mockMode === 'blur' ? 'orange' : '#333', borderRadius: 4, color: 'white' }}
-          >Lỗi mờ</button>
-          <button
-            onClick={() => setMockMode('network')}
-            style={{ padding: '5px 10px', fontSize: 12, backgroundColor: mockMode === 'network' ? 'red' : '#333', borderRadius: 4, color: 'white' }}
-          >Mất mạng</button>
-        </div>
+        <button 
+          onClick={resetToHome}
+          style={{ position: 'absolute', top: 20, left: 20, zIndex: 50, background: 'rgba(0,0,0,0.5)', padding: '8px 12px', borderRadius: '8px', color: 'white' }}
+        >
+          &larr; {language === 'vi' ? 'Quay lại' : 'Back'}
+        </button>
       )}
 
       {/* Main Views */}
+      {appState === 'home' && (
+        <HomeScreen 
+          onSelectFeature={handleSelectFeature} 
+          language={language} 
+          setLanguage={setLanguage} 
+        />
+      )}
+
       {appState === 'camera' && <CameraScanner onCapture={handleCapture} />}
 
       {appState === 'scanning' && <ScanningLoader />}

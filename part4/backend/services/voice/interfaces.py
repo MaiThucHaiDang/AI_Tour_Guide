@@ -16,11 +16,18 @@ class BaseSTT(ABC):
     """
 
     @abstractmethod
-    async def transcribe(self, audio_bytes: bytes) -> tuple[str, str]:
+    async def transcribe(
+        self,
+        audio_bytes: bytes,
+        filename: str | None = None,
+        content_type: str | None = None,
+    ) -> tuple[str, str]:
         """Transcribe audio to text.
         
         Args:
             audio_bytes: The audio data in bytes format.
+            filename: Optional filename for inferring audio format.
+            content_type: Optional MIME type for inferring audio format.
             
         Returns:
             A tuple containing:

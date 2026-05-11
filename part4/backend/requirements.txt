@@ -8,3 +8,4 @@ edge-tts
 pydantic
 pytest
 pytest-asyncio
+pyodbc

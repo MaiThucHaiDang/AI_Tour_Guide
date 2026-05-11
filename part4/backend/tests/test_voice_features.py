@@ -66,7 +66,12 @@ async def test_unit_4_language_accuracy(monkeypatch: pytest.MonkeyPatch) -> None
 
     for case in all_cases:
         class CaseSTTProvider(BaseSTT):
-            async def transcribe(self, audio_bytes: bytes) -> tuple[str, str]:
+            async def transcribe(
+                self,
+                audio_bytes: bytes,
+                filename: str | None = None,
+                content_type: str | None = None,
+            ) -> tuple[str, str]:
                 return case["transcript"], case["lang_param"]
 
         llm_provider = MockLLMProvider()
@@ -92,7 +97,12 @@ async def test_unit_5_language_switching() -> None:
         def __init__(self) -> None:
             self._calls = 0
 
-        async def transcribe(self, audio_bytes: bytes) -> tuple[str, str]:
+        async def transcribe(
+            self,
+            audio_bytes: bytes,
+            filename: str | None = None,
+            content_type: str | None = None,
+        ) -> tuple[str, str]:
             self._calls += 1
             if self._calls == 1:
                 return "Xin chào, kể về hiện vật này", "vi"

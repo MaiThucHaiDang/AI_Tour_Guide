@@ -17,10 +17,22 @@ class LanguageManager:
             ValueError: If ``lang_param`` is not supported.
         """
         normalized_lang = lang_param.strip().lower()
+        for separator in ("-", "_"):
+            if separator in normalized_lang:
+                normalized_lang = normalized_lang.split(separator)[0]
+                break
 
         if normalized_lang == "vi":
-            return {"db_field": "history_text_vi", "ui_locale": "vi-VN"}
+            return {
+                "db_field": "history_text_vi",
+                "ui_locale": "vi-VN",
+                "lang_code": "vi",
+            }
         if normalized_lang == "en":
-            return {"db_field": "history_text_en", "ui_locale": "en-US"}
+            return {
+                "db_field": "history_text_en",
+                "ui_locale": "en-US",
+                "lang_code": "en",
+            }
 
         raise ValueError("Unsupported language. Expected 'vi' or 'en'.")

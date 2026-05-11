@@ -24,14 +24,29 @@ class VoiceOrchestrator:
         self._language_manager = LanguageManager()
         self._db_lookup = db_lookup or self._mock_get_db_data
 
-    async def process_voice_request(self, audio_bytes: bytes, lang_param: str) -> bytes:
+    async def process_voice_request(
+        self,
+        audio_bytes: bytes,
+        lang_param: str,
+        audio_filename: str | None = None,
+        audio_content_type: str | None = None,
+    ) -> bytes:
         """Process an audio request and return synthesized response audio."""
+        if not audio_bytes:
+            raise ValueError("Empty audio payload.")
         # Normalize language code to short form ('vi' or 'en') for service calls
-        lang_code = lang_param.strip().lower()
-        context = self._language_manager.setup_context(lang_code)
+        requested_lang = lang_param.strip().lower()
+        context = self._language_manager.setup_context(requested_lang)
+        lang_code = context["lang_code"]
 
         # Transcribe audio
-        text_query, detected_lang = await self._stt.transcribe(audio_bytes)
+        text_query, detected_lang = await self._stt.transcribe(
+            audio_bytes,
+            audio_filename,
+            audio_content_type,
+        )
+        if not text_query.strip():
+            raise ValueError("Empty transcription. Please try again with clearer audio.")
 
         # Resolve DB content for the detected/selected language
         db_data = self._db_lookup(text_query, context["db_field"])

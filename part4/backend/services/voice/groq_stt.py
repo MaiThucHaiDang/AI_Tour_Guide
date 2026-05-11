@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import os
 import tempfile
+from pathlib import Path
 from typing import Any
 
 from groq import Groq
@@ -15,13 +16,30 @@ from services.voice.interfaces import BaseSTT
 class GroqSTTProvider(BaseSTT):
     """Speech-to-Text implementation powered by Groq's Whisper models."""
 
+    _CONTENT_TYPE_MAP = {
+        "audio/wav": ".wav",
+        "audio/x-wav": ".wav",
+        "audio/mpeg": ".mp3",
+        "audio/mp3": ".mp3",
+        "audio/webm": ".webm",
+        "audio/ogg": ".ogg",
+        "audio/mp4": ".mp4",
+        "audio/m4a": ".m4a",
+        "audio/x-m4a": ".m4a",
+    }
+
     def __init__(self) -> None:
         api_key = os.getenv("GROQ_API_KEY")
         if not api_key:
             raise ValueError("GROQ_API_KEY is not set in environment variables.")
         self._client = Groq(api_key=api_key)
 
-    async def transcribe(self, audio_bytes: bytes) -> tuple[str, str]:
+    async def transcribe(
+        self,
+        audio_bytes: bytes,
+        filename: str | None = None,
+        content_type: str | None = None,
+    ) -> tuple[str, str]:
         """Transcribe audio bytes using Groq's Whisper model.
 
         Args:
@@ -32,7 +50,8 @@ class GroqSTTProvider(BaseSTT):
         """
         temp_path = None
         try:
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_file:
+            suffix = self._resolve_suffix(filename, content_type)
+            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
                 temp_file.write(audio_bytes)
                 temp_path = temp_file.name
 
@@ -65,3 +84,13 @@ class GroqSTTProvider(BaseSTT):
         if isinstance(response, dict):
             return response.get("language", "")
         return getattr(response, "language", "") or ""
+
+    @classmethod
+    def _resolve_suffix(cls, filename: str | None, content_type: str | None) -> str:
+        if filename:
+            ext = Path(filename).suffix.lower()
+            if ext:
+                return ext
+        if content_type:
+            return cls._CONTENT_TYPE_MAP.get(content_type.lower(), ".wav")
+        return ".wav"

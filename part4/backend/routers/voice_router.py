@@ -7,6 +7,7 @@ from fastapi import APIRouter, File, Form, HTTPException, Response, UploadFile
 from services.voice.edge_tts_provider import EdgeTTSProvider
 from services.voice.groq_llm import GroqLLMProvider
 from services.voice.groq_stt import GroqSTTProvider
+from services.voice.sqlserver_db import get_artifact_context
 from services.voice.voice_pipeline import VoiceOrchestrator
 
 
@@ -25,10 +26,20 @@ async def voice_chat(audio: UploadFile = File(...), lang: str = Form(...)) -> Re
             # Missing API keys or other provider configuration problems
             raise HTTPException(status_code=500, detail=str(err)) from err
 
-        orchestrator = VoiceOrchestrator(stt, llm, tts)
+        orchestrator = VoiceOrchestrator(
+            stt,
+            llm,
+            tts,
+            db_lookup=get_artifact_context,
+        )
         try:
             audio_bytes = await audio.read()
-            response_bytes = await orchestrator.process_voice_request(audio_bytes, lang)
+            response_bytes = await orchestrator.process_voice_request(
+                audio_bytes,
+                lang,
+                audio.filename,
+                audio.content_type,
+            )
             return Response(content=response_bytes, media_type="audio/mpeg")
         except ValueError as err:
             detail = str(err)

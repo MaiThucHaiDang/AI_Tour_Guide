@@ -61,11 +61,20 @@ class GroqLLMProvider(BaseLLM):
                     },
                 ],
                 temperature=0.7,
-                max_tokens=200,
+                max_tokens=160,
             )
             text = message.choices[0].message.content
             if text is None:
                 return ""
-            return text.strip()
+            return self._limit_words(text.strip(), 100)
         except Exception as exc:
             raise RuntimeError(f"Groq LLM request failed: {exc}") from exc
+
+    @staticmethod
+    def _limit_words(text: str, max_words: int) -> str:
+        if not text:
+            return ""
+        words = text.split()
+        if len(words) <= max_words:
+            return text
+        return " ".join(words[:max_words]).strip()

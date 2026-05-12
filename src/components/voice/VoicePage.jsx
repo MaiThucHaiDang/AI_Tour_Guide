@@ -10,6 +10,7 @@ import { voiceChatAPI } from '../../services/apiService';
 const VoicePage = ({ onBack, language, setLanguage }) => {
   const [voiceState, setVoiceState] = useState('idle'); // 'idle', 'recording', 'processing', 'result', 'error'
   const [apiError, setApiError] = useState(null);
+  const [apiErrorDetail, setApiErrorDetail] = useState(null);
   const [audioResult, setAudioResult] = useState(null);
 
   // Guard: chỉ process khi đang thực sự ở state 'recording'
@@ -38,6 +39,7 @@ const VoicePage = ({ onBack, language, setLanguage }) => {
   useEffect(() => {
     if (recorderError) {
       setApiError(recorderError);
+      setApiErrorDetail(null);
       setVoiceStateSynced('error');
     }
   }, [recorderError]);
@@ -53,6 +55,7 @@ const VoicePage = ({ onBack, language, setLanguage }) => {
 
     if (elapsed < 0.5) {
       setApiError('recording_too_short');
+      setApiErrorDetail(null);
       setVoiceStateSynced('error');
       return;
     }
@@ -87,7 +90,8 @@ const VoicePage = ({ onBack, language, setLanguage }) => {
 
       // Nếu response quá nhỏ thì có thể là lỗi empty
       if (responseBlob.size < 1000) {
-        setApiError('empty_transcription');
+        setApiError('backend_detail');
+        setApiErrorDetail('Phan hoi am thanh qua nho. Vui long thu lai.');
         setVoiceStateSynced('error');
       } else {
         setAudioResult(responseBlob);
@@ -101,10 +105,13 @@ const VoicePage = ({ onBack, language, setLanguage }) => {
       }
       if (err.message === 'TIMEOUT' || err.message === 'NETWORK_ERROR' || err.message?.includes('Failed to fetch')) {
         setApiError('network_error');
+        setApiErrorDetail(null);
       } else if (err.message?.includes('Empty transcription')) {
         setApiError('empty_transcription');
+        setApiErrorDetail(null);
       } else {
-        setApiError('default_error');
+        setApiError('backend_detail');
+        setApiErrorDetail(err.message || null);
       }
       setVoiceStateSynced('error');
     }
@@ -124,6 +131,7 @@ const VoicePage = ({ onBack, language, setLanguage }) => {
     // Reset tất cả state về idle, KHÔNG gọi stopRecording (đã stop rồi)
     setVoiceStateSynced('idle');
     setApiError(null);
+    setApiErrorDetail(null);
     setAudioResult(null);
     resetRecording(); // Xóa audioBlob cũ để effect không kích hoạt lại
   };
@@ -131,6 +139,7 @@ const VoicePage = ({ onBack, language, setLanguage }) => {
   const handleCancel = () => {
     setVoiceStateSynced('idle');
     setApiError(null);
+    setApiErrorDetail(null);
     setAudioResult(null);
     resetRecording();
   };
@@ -183,6 +192,7 @@ const VoicePage = ({ onBack, language, setLanguage }) => {
       {voiceState === 'error' && (
         <VoiceErrorPopup
           errorType={apiError}
+          errorDetail={apiErrorDetail}
           onRetry={handleRetry}
           onCancel={handleCancel}
           language={language}

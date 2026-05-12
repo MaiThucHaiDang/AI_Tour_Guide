@@ -25,13 +25,13 @@ Sau khi kích hoạt thành công, tên môi trường ảo thường sẽ xuấ
 Để chạy FastAPI server ở chế độ phát triển, sử dụng lệnh sau trong thư mục `part4/backend/`:
 
 ```bash
-uvicorn main:app --reload
+uvicorn main:app --reload --port 8001
 ```
 
-Server mặc định sẽ chạy tại:
+Server sẽ chạy tại:
 
 ```text
-http://localhost:8000
+http://localhost:8001
 ```
 
 ## 3. Test API Thủ Công bằng Swagger UI
@@ -44,7 +44,7 @@ FastAPI cung cấp giao diện Swagger UI để kiểm tra API trực tiếp tr�
 2. Truy cập đường dẫn sau:
 
    ```text
-   http://localhost:8000/docs
+   http://localhost:8001/docs
    ```
 
 3. Tìm endpoint `POST /api/voice/chat`.
@@ -74,4 +74,5 @@ Lệnh này sẽ chạy các test trong thư mục `tests/` với chế độ hi
 
 - Hãy đảm bảo `venv` đã được kích hoạt trước khi chạy server hoặc test.
 - Nếu dùng terminal mới, cần kích hoạt lại môi trường ảo.
-- Giữ file `.env` đúng cấu hình để các provider STT, LLM và TTS hoạt động.
+- Đặt file `.env` trong `part4/backend/` hoặc ở root project (load fallback) để các provider STT, LLM và TTS hoạt động.
+- Co the cau hinh thu tu LLM bang bien `LLM_PROVIDER_ORDER` (vi du: `groq,gemini` hoac `gemini,groq`). Mac dinh la `groq,gemini`.

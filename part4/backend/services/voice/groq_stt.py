@@ -92,5 +92,6 @@ class GroqSTTProvider(BaseSTT):
             if ext:
                 return ext
         if content_type:
-            return cls._CONTENT_TYPE_MAP.get(content_type.lower(), ".wav")
+            normalized = content_type.split(";")[0].strip().lower()
+            return cls._CONTENT_TYPE_MAP.get(normalized, ".wav")
         return ".wav"

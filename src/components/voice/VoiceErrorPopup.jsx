@@ -1,6 +1,6 @@
 import React from 'react';
 
-const VoiceErrorPopup = ({ errorType, onRetry, onCancel, language = 'vi' }) => {
+const VoiceErrorPopup = ({ errorType, errorDetail, onRetry, onCancel, language = 'vi' }) => {
   let icon = '⚠️';
   let titleVi = 'Lỗi';
   let titleEn = 'Error';
@@ -32,6 +32,11 @@ const VoiceErrorPopup = ({ errorType, onRetry, onCancel, language = 'vi' }) => {
       descVi = 'Không nghe rõ, bạn nói lại nhé!';
       descEn = "Couldn't hear clearly, please try again!";
       break;
+  }
+
+  if (errorDetail) {
+    descVi = errorDetail;
+    descEn = errorDetail;
   }
 
   return (

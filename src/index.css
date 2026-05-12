@@ -254,3 +254,340 @@ button {
   0% { transform: translate(0, 0) scale(1); }
   100% { transform: translate(30px, 30px) scale(1.1); }
 }
+
+/* --- Voice Feature Styles --- */
+.voice-page {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #121212 0%, #1a1a2e 100%);
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 20;
+}
+
+.voice-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  z-index: 10;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-main);
+  background: rgba(0, 0, 0, 0.4);
+  padding: 8px 16px;
+  border-radius: 20px;
+  transition: background 0.3s ease;
+}
+
+.back-btn:hover {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.voice-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  position: relative;
+}
+
+/* Voice Recorder */
+.voice-recorder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+.prompt-text {
+  font-size: 24px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 40px;
+  background: linear-gradient(90deg, #e0e0e0, #ffffff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.visualizer-container {
+  height: 100px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.waveform-canvas {
+  width: 100%;
+  max-width: 300px;
+  height: 100px;
+}
+
+.mic-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.mic-button {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  transition: all 0.3s ease;
+  position: relative;
+  /* Prevent context menu on long press mobile */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.mic-button.idle {
+  background: linear-gradient(135deg, #a855f7, #7e22ce);
+  box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.7);
+  animation: pulse-ring 2s infinite;
+}
+
+.mic-button.recording {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  transform: scale(1.1);
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+}
+
+.recording-hint {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.duration-display {
+  font-family: monospace;
+  font-size: 16px;
+  color: var(--text-main);
+  background: rgba(0, 0, 0, 0.5);
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+
+/* Voice Processing */
+.voice-processing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.processing-animation {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+}
+
+.wave-bar {
+  width: 6px;
+  height: 100%;
+  background: var(--primary-color);
+  border-radius: 3px;
+  animation: processing-wave 1s infinite ease-in-out;
+}
+
+.wave-bar:nth-child(1) { animation-delay: 0.0s; }
+.wave-bar:nth-child(2) { animation-delay: 0.1s; }
+.wave-bar:nth-child(3) { animation-delay: 0.2s; }
+.wave-bar:nth-child(4) { animation-delay: 0.3s; }
+.wave-bar:nth-child(5) { animation-delay: 0.4s; }
+
+@keyframes processing-wave {
+  0%, 100% { height: 20%; background: #3b82f6; }
+  50% { height: 100%; background: #a855f7; }
+}
+
+.processing-text {
+  font-size: 18px;
+  color: var(--text-main);
+}
+
+/* Voice Result */
+.voice-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.result-card {
+  width: 100%;
+  padding: 24px;
+}
+
+.result-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.bot-icon {
+  font-size: 24px;
+}
+
+.result-text {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-main);
+}
+
+.audio-player {
+  width: 100%;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.progress-container {
+  width: 100%;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary-color);
+  border-radius: 3px;
+}
+
+.progress-thumb {
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+.time-display {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.player-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+}
+
+.control-btn {
+  color: var(--text-main);
+  transition: color 0.2s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.control-btn:hover {
+  color: var(--primary-color);
+  transform: scale(1.1);
+}
+
+.play-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  color: white;
+}
+
+.play-btn:hover {
+  color: white;
+  background: #2563eb;
+}
+
+.speed-btn {
+  font-size: 14px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.primary-btn {
+  background: var(--primary-color);
+  color: white;
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+/* Popup specific */
+.bilingual-popup .popup-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.lang-section {
+  text-align: center;
+}
+
+.divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  width: 80%;
+  margin: 0 auto;
+}

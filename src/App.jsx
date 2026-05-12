@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import CameraScanner from './components/CameraScanner';
 import ScanningLoader from './components/ScanningLoader';
 import ResultView from './components/ResultView';
 import ErrorPopup from './components/ErrorPopup';
 import HomeScreen from './components/HomeScreen';
+import VoicePage from './components/voice/VoicePage';
 import { compressImage } from './utils/imageUtils';
 import { recognizeArtifactAPI } from './services/apiService';
 
@@ -11,7 +12,13 @@ function App() {
   const [appState, setAppState] = useState('home'); // 'home', 'camera', 'scanning', 'result'
   const [resultData, setResultData] = useState(null);
   const [error, setError] = useState(null); // { type: 'network' | 'blur', message: string }
-  const [language, setLanguage] = useState('vi'); // 'vi' hoặc 'en'
+  const [language, setLanguage] = useState(() => {
+    return localStorage.getItem('ai_tour_lang') || 'vi';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('ai_tour_lang', language);
+  }, [language]);
 
   const handleCapture = async (photoBase64) => {
     try {
@@ -68,17 +75,16 @@ function App() {
     if (feature === 'camera') {
       setAppState('camera');
     } else if (feature === 'chat') {
-      // Tính năng 2 chưa có, hiển thị tạm thông báo
-      alert(language === 'vi' ? 'Tính năng Hỏi đáp AI đang được phát triển!' : 'AI Chat feature is under development!');
+      setAppState('voice');
     }
   };
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      
+
       {/* Nút Back về Home khi đang ở Camera */}
       {appState === 'camera' && (
-        <button 
+        <button
           onClick={resetToHome}
           style={{ position: 'absolute', top: 20, left: 20, zIndex: 50, background: 'rgba(0,0,0,0.5)', padding: '8px 12px', borderRadius: '8px', color: 'white' }}
         >
@@ -88,10 +94,10 @@ function App() {
 
       {/* Main Views */}
       {appState === 'home' && (
-        <HomeScreen 
-          onSelectFeature={handleSelectFeature} 
-          language={language} 
-          setLanguage={setLanguage} 
+        <HomeScreen
+          onSelectFeature={handleSelectFeature}
+          language={language}
+          setLanguage={setLanguage}
         />
       )}
 
@@ -104,12 +110,20 @@ function App() {
       )}
 
       {/* Error Popup (Phục vụ cho Mục 5 và Mục 6) */}
-      {error && (
+      {error && appState !== 'voice' && (
         <ErrorPopup
           errorType={error.type}
           message={error.message}
           onRetry={resetToCamera}
           onCancel={resetToCamera}
+        />
+      )}
+
+      {appState === 'voice' && (
+        <VoicePage
+          onBack={resetToHome}
+          language={language}
+          setLanguage={setLanguage}
         />
       )}
 

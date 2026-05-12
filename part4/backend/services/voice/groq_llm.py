@@ -17,7 +17,7 @@ class GroqLLMProvider(BaseLLM):
         if not api_key:
             raise ValueError("GROQ_API_KEY is not set in environment variables.")
         self._client = AsyncGroq(api_key=api_key)
-        self._model = "llama3-70b-8192"
+        self._model = "llama3-8b-8192"
 
     async def generate_response(self, prompt: str, context_data: str, lang: str) -> str:
         """Generate a response constrained by provided context.

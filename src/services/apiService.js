@@ -1,11 +1,16 @@
 /**
  * Gửi ảnh lên API Gateway thật.
  */
+// Dùng path tương đối để Vite Proxy tự forward sang đúng backend port
+// Proxy config trong vite.config.js: /api/v1 → :8000, /api/voice → :8001
+const RECOGNIZE_API_URL = '';
+const VOICE_API_URL = '';
+
 export const recognizeArtifactAPI = async (imageBase64, lang = 'vi') => {
   try {
     // Gọi API thật của BE đang chạy trên cổng 8000
     // LƯU Ý: Khi deploy lên server thật, cần thay đổi URL này.
-    const response = await fetch('http://localhost:8000/api/v1/recognize', {
+    const response = await fetch(`${RECOGNIZE_API_URL}/api/v1/recognize`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -75,5 +80,80 @@ export const playTTS = (text, onEndCallback) => {
 export const stopTTS = () => {
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel();
+  }
+};
+
+/**
+ * Gửi ghi âm lên API Voice Chat
+ */
+const USE_MOCK = false; // Đã đổi thành false để dùng Backend thật
+
+export const voiceChatAPI = async (audioBlob, lang = 'vi', signal = null, filename = 'recording.webm') => {
+  // --- CHẾ ĐỘ MOCK (Test không cần Backend) ---
+  if (USE_MOCK) {
+    console.log("🎙️ [MOCK] Đang gửi audio blob:", audioBlob.size, "bytes", "Ngôn ngữ:", lang);
+    return new Promise((resolve, reject) => {
+      const controller = new AbortController();
+      if (signal) {
+        signal.addEventListener('abort', () => controller.abort());
+      }
+
+      const timeoutId = setTimeout(() => {
+        if (controller.signal.aborted) {
+          reject(new Error('TIMEOUT'));
+          return;
+        }
+
+        // Tạo một blob mpeg giả hoặc gọi Web Speech API đọc văn bản giả để có trải nghiệm
+        const text = lang === 'vi' 
+          ? 'Đây là kết quả giả lập từ Frontend. Ngọ Môn được xây dựng năm 1833 dưới triều vua Minh Mạng.'
+          : 'This is a mock result from Frontend. Ngo Mon Gate was built in 1833 during Emperor Minh Mang reign.';
+        
+        // Phát âm thanh giả lập
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = lang === 'vi' ? 'vi-VN' : 'en-US';
+        window.speechSynthesis.speak(utterance);
+
+        // Trả về một blob rỗng đại diện cho audio (UI sẽ không phát lỗi nhưng dựa vào audio tag)
+        // Lưu ý: với blob rỗng thì audio HTML player sẽ không phát, nhưng Web Speech ở trên sẽ nói.
+        const mockBlob = new Blob(['mock audio data'], { type: 'audio/mpeg' });
+        resolve(mockBlob);
+      }, 2000); // Giả lập độ trễ 2 giây của mạng
+    });
+  }
+  // --- KẾT THÚC MOCK ---
+
+  const formData = new FormData();
+  formData.append('audio', audioBlob, filename);
+  formData.append('lang', lang);
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 35000);
+
+  if (signal) {
+    signal.addEventListener('abort', () => controller.abort());
+  }
+
+  try {
+    const response = await fetch(`${VOICE_API_URL}/api/voice/chat`, {
+      method: 'POST',
+      body: formData,
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `HTTP ${response.status}`);
+    }
+
+    return await response.blob();
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('TIMEOUT');
+    }
+    throw error;
   }
 };

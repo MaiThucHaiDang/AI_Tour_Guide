@@ -22,6 +22,9 @@ from services.voice.language_manager import LanguageManager
 from services.voice.voice_pipeline import VoiceOrchestrator
 
 
+TEST_AUDIO = b"x" * 1200
+
+
 class MockTTSProvider(BaseTTS):
     async def synthesize(self, text: str, lang: str) -> bytes:
         return text.encode("utf-8")
@@ -71,6 +74,7 @@ async def test_unit_4_language_accuracy(monkeypatch: pytest.MonkeyPatch) -> None
                 audio_bytes: bytes,
                 filename: str | None = None,
                 content_type: str | None = None,
+                language_hint: str | None = None,
             ) -> tuple[str, str]:
                 return case["transcript"], case["lang_param"]
 
@@ -82,8 +86,8 @@ async def test_unit_4_language_accuracy(monkeypatch: pytest.MonkeyPatch) -> None
             db_lookup=lambda text, db_field: f"{db_field}::{text}",
         )
 
-        result_bytes = await orchestrator.process_voice_request(b"fake-audio", case["lang_param"])
-        result_text = result_bytes.decode("utf-8")
+        result = await orchestrator.process_voice_request(TEST_AUDIO, case["lang_param"])
+        result_text = result.audio_bytes.decode("utf-8")
 
         assert result_text == case["expected_tts_text"]
         assert llm_provider.calls[0]["lang"] == case["lang_param"]
@@ -102,6 +106,7 @@ async def test_unit_5_language_switching() -> None:
             audio_bytes: bytes,
             filename: str | None = None,
             content_type: str | None = None,
+            language_hint: str | None = None,
         ) -> tuple[str, str]:
             self._calls += 1
             if self._calls == 1:
@@ -129,8 +134,12 @@ async def test_unit_5_language_switching() -> None:
         db_lookup=lambda text, db_field: f"{db_field}::{text}",
     )
 
-    first_result = (await orchestrator.process_voice_request(b"fake-audio", "vi")).decode("utf-8")
-    second_result = (await orchestrator.process_voice_request(b"fake-audio", "en")).decode("utf-8")
+    first_result = (
+        await orchestrator.process_voice_request(TEST_AUDIO, "vi")
+    ).audio_bytes.decode("utf-8")
+    second_result = (
+        await orchestrator.process_voice_request(TEST_AUDIO, "en")
+    ).audio_bytes.decode("utf-8")
 
     assert first_result == "Đây là câu trả lời tiếng Việt cho lượt đầu."
     assert second_result == "This is the English answer for the next turn."

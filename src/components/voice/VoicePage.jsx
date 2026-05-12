@@ -7,15 +7,32 @@ import LanguageToggle from '../shared/LanguageToggle';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder';
 import { voiceChatAPI } from '../../services/apiService';
 
-const VoicePage = ({ onBack, language, setLanguage }) => {
+const VoicePage = ({ onBack, language, setLanguage, artifactContext }) => {
   const [voiceState, setVoiceState] = useState('idle'); // 'idle', 'recording', 'processing', 'result', 'error'
   const [apiError, setApiError] = useState(null);
   const [apiErrorDetail, setApiErrorDetail] = useState(null);
   const [audioResult, setAudioResult] = useState(null);
+  const [userTranscript, setUserTranscript] = useState('');
+  const [aiResponse, setAiResponse] = useState('');
 
   // Guard: chỉ process khi đang thực sự ở state 'recording'
   const voiceStateRef = useRef('idle');
   const abortControllerRef = useRef(null);
+  const sessionIdRef = useRef(null);
+
+  useEffect(() => {
+    if (sessionIdRef.current) return;
+    const cached = sessionStorage.getItem('voice_session_id');
+    if (cached) {
+      sessionIdRef.current = cached;
+      return;
+    }
+    const newId = window.crypto?.randomUUID
+      ? window.crypto.randomUUID()
+      : `voice-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    sessionIdRef.current = newId;
+    sessionStorage.setItem('voice_session_id', newId);
+  }, []);
 
   const setVoiceStateSynced = (state) => {
     voiceStateRef.current = state;
@@ -53,13 +70,6 @@ const VoicePage = ({ onBack, language, setLanguage }) => {
     const elapsed = durationRef.current;
     console.log('[VoicePage] audioBlob ready, elapsed:', elapsed, 's');
 
-    if (elapsed < 0.5) {
-      setApiError('recording_too_short');
-      setApiErrorDetail(null);
-      setVoiceStateSynced('error');
-      return;
-    }
-
     processAudio(audioBlob, language, getFilename());
   }, [audioBlob]);
 
@@ -67,6 +77,8 @@ const VoicePage = ({ onBack, language, setLanguage }) => {
     setVoiceStateSynced('recording');
     resetRecording();
     setAudioResult(null);
+    setUserTranscript('');
+    setAiResponse('');
     setApiError(null);
     // startRecording is async (getUserMedia) — VoiceRecorder calls it via onClick
     startRecording();
@@ -84,19 +96,36 @@ const VoicePage = ({ onBack, language, setLanguage }) => {
 
     try {
       console.log('[VoicePage] Calling voiceChatAPI, lang:', lang, 'file:', filename, 'size:', blob.size);
-      const responseBlob = await voiceChatAPI(blob, lang, abortControllerRef.current.signal, filename);
+      const response = await voiceChatAPI(
+        blob,
+        lang,
+        abortControllerRef.current.signal,
+        filename,
+        sessionIdRef.current,
+        artifactContext?.artifact_id || null,
+        artifactContext?.artifact_name || null
+      );
 
-      console.log('[VoicePage] API response received, size:', responseBlob.size);
+      const responseBlob = response?.audioBlob || null;
+      const transcript = response?.transcript || '';
+      const responseText = response?.responseText || '';
 
-      // Nếu response quá nhỏ thì có thể là lỗi empty
-      if (responseBlob.size < 1000) {
+      console.log(
+        '[VoicePage] API response received, size:',
+        responseBlob ? responseBlob.size : 'n/a'
+      );
+
+      if (!responseBlob || responseBlob.size === 0) {
         setApiError('backend_detail');
-        setApiErrorDetail('Phan hoi am thanh qua nho. Vui long thu lai.');
+        setApiErrorDetail('Khong nhan duoc phan hoi am thanh tu AI.');
         setVoiceStateSynced('error');
-      } else {
-        setAudioResult(responseBlob);
-        setVoiceStateSynced('result');
+        return;
       }
+
+      setAudioResult(responseBlob);
+      setUserTranscript(transcript);
+      setAiResponse(responseText);
+      setVoiceStateSynced('result');
     } catch (err) {
       console.error('[VoicePage] processAudio error:', err);
       if (err.name === 'AbortError') {
@@ -105,9 +134,6 @@ const VoicePage = ({ onBack, language, setLanguage }) => {
       }
       if (err.message === 'TIMEOUT' || err.message === 'NETWORK_ERROR' || err.message?.includes('Failed to fetch')) {
         setApiError('network_error');
-        setApiErrorDetail(null);
-      } else if (err.message?.includes('Empty transcription')) {
-        setApiError('empty_transcription');
         setApiErrorDetail(null);
       } else {
         setApiError('backend_detail');
@@ -133,6 +159,8 @@ const VoicePage = ({ onBack, language, setLanguage }) => {
     setApiError(null);
     setApiErrorDetail(null);
     setAudioResult(null);
+    setUserTranscript('');
+    setAiResponse('');
     resetRecording(); // Xóa audioBlob cũ để effect không kích hoạt lại
   };
 
@@ -141,6 +169,8 @@ const VoicePage = ({ onBack, language, setLanguage }) => {
     setApiError(null);
     setApiErrorDetail(null);
     setAudioResult(null);
+    setUserTranscript('');
+    setAiResponse('');
     resetRecording();
   };
 
@@ -181,7 +211,8 @@ const VoicePage = ({ onBack, language, setLanguage }) => {
         {voiceState === 'result' && (
           <VoiceResult
             audioBlob={audioResult}
-            textResponse=""
+            textResponse={aiResponse}
+            userTranscript={userTranscript}
             language={language}
             onAskAgain={handleRetry}
           />

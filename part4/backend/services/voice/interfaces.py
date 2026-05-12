@@ -21,6 +21,7 @@ class BaseSTT(ABC):
         audio_bytes: bytes,
         filename: str | None = None,
         content_type: str | None = None,
+        language_hint: str | None = None,
     ) -> tuple[str, str]:
         """Transcribe audio to text.
         
@@ -28,6 +29,7 @@ class BaseSTT(ABC):
             audio_bytes: The audio data in bytes format.
             filename: Optional filename for inferring audio format.
             content_type: Optional MIME type for inferring audio format.
+            language_hint: Optional language hint (e.g., 'vi' or 'en').
             
         Returns:
             A tuple containing:

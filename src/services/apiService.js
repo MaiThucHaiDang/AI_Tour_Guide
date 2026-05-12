@@ -88,7 +88,15 @@ export const stopTTS = () => {
  */
 const USE_MOCK = false; // Đã đổi thành false để dùng Backend thật
 
-export const voiceChatAPI = async (audioBlob, lang = 'vi', signal = null, filename = 'recording.webm') => {
+export const voiceChatAPI = async (
+  audioBlob,
+  lang = 'vi',
+  signal = null,
+  filename = 'recording.webm',
+  sessionId = null,
+  artifactId = null,
+  artifactName = null
+) => {
   // --- CHẾ ĐỘ MOCK (Test không cần Backend) ---
   if (USE_MOCK) {
     console.log("🎙️ [MOCK] Đang gửi audio blob:", audioBlob.size, "bytes", "Ngôn ngữ:", lang);
@@ -108,6 +116,9 @@ export const voiceChatAPI = async (audioBlob, lang = 'vi', signal = null, filena
         const text = lang === 'vi' 
           ? 'Đây là kết quả giả lập từ Frontend. Ngọ Môn được xây dựng năm 1833 dưới triều vua Minh Mạng.'
           : 'This is a mock result from Frontend. Ngo Mon Gate was built in 1833 during Emperor Minh Mang reign.';
+        const transcript = lang === 'vi'
+          ? 'Toi muon biet ve Ngo Mon.'
+          : 'Tell me about Ngo Mon Gate.';
         
         // Phát âm thanh giả lập
         const utterance = new SpeechSynthesisUtterance(text);
@@ -117,7 +128,7 @@ export const voiceChatAPI = async (audioBlob, lang = 'vi', signal = null, filena
         // Trả về một blob rỗng đại diện cho audio (UI sẽ không phát lỗi nhưng dựa vào audio tag)
         // Lưu ý: với blob rỗng thì audio HTML player sẽ không phát, nhưng Web Speech ở trên sẽ nói.
         const mockBlob = new Blob(['mock audio data'], { type: 'audio/mpeg' });
-        resolve(mockBlob);
+        resolve({ audioBlob: mockBlob, transcript, responseText: text });
       }, 2000); // Giả lập độ trễ 2 giây của mạng
     });
   }
@@ -126,6 +137,15 @@ export const voiceChatAPI = async (audioBlob, lang = 'vi', signal = null, filena
   const formData = new FormData();
   formData.append('audio', audioBlob, filename);
   formData.append('lang', lang);
+  if (sessionId) {
+    formData.append('session_id', sessionId);
+  }
+  if (artifactId) {
+    formData.append('artifact_id', artifactId);
+  }
+  if (artifactName) {
+    formData.append('artifact_name', artifactName);
+  }
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 35000);
@@ -148,7 +168,22 @@ export const voiceChatAPI = async (audioBlob, lang = 'vi', signal = null, filena
       throw new Error(errorData.detail || `HTTP ${response.status}`);
     }
 
-    return await response.blob();
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      const data = await response.json();
+      const blob = base64ToBlob(data.audio_base64, data.audio_mime || 'audio/mpeg');
+      return {
+        audioBlob: blob,
+        transcript: data.transcript || '',
+        responseText: data.response_text || '',
+      };
+    }
+
+    return {
+      audioBlob: await response.blob(),
+      transcript: '',
+      responseText: '',
+    };
   } catch (error) {
     clearTimeout(timeoutId);
     if (error.name === 'AbortError') {
@@ -156,4 +191,17 @@ export const voiceChatAPI = async (audioBlob, lang = 'vi', signal = null, filena
     }
     throw error;
   }
+};
+
+const base64ToBlob = (base64, mimeType = 'audio/mpeg') => {
+  if (!base64) {
+    return new Blob([], { type: mimeType });
+  }
+  const byteString = atob(base64);
+  const len = byteString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i += 1) {
+    bytes[i] = byteString.charCodeAt(i);
+  }
+  return new Blob([bytes], { type: mimeType });
 };

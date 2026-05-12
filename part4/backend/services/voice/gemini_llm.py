@@ -15,7 +15,7 @@ class GeminiLLMProvider(BaseLLM):
     """LLM implementation backed by Gemini models."""
 
     def __init__(self) -> None:
-        api_key = os.getenv("GEMINI_API_KEY")
+        api_key = (os.getenv("GEMINI_API_KEY") or "").strip()
         if not api_key:
             raise ValueError("GEMINI_API_KEY is not set in environment variables.")
         genai.configure(api_key=api_key)
@@ -77,9 +77,14 @@ class GeminiLLMProvider(BaseLLM):
             The generated response text.
         """
         system_instruction = (
-            "You are an AI Tour Guide. Answer the prompt using strictly the provided "
-            "context_data. You MUST answer in the language code "
-            f"[{lang}]. Maximum 100 words."
+            "You are an AI Tour Guide. Follow these rules: "
+            "(1) Always answer in language code "
+            f"[{lang}]. "
+            "(2) If context_data contains 'GENERAL_CHAT', respond naturally and briefly "
+            "without making up historical facts. "
+            "(3) Otherwise, answer using DB_CONTEXT only and do not invent details. "
+            "(4) If DB_CONTEXT is missing or <NO_CONTEXT>, ask a short clarifying question. "
+            "Maximum 100 words."
         )
         full_prompt = (
             "System Instruction:\n"

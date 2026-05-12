@@ -29,7 +29,7 @@ class GroqSTTProvider(BaseSTT):
     }
 
     def __init__(self) -> None:
-        api_key = os.getenv("GROQ_API_KEY")
+        api_key = (os.getenv("GROQ_API_KEY") or "").strip()
         if not api_key:
             raise ValueError("GROQ_API_KEY is not set in environment variables.")
         self._client = Groq(api_key=api_key)
@@ -39,6 +39,7 @@ class GroqSTTProvider(BaseSTT):
         audio_bytes: bytes,
         filename: str | None = None,
         content_type: str | None = None,
+        language_hint: str | None = None,
     ) -> tuple[str, str]:
         """Transcribe audio bytes using Groq's Whisper model.
 
@@ -57,10 +58,18 @@ class GroqSTTProvider(BaseSTT):
 
             def _do_transcribe() -> Any:
                 with open(temp_path, "rb") as audio_file:
-                    return self._client.audio.transcriptions.create(
-                        model="whisper-large-v3",
-                        file=audio_file,
-                    )
+                    request = {
+                        "model": "whisper-large-v3",
+                        "file": audio_file,
+                        "temperature": 0.0,
+                        "response_format": "verbose_json",
+                    }
+                    if language_hint:
+                        request["language"] = language_hint
+                    prompt = self._build_prompt(language_hint)
+                    if prompt:
+                        request["prompt"] = prompt
+                    return self._client.audio.transcriptions.create(**request)
 
             response = await asyncio.to_thread(_do_transcribe)
             text = self._extract_text(response)
@@ -95,3 +104,11 @@ class GroqSTTProvider(BaseSTT):
             normalized = content_type.split(";")[0].strip().lower()
             return cls._CONTENT_TYPE_MAP.get(normalized, ".wav")
         return ".wav"
+
+    @staticmethod
+    def _build_prompt(language_hint: str | None) -> str | None:
+        hints = os.getenv("STT_DOMAIN_HINTS", "").strip()
+        if not hints:
+            return None
+        language_note = "" if not language_hint else f" Language hint: {language_hint}."
+        return f"Tourism and heritage terms: {hints}.{language_note}".strip()

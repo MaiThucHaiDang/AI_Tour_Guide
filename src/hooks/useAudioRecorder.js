@@ -27,7 +27,13 @@ export const useAudioRecorder = () => {
       startTimeRef.current = 0;
 
       console.log('[Recorder] Requesting microphone...');
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const audioConstraints = {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+        channelCount: 1,
+      };
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints });
 
       // Kiểm tra xem có bị hủy trong khi chờ getUserMedia không
       if (!recordingActiveRef.current) {

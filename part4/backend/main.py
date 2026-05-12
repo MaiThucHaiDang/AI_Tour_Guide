@@ -19,7 +19,7 @@ REPO_ROOT = BACKEND_ROOT.parents[1]
 load_dotenv(BACKEND_ROOT / ".env")
 load_dotenv(REPO_ROOT / ".env", override=False)
 
-if not os.getenv("GROQ_API_KEY"):
+if not (os.getenv("GROQ_API_KEY") or "").strip():
     _LOGGER.warning("GROQ_API_KEY is not set. Voice STT/LLM will fail.")
 
 from routers.voice_router import voice_router

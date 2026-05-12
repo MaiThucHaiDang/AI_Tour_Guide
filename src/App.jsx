@@ -11,6 +11,7 @@ import { recognizeArtifactAPI } from './services/apiService';
 function App() {
   const [appState, setAppState] = useState('home'); // 'home', 'camera', 'scanning', 'result'
   const [resultData, setResultData] = useState(null);
+  const [lastArtifact, setLastArtifact] = useState(null);
   const [error, setError] = useState(null); // { type: 'network' | 'blur', message: string }
   const [language, setLanguage] = useState(() => {
     return localStorage.getItem('ai_tour_lang') || 'vi';
@@ -38,6 +39,7 @@ function App() {
 
       if (response.status === 'success') {
         setResultData(response.data);
+        setLastArtifact(response.data);
         setAppState('result');
       } else {
         // Xử lý edge case: ảnh tối/mờ -> hiển thị thông báo yêu cầu chụp lại
@@ -124,6 +126,7 @@ function App() {
           onBack={resetToHome}
           language={language}
           setLanguage={setLanguage}
+          artifactContext={lastArtifact}
         />
       )}
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const VoiceResult = ({ audioBlob, textResponse, language, onAskAgain }) => {
+const VoiceResult = ({ audioBlob, textResponse, userTranscript, language, onAskAgain }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [speed, setSpeed] = useState(1);
@@ -107,13 +107,24 @@ const VoiceResult = ({ audioBlob, textResponse, language, onAskAgain }) => {
 
   return (
     <div className="voice-result fade-in">
-      <div className="result-card glass-panel">
-        <div className="result-header">
-          <span className="bot-icon">🤖</span>
-          <h3>AI Tour Guide</h3>
+      <div className="voice-text-stack">
+        <div className="transcript-card glass-panel">
+          <div className="transcript-label">
+            {language === 'vi' ? 'Ban vua noi' : 'You said'}
+          </div>
+          <div className="transcript-text">
+            {userTranscript || (language === 'vi' ? 'Chua nhan duoc noi dung' : 'No transcript yet')}
+          </div>
         </div>
-        <div className="result-text">
-          {textResponse || (language === 'vi' ? 'Đây là kết quả của bạn' : 'Here is your result')}
+
+        <div className="result-card glass-panel">
+          <div className="result-header">
+            <span className="bot-icon">🤖</span>
+            <h3>AI Tour Guide</h3>
+          </div>
+          <div className="result-text">
+            {textResponse || (language === 'vi' ? 'Day la cau tra loi cua AI' : 'Here is the AI response')}
+          </div>
         </div>
       </div>
 

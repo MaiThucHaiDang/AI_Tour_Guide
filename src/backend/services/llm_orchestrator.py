@@ -14,7 +14,7 @@ from models.schemas import ArtifactInfo, LLMResponse
 logger = logging.getLogger(__name__)
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel('gemini-2.0-flash')
+model = genai.GenerativeModel('gemini-flash-latest')
 
 def build_system_prompt(artifact_data: ArtifactInfo, lang: str) -> str:
     artifact_name = artifact_data.name_vi if lang == "vi" else artifact_data.name_en
@@ -51,5 +51,5 @@ async def generate_response(
     return LLMResponse(
         response_text=response_text,
         token_count=0, # Gemini free API ko đếm token dễ như OpenAI nên ta mock số 0
-        model_used="gemini-2.5-flash"
+        model_used="gemini-flash-latest"
     )

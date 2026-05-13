@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 # Cấu hình Gemini API
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel('gemini-2.0-flash')
+model = genai.GenerativeModel('gemini-flash-latest')
 
 async def recognize_image(image_base64: str) -> VisionResult:
     try:

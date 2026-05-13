@@ -1,10 +1,9 @@
 """
- Chụp ảnh → AI nhận diện → Trả lời giọng nói
+Chụp ảnh → AI nhận diện → Trả lời giọng nói
 
 Endpoints:
   POST /api/v1/recognize   - Nhận ảnh base64, trả về tên hiện vật + câu trả lời LLM
   GET  /api/v1/health      - Health check
-  GET  /api/v1/artifacts   - Danh sách hiện vật (debug, tắt trên production)
 """
 from pathlib import Path
 from dotenv import load_dotenv
@@ -13,6 +12,7 @@ _BACKEND_ROOT = Path(__file__).resolve().parent
 _REPO_ROOT = _BACKEND_ROOT.parents[1]
 load_dotenv(_BACKEND_ROOT / ".env")
 load_dotenv(_REPO_ROOT / ".env", override=False)
+
 import logging
 import os
 from contextlib import asynccontextmanager
@@ -27,7 +27,7 @@ from slowapi.errors import RateLimitExceeded
 from models.schemas import RecognizeRequest, RecognizeResponse
 from services.image_recognition import recognize_image
 from services.llm_orchestrator import generate_response
-from services.database import get_artifact_by_id, MOCK_ARTIFACTS
+from services.database import get_artifact_by_id  # Đã loại bỏ MOCK_ARTIFACTS
 
 # ─── Cấu hình logging ─────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -45,7 +45,7 @@ limiter = Limiter(key_func=get_remote_address)
 async def lifespan(app: FastAPI):
     logger.info("AI Tour Guide Backend khởi động...")
     logger.info(f"Môi trường: {os.getenv('ENVIRONMENT', 'development')}")
-    logger.info(f"Số hiện vật trong mock DB: {len(MOCK_ARTIFACTS)}")
+    # Đã xóa dòng log tham chiếu đến MOCK_ARTIFACTS
     yield
     logger.info("Backend tắt.")
 
@@ -57,14 +57,13 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Đăng ký rate limiter
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# CORS - cho phép Mobile App (Người 1) gọi từ thiết bị
+# CORS - Đảm bảo origins không có dấu / ở cuối để tránh lỗi trình duyệt
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # Production: thay bằng domain cụ thể
+    allow_origins=["https://localhost:5173", "http://localhost:5173"], 
     allow_credentials=True,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
@@ -74,40 +73,21 @@ app.add_middleware(
 # ─── Health Check ─────────────────────────────────────────────────────────────
 @app.get("/api/v1/health")
 async def health_check():
-    """Kiểm tra backend còn sống không. Mobile App ping định kỳ."""
     return {"status": "ok", "service": "AI Tour Guide Backend v1"}
 
 
 # ─── Endpoint chính: Nhận diện ảnh ───────────────────────────────────────────
 @app.post("/api/v1/recognize", response_model=RecognizeResponse)
-@limiter.limit("30/minute")   # Mỗi IP tối đa 30 request/phút
+@limiter.limit("30/minute")
 async def recognize_artifact(request: Request, body: RecognizeRequest):
-    """
-    Endpoint chính - Luồng đầy đủ:
-    
-      1. Nhận ảnh base64 từ Mobile App (Người 1)
-      2. Gọi Image Recognition Service → artifact_id
-      3. Query DB → lấy thông tin hiện vật
-      4. Gọi LLM Orchestrator → sinh câu trả lời
-      5. Trả về tên hiện vật + câu trả lời cho Mobile App
-      
-      (TTS: Mobile App nhận response_text rồi gọi riêng TTS Service của Người 4)
-    
-    Error codes:
-      - LOW_CONFIDENCE: Ảnh tối/mờ, confidence < 0.5
-      - UNRECOGNIZED: Không nhận diện được hiện vật
-      - DB_NOT_FOUND: artifact_id không có trong DB
-    """
     lang = body.lang if body.lang in ("vi", "en") else "vi"
 
-    # ── Bước 1: Nhận diện ảnh ─────────────────────────────────────────────────
+    # 1. Nhận diện ảnh (Sử dụng Gemini Vision)
     logger.info(f"Nhận request nhận diện ảnh, lang={lang}")
     vision_result = await recognize_image(body.image_base64)
 
     if not vision_result.recognized:
         error_code = vision_result.error or "UNRECOGNIZED"
-
-        # Chọn thông báo lỗi thân thiện theo ngôn ngữ
         messages = {
             "LOW_CONFIDENCE": {
                 "vi": "Ảnh chưa rõ nét. Vui lòng chụp lại ở góc chính diện, đủ sáng.",
@@ -127,14 +107,10 @@ async def recognize_artifact(request: Request, body: RecognizeRequest):
             }
         }
 
-        # Kiểm tra xem error_code có chứa các mã lỗi đặc biệt không
         final_error = "UNRECOGNIZED"
-        if "429" in error_code:
-            final_error = "429"
-        elif "401" in error_code:
-            final_error = "401"
-        elif error_code in messages:
-            final_error = error_code
+        if "429" in error_code: final_error = "429"
+        elif "401" in error_code: final_error = "401"
+        elif error_code in messages: final_error = error_code
 
         msg_map = messages.get(final_error, messages["UNRECOGNIZED"])
         
@@ -147,7 +123,7 @@ async def recognize_artifact(request: Request, body: RecognizeRequest):
 
     artifact_id = vision_result.artifact_id
 
-    # ── Bước 2: Lấy thông tin từ DB ───────────────────────────────────────────
+    # 2. Lấy thông tin từ SQL Server (Thông qua service đã cập nhật)
     artifact_data = await get_artifact_by_id(artifact_id)
 
     if not artifact_data:
@@ -156,25 +132,18 @@ async def recognize_artifact(request: Request, body: RecognizeRequest):
             success=False,
             artifact_id=artifact_id,
             error_code="DB_NOT_FOUND",
-            message=(
-                "Hiện chưa có dữ liệu cho hiện vật này."
-                if lang == "vi"
-                else "No data available for this artifact yet."
-            ),
+            message=("Hiện chưa có dữ liệu cho hiện vật này." if lang == "vi" else "No data available."),
         )
 
-    # ── Bước 3: Gọi LLM Orchestrator ──────────────────────────────────────────
+    # 3. Gọi LLM sinh câu trả lời
     try:
         llm_response = await generate_response(artifact_data=artifact_data, lang=lang)
     except Exception as e:
         logger.error(f"LLM lỗi: {e}")
         raise HTTPException(status_code=502, detail="LLM service tạm thời không khả dụng")
 
-    # ── Bước 4: Trả kết quả về Mobile App ─────────────────────────────────────
-    artifact_name = (
-        artifact_data.name_vi if lang == "vi" else artifact_data.name_en
-    )
-
+    # 4. Trả kết quả
+    artifact_name = artifact_data.name_vi if lang == "vi" else artifact_data.name_en
     logger.info(f"Thành công: {artifact_id}, lang={lang}")
 
     return RecognizeResponse(
@@ -184,25 +153,6 @@ async def recognize_artifact(request: Request, body: RecognizeRequest):
         response_text=llm_response.response_text,
         confidence_score=vision_result.confidence_score,
     )
-
-
-# ─── Debug endpoint: Danh sách hiện vật ──────────────────────────────────────
-@app.get("/api/v1/artifacts")
-async def list_artifacts():
-    """
-    Trả về danh sách hiện vật trong DB (chỉ dùng để debug / dev).
-    TODO: Tắt endpoint này trên production.
-    """
-    if os.getenv("ENVIRONMENT") == "production":
-        raise HTTPException(status_code=404, detail="Not found")
-    
-    return {
-        "total": len(MOCK_ARTIFACTS),
-        "artifacts": [
-            {"art_id": k, "name_vi": v["name_vi"], "name_en": v["name_en"]}
-            for k, v in MOCK_ARTIFACTS.items()
-        ],
-    }
 
 
 # ─── Global exception handler ─────────────────────────────────────────────────
@@ -215,7 +165,6 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
-# ─── Chạy trực tiếp ───────────────────────────────────────────────────────────
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

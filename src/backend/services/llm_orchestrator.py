@@ -1,5 +1,10 @@
+from pathlib import Path
 from dotenv import load_dotenv
-load_dotenv()
+
+_BACKEND_ROOT = Path(__file__).resolve().parent.parent
+_REPO_ROOT = _BACKEND_ROOT.parents[1]
+load_dotenv(_BACKEND_ROOT / ".env")
+load_dotenv(_REPO_ROOT / ".env", override=False)
 import os
 import logging
 import google.generativeai as genai
@@ -9,7 +14,7 @@ from models.schemas import ArtifactInfo, LLMResponse
 logger = logging.getLogger(__name__)
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel('gemini-2.5-flash')
+model = genai.GenerativeModel('gemini-2.0-flash')
 
 def build_system_prompt(artifact_data: ArtifactInfo, lang: str) -> str:
     artifact_name = artifact_data.name_vi if lang == "vi" else artifact_data.name_en

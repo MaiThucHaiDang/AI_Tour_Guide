@@ -1,5 +1,10 @@
+from pathlib import Path
 from dotenv import load_dotenv
-load_dotenv()
+
+_BACKEND_ROOT = Path(__file__).resolve().parent.parent  # src/backend
+_REPO_ROOT = _BACKEND_ROOT.parents[1]                  # project root
+load_dotenv(_BACKEND_ROOT / ".env")
+load_dotenv(_REPO_ROOT / ".env", override=False)
 import os
 import base64
 import io
@@ -14,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 # Cấu hình Gemini API
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel('gemini-2.5-flash')
+model = genai.GenerativeModel('gemini-2.0-flash')
 
 async def recognize_image(image_base64: str) -> VisionResult:
     try:

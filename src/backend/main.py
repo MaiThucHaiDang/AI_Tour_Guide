@@ -6,8 +6,13 @@ Endpoints:
   GET  /api/v1/health      - Health check
   GET  /api/v1/artifacts   - Danh sách hiện vật (debug, tắt trên production)
 """
+from pathlib import Path
 from dotenv import load_dotenv
-load_dotenv()
+
+_BACKEND_ROOT = Path(__file__).resolve().parent
+_REPO_ROOT = _BACKEND_ROOT.parents[1]
+load_dotenv(_BACKEND_ROOT / ".env")
+load_dotenv(_REPO_ROOT / ".env", override=False)
 import logging
 import os
 from contextlib import asynccontextmanager
@@ -112,8 +117,26 @@ async def recognize_artifact(request: Request, body: RecognizeRequest):
                 "vi": "Không nhận diện được hiện vật. Hãy thử chụp toàn bộ công trình.",
                 "en": "Could not identify the artifact. Try capturing the full structure.",
             },
+            "429": {
+                "vi": "AI đang bận (Hết lượt dùng thử). Vui lòng thử lại sau 1 phút.",
+                "en": "AI is busy (Quota exceeded). Please retry in 1 minute.",
+            },
+            "401": {
+                "vi": "Lỗi xác thực (API Key không hợp lệ). Vui lòng kiểm tra file .env.",
+                "en": "Authentication error (Invalid API Key). Please check your .env file.",
+            }
         }
-        msg_map = messages.get(error_code, messages["UNRECOGNIZED"])
+
+        # Kiểm tra xem error_code có chứa các mã lỗi đặc biệt không
+        final_error = "UNRECOGNIZED"
+        if "429" in error_code:
+            final_error = "429"
+        elif "401" in error_code:
+            final_error = "401"
+        elif error_code in messages:
+            final_error = error_code
+
+        msg_map = messages.get(final_error, messages["UNRECOGNIZED"])
         
         return RecognizeResponse(
             success=False,

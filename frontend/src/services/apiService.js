@@ -194,6 +194,55 @@ export const voiceChatAPI = async (
   }
 };
 
+/**
+ * Unified Chat API: Gửi Text, Audio, và Image cùng lúc (Multimodal)
+ */
+export const unifiedChatAPI = async ({
+  text = null,
+  audioBlob = null,
+  imageBase64 = null,
+  lang = 'vi',
+  sessionId = null,
+  filename = 'recording.webm'
+}) => {
+  const formData = new FormData();
+  if (text) formData.append('text', text);
+  if (imageBase64) formData.append('image_base64', imageBase64);
+  if (audioBlob) formData.append('audio', audioBlob, filename);
+  formData.append('lang', lang);
+  if (sessionId) formData.append('session_id', sessionId);
+
+  try {
+    const response = await fetch(`${VOICE_API_URL}/api/v1/chat/unified`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    let audioBlobResult = null;
+    if (data.audio_base64) {
+      audioBlobResult = base64ToBlob(data.audio_base64, data.audio_mime || 'audio/mpeg');
+    }
+
+    return {
+      success: data.success,
+      responseText: data.response_text,
+      audioBlob: audioBlobResult,
+      transcript: data.transcript,
+      artifactId: data.artifact_id,
+      artifactName: data.artifact_name
+    };
+  } catch (error) {
+    console.error("Unified Chat Error:", error);
+    throw error;
+  }
+};
+
 const base64ToBlob = (base64, mimeType = 'audio/mpeg') => {
   if (!base64) {
     return new Blob([], { type: mimeType });

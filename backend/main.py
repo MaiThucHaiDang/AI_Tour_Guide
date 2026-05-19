@@ -62,10 +62,12 @@ app.add_middleware(
 from api.routers.health_router import router as health_router
 from api.routers.vision_router import router as vision_router
 from api.routers.voice_router import router as voice_router
+from api.routers.chat_router import router as chat_router
 
 app.include_router(health_router)
 app.include_router(vision_router)
 app.include_router(voice_router)
+app.include_router(chat_router)
 
 
 if __name__ == "__main__":

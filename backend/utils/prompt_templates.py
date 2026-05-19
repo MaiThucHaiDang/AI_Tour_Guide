@@ -10,13 +10,29 @@ from schemas.vision import ArtifactInfo
 
 # ─── Vision Pipeline Prompts ────────────────────────────────────────────────
 
-VISION_RECOGNITION_PROMPT = """Bạn là chuyên gia nhận diện di tích lịch sử. Hãy phân tích ảnh và trả về JSON:
+def build_vision_recognition_prompt(lang: str) -> str:
+    """Build a language-aware prompt for Gemini Vision."""
+    if lang == "en":
+        return """You are an expert in Vietnamese historical artifacts and sites.
+Analyze the image and return a JSON object:
+{
+  "artifact_name": "Name of the recognized artifact or site (e.g., Noon Gate, Independence Palace...)",
+  "confidence": 0.0 to 1.0,
+  "is_historical_artifact": true/false
+}
+If you are unsure or it is not a historical artifact, return {"artifact_name": "UNKNOWN", "confidence": 0.0, "is_historical_artifact": false}.
+Return ONLY the JSON object.
+"""
+    
+    return """Bạn là chuyên gia nhận diện di tích lịch sử và hiện vật tại Việt Nam.
+Hãy phân tích ảnh và trả về một đối tượng JSON:
 {
   "artifact_name": "Tên địa danh/hiện vật được nhận diện (ví dụ: Ngọ Môn, Dinh Độc Lập...)",
   "confidence": 0.0 đến 1.0,
   "is_historical_artifact": true/false
 }
-Nếu không chắc chắn hoặc không phải di tích lịch sử, trả về "KHÔNG BIẾT".
+Nếu không chắc chắn hoặc không phải di tích lịch sử, trả về {"artifact_name": "UNKNOWN", "confidence": 0.0, "is_historical_artifact": false}.
+CHỈ trả về đối tượng JSON.
 """
 
 

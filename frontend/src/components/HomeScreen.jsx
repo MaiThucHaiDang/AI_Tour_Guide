@@ -29,47 +29,36 @@ const HomeScreen = ({ onSelectFeature, language, setLanguage }) => {
       {/* Main Content - Feature Selection */}
       <main className="home-main">
         <h2 className="welcome-text">
-          {language === 'vi' ? 'Xin chào, bạn muốn làm gì?' : 'Hello, what would you like to do?'}
+          {language === 'vi' ? 'Chào mừng bạn đến với AI Tour Guide' : 'Welcome to AI Tour Guide'}
         </h2>
         
         <div className="feature-cards-container">
-          {/* Feature 1: Camera Scanner */}
+          {/* Unified Feature: AI Assistant */}
           <div 
             className="feature-card glass-panel pop-in" 
             style={{ animationDelay: '0.1s' }}
-            onClick={() => onSelectFeature('camera')}
+            onClick={() => onSelectFeature('unified')}
           >
-            <div className="feature-icon-wrapper camera-icon">
+            <div className="feature-icon-wrapper unified-icon">
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                <circle cx="12" cy="13" r="4"></circle>
+                <path d="M12 2a10 10 0 1 0 10 10H12V2z"></path>
+                <path d="M12 12L2.7 7.3"></path>
+                <path d="M12 12V22"></path>
+                <path d="M12 12l9.3 4.7"></path>
+                <path d="M22 12A10 10 0 0 0 12 2v10h10z"></path>
               </svg>
             </div>
             <h3 className="feature-title">
-              {language === 'vi' ? 'Nhận diện hiện vật' : 'Scan Artifact'}
+              {language === 'vi' ? 'Khám phá cùng AI' : 'Explore with AI'}
             </h3>
             <p className="feature-desc">
-              {language === 'vi' ? 'Quét bằng camera để xem thông tin chi tiết.' : 'Use camera to scan and get detailed info.'}
+              {language === 'vi' 
+                ? 'Nhận diện hiện vật và trò chuyện hỏi đáp thông tin du lịch.' 
+                : 'Identify artifacts and chat for travel information.'}
             </p>
-          </div>
-
-          {/* Feature 2: AI Chat */}
-          <div 
-            className="feature-card glass-panel pop-in" 
-            style={{ animationDelay: '0.2s' }}
-            onClick={() => onSelectFeature('chat')}
-          >
-            <div className="feature-icon-wrapper chat-icon">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-              </svg>
-            </div>
-            <h3 className="feature-title">
-              {language === 'vi' ? 'Hỏi đáp với AI' : 'Chat with AI'}
-            </h3>
-            <p className="feature-desc">
-              {language === 'vi' ? 'Trò chuyện và hỏi thêm thông tin du lịch.' : 'Chat and ask for more travel information.'}
-            </p>
+            <button className="start-btn">
+              {language === 'vi' ? 'Bắt đầu ngay' : 'Get Started'}
+            </button>
           </div>
         </div>
       </main>

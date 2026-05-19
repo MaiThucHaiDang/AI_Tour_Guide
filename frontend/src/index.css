@@ -211,16 +211,38 @@ button {
   box-shadow: 0 8px 16px rgba(168, 85, 247, 0.3);
 }
 
+.unified-icon {
+  background: linear-gradient(135deg, #3b82f6, #a855f7);
+  box-shadow: 0 8px 20px rgba(96, 165, 250, 0.4);
+}
+
 .feature-title {
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 8px;
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 12px;
 }
 
 .feature-desc {
-  font-size: 14px;
+  font-size: 16px;
   color: var(--text-secondary);
-  line-height: 1.5;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.start-btn {
+  background: var(--primary-color);
+  color: white;
+  padding: 12px 32px;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.feature-card:hover .start-btn {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.5);
 }
 
 /* Background Blobs */

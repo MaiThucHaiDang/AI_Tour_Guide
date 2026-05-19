@@ -8,31 +8,44 @@ const CameraScanner = ({ onCapture }) => {
   const [stream, setStream] = useState(null);
   const [photo, setPhoto] = useState(null);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   // Xây dựng màn hình chụp ảnh: mở camera
   const startCamera = async () => {
+    setIsLoading(true);
     try {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error("Trình duyệt không hỗ trợ Camera API hoặc đang truy cập qua HTTP.");
       }
+      
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' } // Prefer back camera
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
       });
+      
       setStream(mediaStream);
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
+        // Wait for video to be ready
+        videoRef.current.onloadedmetadata = () => {
+          setIsLoading(false);
+        };
       }
       setError('');
     } catch (err) {
       console.error("Camera error:", err);
+      setIsLoading(false);
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         setError('Bạn đã từ chối quyền truy cập camera. Vui lòng cấp quyền trong trình duyệt hoặc dùng nút Tải ảnh lên.');
-      } else if (err.name === 'NotFoundError') {
-        setError('Không tìm thấy camera trên thiết bị này. Vui lòng sử dụng nút Tải ảnh lên.');
-      } else if (err.name === 'NotReadableError') {
-        setError('Camera đang bị sử dụng bởi một ứng dụng khác. Vui lòng đóng các app đang dùng camera rồi Thử lại.');
       } else {
-        setError(`Lỗi mở camera (${err.name || 'Unknown'}). Vui lòng sử dụng nút Tải ảnh lên.`);
+        setError(`Lỗi mở camera: ${err.message || err.name}`);
       }
     }
   };
@@ -40,7 +53,6 @@ const CameraScanner = ({ onCapture }) => {
   useEffect(() => {
     startCamera();
     return () => {
-      // Cleanup stream when unmounting
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
@@ -54,18 +66,38 @@ const CameraScanner = ({ onCapture }) => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
 
-    // Set canvas dimensions to match video
-    canvas.width = video.videoWidth || video.clientWidth;
-    canvas.height = video.videoHeight || video.clientHeight;
+    // Limit resolution for capture to avoid massive base64 strings
+    const MAX_CAPTURE_WIDTH = 1280;
+    const MAX_CAPTURE_HEIGHT = 1280;
+    
+    let width = video.videoWidth;
+    let height = video.videoHeight;
 
-    if (canvas.width === 0 || canvas.height === 0) return;
+    if (width > height) {
+      if (width > MAX_CAPTURE_WIDTH) {
+        height = Math.round((height * MAX_CAPTURE_WIDTH) / width);
+        width = MAX_CAPTURE_WIDTH;
+      }
+    } else {
+      if (height > MAX_CAPTURE_HEIGHT) {
+        width = Math.round((width * MAX_CAPTURE_HEIGHT) / height);
+        height = MAX_CAPTURE_HEIGHT;
+      }
+    }
+
+    canvas.width = width;
+    canvas.height = height;
 
     const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    // Get full quality image, compression will happen in the pipeline
-    const imageData = canvas.toDataURL('image/jpeg', 1.0);
-    setPhoto(imageData);
+    try {
+      ctx.drawImage(video, 0, 0, width, height);
+      // Reduce quality to 0.8 to save space while keeping enough detail for AI
+      const imageData = canvas.toDataURL('image/jpeg', 0.8);
+      setPhoto(imageData);
+    } catch (err) {
+      console.error("Capture error:", err);
+      setError("Không thể chụp ảnh. Vui lòng thử lại.");
+    }
   };
 
   const handleFileUpload = (e) => {
@@ -183,31 +215,32 @@ const CameraScanner = ({ onCapture }) => {
         </>
       ) : (
         // Preview View
-        <div className="fade-in" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ flex: 1, position: 'relative' }}>
+        <div className="fade-in" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', backgroundColor: '#000' }}>
+          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {/* Preview ảnh sau khi đã chụp */}
             <img
               src={photo}
               alt="Preview"
-              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
             />
           </div>
 
           <div style={{
-            height: 100, backgroundColor: '#1e1e1e',
+            height: '120px', backgroundColor: 'rgba(30, 30, 30, 0.9)',
             display: 'flex', justifyContent: 'space-around', alignItems: 'center',
-            padding: '0 20px'
+            padding: '10px 20px',
+            borderTop: '1px solid rgba(255,255,255,0.1)'
           }}>
-            <button onClick={retakePhoto} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#a0a0a0' }}>
-              <div style={{ width: 50, height: 50, borderRadius: 25, backgroundColor: '#333', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 5 }}>
+            <button onClick={retakePhoto} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#fff', cursor: 'pointer' }}>
+              <div style={{ width: 50, height: 50, borderRadius: 25, backgroundColor: 'rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 5 }}>
                 <X size={24} />
               </div>
               <span style={{ fontSize: 12 }}>Chụp lại</span>
             </button>
 
-            <button onClick={confirmPhoto} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'var(--primary-color)' }}>
-              <div style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: 'rgba(59, 130, 246, 0.2)', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 5 }}>
-                <Check size={32} />
+            <button onClick={confirmPhoto} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#3b82f6', cursor: 'pointer' }}>
+              <div style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(59, 130, 246, 0.2)', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 5, border: '2px solid #3b82f6' }}>
+                <Check size={36} />
               </div>
               <span style={{ fontSize: 14, fontWeight: 'bold' }}>Sử dụng</span>
             </button>

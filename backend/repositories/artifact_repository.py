@@ -61,6 +61,47 @@ async def get_artifact_by_id(artifact_id: str) -> Optional[ArtifactInfo]:
         )
 
 
+async def find_artifact_by_name(name: str) -> Optional[ArtifactInfo]:
+    """Robustly find an artifact by its name (VI or EN).
+    
+    Used by the vision pipeline to resolve AI-detected labels to DB entities.
+    """
+    if not name:
+        return None
+
+    try:
+        async with async_session_factory() as session:
+            # 1. Direct match (checks if any DB name is in the input name)
+            row = await _direct_match(session, name)
+
+            # 2. Unaccented match
+            if not row:
+                unaccented = _normalize_text(name)
+                row = await _direct_match(session, unaccented)
+
+            # 3. Token-based match
+            if not row:
+                tokens = _tokenize_query(name)
+                if tokens:
+                    row = await _token_match(session, tokens)
+
+            if row:
+                return ArtifactInfo(
+                    art_id=str(row.art_id),
+                    loc_id=str(row.loc_id),
+                    name_vi=row.name_vi,
+                    name_en=row.name_en,
+                    history_text_vi=row.history_text_vi,
+                    history_text_en=row.history_text_en,
+                    author=row.author,
+                    year=row.year,
+                )
+    except Exception as exc:
+        _LOGGER.warning("Database lookup by name failed: %s", exc)
+
+    return None
+
+
 # ─── Voice Pipeline Methods ─────────────────────────────────────────────────
 
 
@@ -162,16 +203,28 @@ async def _direct_match(session: AsyncSession, query: str):
 
 
 async def _token_match(session: AsyncSession, tokens: list[str]):
-    """Match by individual tokens against artifact names."""
-    conditions = []
+    """Match by individual tokens against artifact names.
+    
+    Requires ALL tokens to match for a more robust result.
+    """
+    if not tokens:
+        return None
+        
+    # Build conditions where each token must appear in either name_vi or name_en
+    # This is an "AND" of "OR"s: (vi LIKE %t1% OR en LIKE %t1%) AND (vi LIKE %t2% OR en LIKE %t2%)
+    token_conditions = []
     for token in tokens:
-        like_pattern = f"%{token}%"
-        conditions.append(Artifact.name_vi.ilike(like_pattern))
-        conditions.append(Artifact.name_en.ilike(like_pattern))
+        token_conditions.append(
+            or_(
+                Artifact.name_vi.ilike(f"%{token}%"),
+                Artifact.name_en.ilike(f"%{token}%")
+            )
+        )
 
+    from sqlalchemy import and_
     result = await session.execute(
         select(Artifact)
-        .where(or_(*conditions))
+        .where(and_(*token_conditions))
         .order_by(func.length(Artifact.name_vi).desc())
         .limit(1)
     )

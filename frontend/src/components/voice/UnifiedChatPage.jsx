@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Camera, Mic, Send, Volume2, VolumeX, Image as ImageIcon, ArrowLeft, Loader2, Play, Pause } from 'lucide-react';
+import { Camera, Mic, Send, Volume2, VolumeX, Image as ImageIcon, ArrowLeft, Loader2, Play, Pause, X } from 'lucide-react';
 import LanguageToggle from '../shared/LanguageToggle';
 import VoiceRecorder from './VoiceRecorder';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder';
-import { voiceChatAPI, recognizeArtifactAPI, playTTS, stopTTS } from '../../services/apiService';
+import { unifiedChatAPI, playTTS, stopTTS } from '../../services/apiService';
 import { compressImage } from '../../utils/imageUtils';
 import CameraScanner from '../CameraScanner';
 
@@ -13,11 +13,12 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
   const [autoSpeak, setAutoSpeak] = useState(true);
   const [inputText, setInputText] = useState('');
   const [showCamera, setShowCamera] = useState(false);
-  const [artifactContext, setArtifactContext] = useState(null);
+  const [pendingImage, setPendingImage] = useState(null);
   
   const messagesEndRef = useRef(null);
   const sessionIdRef = useRef(null);
   const audioRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   // Initialize Session ID
   useEffect(() => {
@@ -49,6 +50,72 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
 
   useEffect(scrollToBottom, [messages, isProcessing]);
 
+  // --- COMMON PROCESSING LOGIC ---
+  const processUnifiedChat = async ({ text, audioBlob, imageBase64, filename }) => {
+    setIsProcessing(true);
+    
+    // If we have an image, add it to the chat immediately as a user message
+    if (imageBase64) {
+      const userImgMsg = {
+        id: 'img-' + Date.now(),
+        role: 'user',
+        type: 'image',
+        content: imageBase64,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, userImgMsg]);
+    }
+
+    // Add text message if exists
+    if (text) {
+      const userTextMsg = {
+        id: 'txt-' + Date.now(),
+        role: 'user',
+        type: 'text',
+        content: text,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, userTextMsg]);
+    }
+
+    try {
+      const response = await unifiedChatAPI({
+        text,
+        audioBlob,
+        imageBase64,
+        lang: language,
+        sessionId: sessionIdRef.current,
+        filename
+      });
+
+      if (response.success) {
+        const aiMsg = {
+          id: Date.now() + 1,
+          role: 'ai',
+          type: 'text',
+          content: response.responseText,
+          audioBlob: response.audioBlob,
+          timestamp: new Date(),
+          artifactData: response.artifactId ? {
+            artifact_id: response.artifactId,
+            artifact_name: response.artifactName
+          } : null
+        };
+        setMessages(prev => [...prev, aiMsg]);
+        
+        if (autoSpeak && response.audioBlob) {
+          playAudioBlob(response.audioBlob);
+        }
+      } else {
+        addErrorMessage(language === 'vi' ? 'Không thể xử lý yêu cầu.' : 'Could not process request.');
+      }
+    } catch (error) {
+      addErrorMessage(error.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   // --- VOICE HANDLING ---
   const {
     isRecording,
@@ -75,135 +142,77 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
       timestamp: new Date()
     };
     setMessages(prev => [...prev, userMsg]);
-    setIsProcessing(true);
-
-    try {
-      const response = await voiceChatAPI(
-        blob,
-        language,
-        null,
-        getFilename(),
-        sessionIdRef.current,
-        artifactContext?.artifact_id,
-        artifactContext?.artifact_name
-      );
-
-      const aiMsg = {
-        id: Date.now() + 1,
-        role: 'ai',
-        type: 'text',
-        content: response.responseText,
-        audioBlob: response.audioBlob,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, aiMsg]);
-      
-      if (autoSpeak && response.audioBlob) {
-        playAudioBlob(response.audioBlob);
-      }
-    } catch (error) {
-      addErrorMessage(error.message);
-    } finally {
-      setIsProcessing(false);
-      resetRecording();
+    
+    // If there's a pending image, send it with the voice
+    // It's already compressed by handleCapture/handleFileUpload
+    let imgToSend = pendingImage;
+    if (pendingImage) {
+      setPendingImage(null);
     }
+
+    await processUnifiedChat({ 
+      audioBlob: blob, 
+      filename: getFilename(),
+      imageBase64: imgToSend
+    });
+    resetRecording();
   };
 
   // --- IMAGE HANDLING ---
   const handleCapture = async (photoBase64) => {
     setShowCamera(false);
-    const userMsg = {
-      id: Date.now(),
-      role: 'user',
-      type: 'image',
-      content: photoBase64,
-      timestamp: new Date()
-    };
-    setMessages(prev => [...prev, userMsg]);
-    setIsProcessing(true);
-
+    setIsProcessing(true); // Show loader during compression
     try {
-      // Add status message
-      const statusMsgId = 'status-' + Date.now();
-      setMessages(prev => [...prev, {
-        id: statusMsgId,
-        role: 'ai',
-        type: 'status',
-        content: language === 'vi' ? 'Đang truy xuất thông tin hiện vật...' : 'Retrieving artifact information...',
-        timestamp: new Date()
-      }]);
-
       const compressed = await compressImage(photoBase64, 800, 800, 0.7);
-      const response = await recognizeArtifactAPI(compressed, language, sessionIdRef.current);
-
-      // Remove status message
-      setMessages(prev => prev.filter(m => m.id !== statusMsgId));
-
-      if (response.status === 'success') {
-        const aiMsg = {
-          id: Date.now() + 1,
-          role: 'ai',
-          type: 'text',
-          content: response.data.text_response,
-          timestamp: new Date(),
-          isResult: true,
-          artifactData: response.data
-        };
-        setMessages(prev => [...prev, aiMsg]);
-        setArtifactContext(response.data);
-
-        if (autoSpeak) {
-          playTTS(response.data.text_response);
-        }
-      } else {
-        addErrorMessage(response.message);
-      }
-    } catch (error) {
-      addErrorMessage(error.message);
+      setPendingImage(compressed);
+    } catch (err) {
+      console.error("Compression error:", err);
+      setPendingImage(photoBase64); // Fallback
     } finally {
       setIsProcessing(false);
     }
   };
 
+  const removePendingImage = () => {
+    setPendingImage(null);
+  };
+
   // --- TEXT HANDLING ---
   const handleSendText = async () => {
-    if (!inputText.trim()) return;
+    if (!inputText.trim() && !pendingImage) return;
 
     const text = inputText.trim();
-    setInputText('');
+    const image = pendingImage;
     
-    const userMsg = {
-      id: Date.now(),
-      role: 'user',
-      type: 'text',
-      content: text,
-      timestamp: new Date()
-    };
-    setMessages(prev => [...prev, userMsg]);
-    setIsProcessing(true);
+    setInputText('');
+    setPendingImage(null);
 
-    try {
-      // Vì hiện tại ta chưa có API chat text riêng, ta sẽ dùng voiceChatAPI 
-      // nhưng gửi một blob rỗng (cần Backend hỗ trợ hoặc tạo mock blob)
-      // Tạm thời ta giả lập bằng cách gọi voiceChatAPI với một ghi âm im lặng 
-      // hoặc chỉnh Backend để hỗ trợ TEXT chat.
-      // TRONG BÀI NÀY: Giả định ta dùng voiceChatAPI nhưng gửi kèm text hint (nếu có)
-      // Tuy nhiên, cách tốt nhất là Backend nên có 1 endpoint /chat/text.
-      
-      // MOCK PHẢN HỒI CHO TEXT (Vì backend hiện tại chủ yếu là Audio/Vision)
-      const aiMsg = {
-        id: Date.now() + 1,
-        role: 'ai',
-        type: 'text',
-        content: language === 'vi' 
-          ? `Tôi đã nhận được câu hỏi: "${text}". Hiện tại tôi đang được tối ưu để trả lời qua giọng nói và hình ảnh.` 
-          : `I received your question: "${text}". Currently I am optimized for voice and image interaction.`,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, aiMsg]);
-    } finally {
-      setIsProcessing(false);
-    }
+    // Image is already compressed now
+    await processUnifiedChat({ text, imageBase64: image });
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    setIsProcessing(true);
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const compressed = await compressImage(event.target.result, 800, 800, 0.7);
+        setPendingImage(compressed);
+      } catch (err) {
+        console.error("Compression error:", err);
+        setPendingImage(event.target.result);
+      } finally {
+        setIsProcessing(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
   };
 
   const addErrorMessage = (msg) => {
@@ -297,35 +306,58 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
       </div>
 
       {/* Input Area */}
-      <div className="chat-input-area">
-        <button className="action-btn" onClick={() => setShowCamera(true)}>
-          <Camera size={24} />
-        </button>
+      <div className="chat-input-container">
+        {pendingImage && (
+          <div className="pending-image-preview">
+            <img src={pendingImage} alt="Pending" />
+            <button className="remove-img-btn" onClick={removePendingImage}>
+              <X size={16} />
+            </button>
+          </div>
+        )}
         
-        <div className="input-wrapper">
+        <div className="chat-input-area">
+          <button className="action-btn" onClick={() => setShowCamera(true)} title="Mở Camera">
+            <Camera size={24} />
+          </button>
+          
+          <button className="action-btn" onClick={triggerFileUpload} title="Tải ảnh lên">
+            <ImageIcon size={24} />
+          </button>
+          
           <input 
-            type="text" 
-            placeholder={language === 'vi' ? 'Hỏi tôi điều gì đó...' : 'Ask me anything...'} 
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSendText()}
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleFileUpload} 
+            accept="image/*" 
+            style={{ display: 'none' }} 
           />
-          <button className="send-btn" onClick={handleSendText} disabled={!inputText.trim()}>
-            <Send size={20} />
-          </button>
-        </div>
+          
+          <div className="input-wrapper">
+            <input 
+              type="text" 
+              placeholder={language === 'vi' ? 'Hỏi tôi điều gì đó...' : 'Ask me anything...'} 
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSendText()}
+            />
+            <button className="send-btn" onClick={handleSendText} disabled={!inputText.trim() && !pendingImage}>
+              <Send size={20} />
+            </button>
+          </div>
 
-        <div className="voice-btn-container">
-          <button 
-            className={`voice-btn ${isRecording ? 'recording' : ''}`}
-            onMouseDown={startRecording}
-            onMouseUp={stopRecording}
-            onTouchStart={startRecording}
-            onTouchEnd={stopRecording}
-          >
-            <Mic size={24} />
-            {isRecording && <div className="recording-ring"></div>}
-          </button>
+          <div className="voice-btn-container">
+            <button 
+              className={`voice-btn ${isRecording ? 'recording' : ''}`}
+              onMouseDown={startRecording}
+              onMouseUp={stopRecording}
+              onTouchStart={startRecording}
+              onTouchEnd={stopRecording}
+            >
+              <Mic size={24} />
+              {isRecording && <div className="recording-ring"></div>}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -334,7 +366,7 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
         <div className="camera-overlay">
           <div className="camera-header">
             <button className="close-btn" onClick={() => setShowCamera(false)}>
-              <ArrowLeft size={24} /> {language === 'vi' ? 'Hủy' : 'Cancel'}
+              <X size={24} /> {language === 'vi' ? 'Hủy' : 'Cancel'}
             </button>
           </div>
           <CameraScanner onCapture={handleCapture} />
@@ -448,13 +480,44 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
           color: #0084ff;
           cursor: pointer;
         }
+        .chat-input-container {
+          background: white;
+          border-top: 1px solid #eee;
+          padding: 10px;
+        }
+        .pending-image-preview {
+          position: relative;
+          display: inline-block;
+          margin-bottom: 10px;
+          margin-left: 10px;
+        }
+        .pending-image-preview img {
+          width: 60px;
+          height: 60px;
+          object-fit: cover;
+          border-radius: 8px;
+          border: 1px solid #ddd;
+        }
+        .remove-img-btn {
+          position: absolute;
+          top: -8px;
+          right: -8px;
+          background: #fa3e3e;
+          color: white;
+          border: none;
+          border-radius: 50%;
+          width: 20px;
+          height: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
         .chat-input-area {
           display: flex;
           align-items: center;
-          padding: 10px;
-          background: white;
           gap: 10px;
-          border-top: 1px solid #eee;
         }
         .input-wrapper {
           flex: 1;
@@ -480,6 +543,10 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
           display: flex;
           align-items: center;
           justify-content: center;
+          transition: transform 0.2s;
+        }
+        .action-btn:active {
+          transform: scale(0.9);
         }
         .send-btn:disabled {
           color: #bcc0c4;
@@ -543,8 +610,10 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
         }
         .camera-header {
           padding: 15px;
-          background: rgba(0,0,0,0.5);
+          background: rgba(0,0,0,0.8);
           z-index: 110;
+          display: flex;
+          justify-content: flex-start;
         }
         .close-btn {
           background: none;
@@ -552,8 +621,9 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
           color: white;
           display: flex;
           align-items: center;
-          gap: 5px;
+          gap: 8px;
           font-size: 16px;
+          cursor: pointer;
         }
       `}</style>
     </div>

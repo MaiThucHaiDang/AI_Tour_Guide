@@ -103,8 +103,8 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
         };
         setMessages(prev => [...prev, aiMsg]);
         
-        if (autoSpeak && response.audioBlob) {
-          playAudioBlob(response.audioBlob);
+        if (autoSpeak) {
+          handleSpeakMessage(aiMsg);
         }
       } else {
         addErrorMessage(language === 'vi' ? 'Không thể xử lý yêu cầu.' : 'Could not process request.');
@@ -134,28 +134,66 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
   }, [audioBlob]);
 
   const handleVoiceMessage = async (blob) => {
+    // Tạo tin nhắn tạm thời cho người dùng
+    const userMsgId = Date.now();
     const userMsg = {
-      id: Date.now(),
+      id: userMsgId,
       role: 'user',
       type: 'audio',
-      content: 'Ghi âm giọng nói',
+      content: language === 'vi' ? '🎤 Đang chuyển hóa văn bản...' : '🎤 Transcribing...',
       timestamp: new Date()
     };
     setMessages(prev => [...prev, userMsg]);
     
     // If there's a pending image, send it with the voice
-    // It's already compressed by handleCapture/handleFileUpload
     let imgToSend = pendingImage;
     if (pendingImage) {
       setPendingImage(null);
     }
 
-    await processUnifiedChat({ 
-      audioBlob: blob, 
-      filename: getFilename(),
-      imageBase64: imgToSend
-    });
-    resetRecording();
+    try {
+      const response = await unifiedChatAPI({ 
+        audioBlob: blob, 
+        filename: getFilename(),
+        imageBase64: imgToSend,
+        lang: language,
+        sessionId: sessionIdRef.current
+      });
+
+      if (response.success) {
+        // CẬP NHẬT tin nhắn của người dùng với transcript thật
+        setMessages(prev => prev.map(m => 
+          m.id === userMsgId 
+            ? { ...m, content: response.transcript || (language === 'vi' ? 'Bản tin thoại' : 'Voice message') } 
+            : m
+        ));
+
+        const aiMsg = {
+          id: Date.now() + 1,
+          role: 'ai',
+          type: 'text',
+          content: response.responseText,
+          audioBlob: response.audioBlob,
+          timestamp: new Date(),
+          artifactData: response.artifactId ? {
+            artifact_id: response.artifactId,
+            artifact_name: response.artifactName
+          } : null
+        };
+        setMessages(prev => [...prev, aiMsg]);
+        
+        if (autoSpeak && response.audioBlob) {
+          playAudioBlob(response.audioBlob);
+        }
+      } else {
+        addErrorMessage(language === 'vi' ? 'Không thể xử lý yêu cầu.' : 'Could not process request.');
+      }
+    } catch (error) {
+      addErrorMessage(error.message);
+    } finally {
+      setIsProcessing(false);
+      resetRecording();
+    }
   };
 
   // --- IMAGE HANDLING ---
@@ -225,22 +263,41 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
     }]);
   };
 
-  const playAudioBlob = (blob) => {
+  const playAudioBlob = async (blob) => {
     stopTTS();
+    if (!blob || blob.size === 0) return false;
+
     if (audioRef.current) {
       audioRef.current.pause();
+      audioRef.current.src = "";
     }
+
     const url = URL.createObjectURL(blob);
     const audio = new Audio(url);
     audioRef.current = audio;
-    audio.play();
+
+    try {
+      await audio.play();
+      audio.onended = () => {
+        URL.revokeObjectURL(url);
+      };
+      return true;
+    } catch (err) {
+      console.error("Playback failed:", err);
+      URL.revokeObjectURL(url);
+      return false;
+    }
   };
 
-  const handleSpeakMessage = (msg) => {
-    if (msg.audioBlob) {
-      playAudioBlob(msg.audioBlob);
-    } else if (msg.content) {
-      playTTS(msg.content);
+  const handleSpeakMessage = async (msg) => {
+    let played = false;
+    if (msg.audioBlob && msg.audioBlob.size > 0) {
+      played = await playAudioBlob(msg.audioBlob);
+    }
+    
+    // Fallback to Browser TTS if audioBlob failed or doesn't exist
+    if (!played && msg.content) {
+      playTTS(msg.content, language);
     }
   };
 
@@ -316,49 +373,65 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
           </div>
         )}
         
-        <div className="chat-input-area">
-          <button className="action-btn" onClick={() => setShowCamera(true)} title="Mở Camera">
-            <Camera size={24} />
-          </button>
-          
-          <button className="action-btn" onClick={triggerFileUpload} title="Tải ảnh lên">
-            <ImageIcon size={24} />
-          </button>
-          
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            onChange={handleFileUpload} 
-            accept="image/*" 
-            style={{ display: 'none' }} 
-          />
-          
-          <div className="input-wrapper">
+        {isRecording ? (
+          <div className="recording-bar animate-pop-in">
+            <div className="recording-indicator">
+              <div className="recording-dot"></div>
+              <span>{language === 'vi' ? 'Đang ghi âm...' : 'Recording...'}</span>
+            </div>
+            <div className="recording-timer">
+              {Math.floor(duration / 60).toString().padStart(2, '0')}:
+              {(duration % 60).toString().padStart(2, '0')}
+            </div>
+            <div className="recording-visualizer">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <button className="stop-recording-btn" onClick={stopRecording}>
+              <Mic size={20} />
+            </button>
+          </div>
+        ) : (
+          <div className="chat-input-area">
+            <button className="action-btn" onClick={() => setShowCamera(true)} title="Mở Camera">
+              <Camera size={24} />
+            </button>
+            
+            <button className="action-btn" onClick={triggerFileUpload} title="Tải ảnh lên">
+              <ImageIcon size={24} />
+            </button>
+            
             <input 
-              type="text" 
-              placeholder={language === 'vi' ? 'Hỏi tôi điều gì đó...' : 'Ask me anything...'} 
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSendText()}
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleFileUpload} 
+              accept="image/*" 
+              style={{ display: 'none' }} 
             />
-            <button className="send-btn" onClick={handleSendText} disabled={!inputText.trim() && !pendingImage}>
-              <Send size={20} />
-            </button>
-          </div>
+            
+            <div className="input-wrapper">
+              <input 
+                type="text" 
+                placeholder={language === 'vi' ? 'Hỏi tôi điều gì đó...' : 'Ask me anything...'} 
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSendText()}
+              />
+              <button className="send-btn" onClick={handleSendText} disabled={!inputText.trim() && !pendingImage}>
+                <Send size={20} />
+              </button>
+            </div>
 
-          <div className="voice-btn-container">
-            <button 
-              className={`voice-btn ${isRecording ? 'recording' : ''}`}
-              onMouseDown={startRecording}
-              onMouseUp={stopRecording}
-              onTouchStart={startRecording}
-              onTouchEnd={stopRecording}
-            >
-              <Mic size={24} />
-              {isRecording && <div className="recording-ring"></div>}
-            </button>
+            <div className="voice-btn-container">
+              <button 
+                className="voice-btn"
+                onMouseDown={startRecording}
+                onTouchStart={startRecording}
+              >
+                <Mic size={24} />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Camera Overlay */}
@@ -624,6 +697,84 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
           gap: 8px;
           font-size: 16px;
           cursor: pointer;
+        }
+
+        /* Recording Bar Styles */
+        .recording-bar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          background: #fff0f0;
+          border: 1px solid #ffcccc;
+          border-radius: 25px;
+          padding: 8px 15px;
+          margin: 0 5px;
+          animation: popIn 0.3s ease-out;
+        }
+        .recording-indicator {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: #fa3e3e;
+          font-weight: 500;
+          font-size: 14px;
+        }
+        .recording-dot {
+          width: 10px;
+          height: 10px;
+          background: #fa3e3e;
+          border-radius: 50%;
+          animation: blink 1s infinite;
+        }
+        .recording-timer {
+          font-family: monospace;
+          font-size: 16px;
+          color: #333;
+          font-weight: bold;
+        }
+        .recording-visualizer {
+          display: flex;
+          align-items: center;
+          gap: 3px;
+          height: 20px;
+        }
+        .recording-visualizer span {
+          width: 3px;
+          background: #fa3e3e;
+          border-radius: 3px;
+          animation: visualize 0.8s infinite ease-in-out;
+        }
+        .recording-visualizer span:nth-child(1) { height: 8px; animation-delay: 0.1s; }
+        .recording-visualizer span:nth-child(2) { height: 15px; animation-delay: 0.2s; }
+        .recording-visualizer span:nth-child(3) { height: 12px; animation-delay: 0.3s; }
+        .recording-visualizer span:nth-child(4) { height: 18px; animation-delay: 0.4s; }
+        .recording-visualizer span:nth-child(5) { height: 10px; animation-delay: 0.5s; }
+
+        .stop-recording-btn {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: #fa3e3e;
+          color: white;
+          border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          box-shadow: 0 2px 8px rgba(250, 62, 62, 0.3);
+        }
+
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+        @keyframes visualize {
+          0%, 100% { transform: scaleY(1); }
+          50% { transform: scaleY(1.5); }
+        }
+        @keyframes popIn {
+          0% { transform: scale(0.9); opacity: 0; }
+          100% { transform: scale(1); opacity: 1; }
         }
       `}</style>
     </div>

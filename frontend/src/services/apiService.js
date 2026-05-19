@@ -55,7 +55,7 @@ export const recognizeArtifactAPI = async (imageBase64, lang = 'vi', sessionId =
 /**
  * Text to Speech Service sử dụng trình duyệt để phát qua loa
  */
-export const playTTS = (text, onEndCallback) => {
+export const playTTS = (text, lang = 'vi', onEndCallback) => {
   if (!('speechSynthesis' in window)) {
     console.warn("Trình duyệt không hỗ trợ Web Speech API");
     if (onEndCallback) onEndCallback();
@@ -66,7 +66,7 @@ export const playTTS = (text, onEndCallback) => {
   window.speechSynthesis.cancel();
 
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = 'vi-VN'; // Giọng tiếng Việt
+  utterance.lang = lang === 'vi' ? 'vi-VN' : 'en-US'; 
   utterance.rate = 1.0;
 
   if (onEndCallback) {

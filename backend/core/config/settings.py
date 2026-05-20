@@ -24,6 +24,17 @@ class Settings(BaseSettings):
     DATABASE_ECHO: bool = False
 
     LLM_PROVIDER_ORDER: str = "gemini,groq"
+    GEMINI_TEXT_MODEL: str = "gemini-2.0-flash"
+    GEMINI_VISION_MODEL: str = "gemini-flash-latest"
+    GROQ_LLM_MODEL: str = "llama-3.3-70b-versatile"
+    GROQ_STT_MODEL: str = "whisper-large-v3"
+    LLM_TEMPERATURE: float = 0.6
+    LLM_MAX_TOKENS: int = 180
+    VISION_CONFIDENCE_THRESHOLD: float = 0.6
+
+    TEXT_MAX_CHARS: int = 1200
+    IMAGE_MAX_BYTES: int = 5_000_000
+    AUDIO_MAX_BYTES: int = 8_000_000
 
     VOICE_MAX_TURNS: int = 6
     VOICE_SESSION_TTL_SECONDS: int = 3600
@@ -47,10 +58,32 @@ class Settings(BaseSettings):
     def llm_provider_list(self) -> list[str]:
         return [p.strip().lower() for p in self.LLM_PROVIDER_ORDER.split(",") if p.strip()]
 
+    @property
+    def is_production(self) -> bool:
+        return self.ENVIRONMENT.strip().lower() in {"production", "prod"}
+
+    def validate_runtime(self) -> None:
+        """Fail fast for configuration that should never be missing in production."""
+        if not self.is_production:
+            return
+
+        missing = []
+        if not self.GEMINI_API_KEY.strip():
+            missing.append("GEMINI_API_KEY")
+        if not self.GROQ_API_KEY.strip():
+            missing.append("GROQ_API_KEY")
+        if not self.DATABASE_URL.strip():
+            missing.append("DATABASE_URL")
+        if missing:
+            joined = ", ".join(missing)
+            raise ValueError(f"Missing required production settings: {joined}")
+
 
 @lru_cache()
 def get_settings() -> Settings:
-    return Settings()
+    current_settings = Settings()
+    current_settings.validate_runtime()
+    return current_settings
 
 
 settings: Settings = get_settings()

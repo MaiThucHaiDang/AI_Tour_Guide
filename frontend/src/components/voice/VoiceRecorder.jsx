@@ -6,8 +6,7 @@ const VoiceRecorder = ({
   stopRecording, 
   duration, 
   analyserNode, 
-  language,
-  onSimulate
+  language
 }) => {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);

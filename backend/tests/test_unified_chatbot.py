@@ -26,6 +26,10 @@ class MockLLM(BaseLLM):
     async def generate_response(self, prompt, context_data, lang):
         return f"AI Response to: {prompt}"
 
+class FailingLLM(BaseLLM):
+    async def generate_response(self, prompt, context_data, lang):
+        raise RuntimeError("provider unavailable")
+
 class MockTTS(BaseTTS):
     async def synthesize(self, text, lang):
         return b"mock_audio_bytes"
@@ -46,8 +50,9 @@ async def test_text_only_chat(orchestrator):
         session_id="test_session"
     )
     
-    assert result.response_text == "AI Response to: Chào bạn"
-    assert result.audio_bytes == b"mock_audio_bytes"
+    assert "Xin chào" in result.response_text
+    assert result.answer_source == "template"
+    assert result.audio_bytes is None
     assert result.transcript == "Chào bạn"
 
 @pytest.mark.asyncio
@@ -108,3 +113,24 @@ async def test_context_memory(orchestrator):
         
         assert "Tôi là Nam" in context.response_text
         assert "User: Tôi là Nam" in context.response_text
+
+@pytest.mark.asyncio
+async def test_unknown_database_question_gets_resilient_fallback():
+    orchestrator = UnifiedOrchestrator(
+        MockSTT(),
+        FailingLLM(),
+        MockTTS(),
+        ConversationMemory(),
+    )
+
+    with patch("orchestrators.unified_orchestrator.find_artifact_by_name", AsyncMock(return_value=None)), \
+         patch("orchestrators.unified_orchestrator.get_artifact_context", AsyncMock(return_value="No matching artifact found in database.")):
+        result = await orchestrator.process_chat_request(
+            text_query="Hãy kể về một hiện vật chưa có trong dữ liệu",
+            lang="vi",
+            session_id="fallback_session",
+        )
+
+    assert "chưa có mục dữ liệu khớp" in result.response_text
+    assert result.answer_source == "llm"
+    assert result.transcript == "Hãy kể về một hiện vật chưa có trong dữ liệu"

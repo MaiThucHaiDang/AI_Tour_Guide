@@ -68,9 +68,10 @@ const VoicePage = ({ onBack, language, setLanguage, artifactContext }) => {
     if (voiceStateRef.current !== 'recording') return; // Guard: chỉ xử lý khi đang ghi âm
 
     const elapsed = durationRef.current;
-    console.log('[VoicePage] audioBlob ready, elapsed:', elapsed, 's');
+    console.warn('[VoicePage] audioBlob ready, elapsed:', elapsed, 's');
 
     processAudio(audioBlob, language, getFilename());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audioBlob]);
 
   const handleStartRecording = () => {
@@ -95,7 +96,7 @@ const VoicePage = ({ onBack, language, setLanguage, artifactContext }) => {
     abortControllerRef.current = new AbortController();
 
     try {
-      console.log('[VoicePage] Calling voiceChatAPI, lang:', lang, 'file:', filename, 'size:', blob.size);
+      console.warn('[VoicePage] Calling voiceChatAPI, lang:', lang, 'file:', filename, 'size:', blob.size);
       const response = await voiceChatAPI(
         blob,
         lang,
@@ -110,7 +111,7 @@ const VoicePage = ({ onBack, language, setLanguage, artifactContext }) => {
       const transcript = response?.transcript || '';
       const responseText = response?.responseText || '';
 
-      console.log(
+      console.warn(
         '[VoicePage] API response received, size:',
         responseBlob ? responseBlob.size : 'n/a'
       );
@@ -151,6 +152,7 @@ const VoicePage = ({ onBack, language, setLanguage, artifactContext }) => {
       }
       processAudio(audioBlob, language, getFilename());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
 
   const handleRetry = () => {

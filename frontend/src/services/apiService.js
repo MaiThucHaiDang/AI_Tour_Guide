@@ -1,15 +1,9 @@
-/**
- * Gửi ảnh lên API Gateway thật.
- */
-// Dùng path tương đối để Vite Proxy tự forward sang đúng backend port
-// Proxy config trong vite.config.js: /api/v1 → :8000, /api/voice → :8001
+// Relative paths are forwarded by Vite to the unified backend in development.
 const RECOGNIZE_API_URL = '';
 const VOICE_API_URL = '';
 
 export const recognizeArtifactAPI = async (imageBase64, lang = 'vi', sessionId = null) => {
   try {
-    // Gọi API thật của BE đang chạy trên cổng 8000
-    // LƯU Ý: Khi deploy lên server thật, cần thay đổi URL này.
     const response = await fetch(`${RECOGNIZE_API_URL}/api/v1/recognize`, {
       method: 'POST',
       headers: {
@@ -87,7 +81,7 @@ export const stopTTS = () => {
 /**
  * Gửi ghi âm lên API Voice Chat
  */
-const USE_MOCK = false; // Đã đổi thành false để dùng Backend thật
+const USE_MOCK = false;
 
 export const voiceChatAPI = async (
   audioBlob,
@@ -98,9 +92,8 @@ export const voiceChatAPI = async (
   artifactId = null,
   artifactName = null
 ) => {
-  // --- CHẾ ĐỘ MOCK (Test không cần Backend) ---
   if (USE_MOCK) {
-    console.log("🎙️ [MOCK] Đang gửi audio blob:", audioBlob.size, "bytes", "Ngôn ngữ:", lang);
+    console.warn("[MOCK] Sending audio blob:", audioBlob.size, "bytes", "Language:", lang);
     return new Promise((resolve, reject) => {
       const controller = new AbortController();
       if (signal) {
@@ -109,11 +102,11 @@ export const voiceChatAPI = async (
 
       const timeoutId = setTimeout(() => {
         if (controller.signal.aborted) {
+          clearTimeout(timeoutId);
           reject(new Error('TIMEOUT'));
           return;
         }
 
-        // Tạo một blob mpeg giả hoặc gọi Web Speech API đọc văn bản giả để có trải nghiệm
         const text = lang === 'vi' 
           ? 'Đây là kết quả giả lập từ Frontend. Ngọ Môn được xây dựng năm 1833 dưới triều vua Minh Mạng.'
           : 'This is a mock result from Frontend. Ngo Mon Gate was built in 1833 during Emperor Minh Mang reign.';
@@ -121,20 +114,16 @@ export const voiceChatAPI = async (
           ? 'Toi muon biet ve Ngo Mon.'
           : 'Tell me about Ngo Mon Gate.';
         
-        // Phát âm thanh giả lập
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = lang === 'vi' ? 'vi-VN' : 'en-US';
         window.speechSynthesis.speak(utterance);
 
-        // Trả về một blob rỗng đại diện cho audio (UI sẽ không phát lỗi nhưng dựa vào audio tag)
-        // Lưu ý: với blob rỗng thì audio HTML player sẽ không phát, nhưng Web Speech ở trên sẽ nói.
         const mockBlob = new Blob(['mock audio data'], { type: 'audio/mpeg' });
+        clearTimeout(timeoutId);
         resolve({ audioBlob: mockBlob, transcript, responseText: text });
       }, 2000); // Giả lập độ trễ 2 giây của mạng
     });
   }
-  // --- KẾT THÚC MOCK ---
-
   const formData = new FormData();
   formData.append('audio', audioBlob, filename);
   formData.append('lang', lang);
@@ -166,7 +155,7 @@ export const voiceChatAPI = async (
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || `HTTP ${response.status}`);
+      throw new Error(errorData.message || errorData.detail || `HTTP ${response.status}`);
     }
 
     const contentType = response.headers.get('content-type') || '';
@@ -212,15 +201,21 @@ export const unifiedChatAPI = async ({
   formData.append('lang', lang);
   if (sessionId) formData.append('session_id', sessionId);
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 35000);
+
   try {
     const response = await fetch(`${VOICE_API_URL}/api/v1/chat/unified`, {
       method: 'POST',
       body: formData,
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || `HTTP ${response.status}`);
+      throw new Error(errorData.message || errorData.detail || `HTTP ${response.status}`);
     }
 
     const data = await response.json();
@@ -235,12 +230,49 @@ export const unifiedChatAPI = async ({
       audioBlob: audioBlobResult,
       transcript: data.transcript,
       artifactId: data.artifact_id,
-      artifactName: data.artifact_name
+      artifactName: data.artifact_name,
+      artifactYear: data.artifact_year,
+      artifactAuthor: data.artifact_author,
+      artifactSummary: data.artifact_summary,
+      answerSource: data.answer_source,
+      processingSteps: data.processing_steps || []
     };
   } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Yêu cầu quá lâu. Kiểm tra backend hoặc thử lại với ảnh nhỏ hơn.');
+    }
     console.error("Unified Chat Error:", error);
     throw error;
   }
+};
+
+export const submitFeedbackAPI = async ({
+  sessionId = null,
+  messageId = null,
+  artifactId = null,
+  rating,
+  comment = null
+}) => {
+  if (!rating) return { success: false };
+  const response = await fetch('/api/v1/feedback', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      session_id: sessionId,
+      message_id: messageId,
+      artifact_id: artifactId,
+      rating,
+      comment
+    })
+  });
+
+  if (!response.ok) {
+    return { success: false };
+  }
+  return response.json();
 };
 
 const base64ToBlob = (base64, mimeType = 'audio/mpeg') => {

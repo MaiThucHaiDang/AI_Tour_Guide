@@ -14,7 +14,7 @@ import re
 import unicodedata
 from typing import Optional
 
-from sqlalchemy import select, func, or_
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import async_session_factory
@@ -27,6 +27,9 @@ _STOP_WORDS = {
     "la", "ve", "noi", "ke", "gioi", "thieu", "cho", "toi", "ban",
     "please", "tell", "me", "about", "the", "a", "an", "this",
     "that", "is", "are",
+    "hay", "duoc", "duoc", "xay", "dung", "nam", "nao", "ai",
+    "o", "dau", "lich", "su", "y", "nghia", "what", "when", "where",
+    "who", "built", "meaning", "history",
 }
 
 
@@ -195,40 +198,42 @@ async def _direct_match(session: AsyncSession, query: str):
     )
 
     query_lower = query.lower()
+    normalized_query = _normalize_text(query)
     for artifact in candidates:
-        if artifact.name_vi.lower() in query_lower or artifact.name_en.lower() in query_lower:
+        names = (artifact.name_vi, artifact.name_en)
+        if any(name.lower() in query_lower for name in names):
+            return artifact
+        if any(_normalize_text(name) in normalized_query for name in names):
+            return artifact
+        if normalized_query and any(normalized_query in _normalize_text(name) for name in names):
             return artifact
 
     return None
 
 
 async def _token_match(session: AsyncSession, tokens: list[str]):
-    """Match by individual tokens against artifact names.
-    
-    Requires ALL tokens to match for a more robust result.
-    """
+    """Score token overlap against normalized artifact names."""
     if not tokens:
         return None
-        
-    # Build conditions where each token must appear in either name_vi or name_en
-    # This is an "AND" of "OR"s: (vi LIKE %t1% OR en LIKE %t1%) AND (vi LIKE %t2% OR en LIKE %t2%)
-    token_conditions = []
-    for token in tokens:
-        token_conditions.append(
-            or_(
-                Artifact.name_vi.ilike(f"%{token}%"),
-                Artifact.name_en.ilike(f"%{token}%")
-            )
-        )
 
-    from sqlalchemy import and_
-    result = await session.execute(
-        select(Artifact)
-        .where(and_(*token_conditions))
-        .order_by(func.length(Artifact.name_vi).desc())
-        .limit(1)
-    )
-    return result.scalar_one_or_none()
+    result = await session.execute(select(Artifact))
+    candidates = result.scalars().all()
+    best_artifact = None
+    best_score = 0.0
+
+    for artifact in candidates:
+        haystack = _normalize_text(f"{artifact.name_vi} {artifact.name_en}")
+        matches = sum(1 for token in tokens if token in haystack)
+        if not matches:
+            continue
+        score = matches / len(tokens)
+        if score > best_score:
+            best_score = score
+            best_artifact = artifact
+
+    if best_artifact and (best_score >= 0.5 or len(tokens) <= 2):
+        return best_artifact
+    return None
 
 
 def _normalize_text(text: str) -> str:

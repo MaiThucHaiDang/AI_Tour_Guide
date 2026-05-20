@@ -1,13 +1,18 @@
 """SQLAlchemy ORM model for the Bilingual_Content table."""
 
 from __future__ import annotations
-from sqlalchemy import ForeignKey, Integer, String, Text
+from sqlalchemy import ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from core.database import Base
 
 
 class BilingualContent(Base):
     __tablename__ = "bilingual_content"
+    __table_args__ = (
+        UniqueConstraint(
+            "artifact_id", "lang", "content_type", name="uq_bilingual_artifact_lang_type"
+        ),
+    )
 
     content_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     artifact_id: Mapped[int] = mapped_column(Integer, ForeignKey("artifacts.art_id"), nullable=False, index=True)

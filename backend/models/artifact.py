@@ -8,7 +8,7 @@ from core.database import Base
 
 class Artifact(Base):
     __tablename__ = "artifacts"
-    __table_args__ = (UniqueConstraint("name_vi"),)
+    __table_args__ = (UniqueConstraint("name_vi", name="uq_artifacts_name_vi"),)
 
     art_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     loc_id: Mapped[int] = mapped_column(Integer, ForeignKey("locations.loc_id"), nullable=False)

@@ -6,14 +6,15 @@ const ResultView = ({ data, onBack }) => {
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
-    // Auto-play TTS on mount
-    handlePlayAudio();
+    setIsPlaying(true);
+    playTTS(data.text_response, () => {
+      setIsPlaying(false);
+    });
 
     return () => {
-      // Cleanup TTS on unmount
       stopTTS();
     };
-  }, []);
+  }, [data.text_response]);
 
   // Nhận audio stream từ TTS Service, phát qua loa thiết bị
   const handlePlayAudio = () => {

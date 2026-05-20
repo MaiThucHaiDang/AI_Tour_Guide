@@ -26,7 +26,7 @@ export const useAudioRecorder = () => {
       durationRef.current = 0;
       startTimeRef.current = 0;
 
-      console.log('[Recorder] Requesting microphone...');
+      console.warn('[Recorder] Requesting microphone...');
       const audioConstraints = {
         echoCancellation: true,
         noiseSuppression: true,
@@ -38,7 +38,7 @@ export const useAudioRecorder = () => {
       // Kiểm tra xem có bị hủy trong khi chờ getUserMedia không
       if (!recordingActiveRef.current) {
         stream.getTracks().forEach(t => t.stop());
-        console.log('[Recorder] Cancelled during getUserMedia');
+        console.warn('[Recorder] Cancelled during getUserMedia');
         return;
       }
 
@@ -74,7 +74,7 @@ export const useAudioRecorder = () => {
       mediaRecorder.onstop = () => {
         const finalMime = mimeTypeRef.current || 'audio/wav';
         const blob = new Blob(chunks, { type: finalMime });
-        console.log('[Recorder] Blob created, size:', blob.size, 'duration:', durationRef.current);
+        console.warn('[Recorder] Blob created, size:', blob.size, 'duration:', durationRef.current);
         setAudioBlob(blob);
       };
 
@@ -82,7 +82,7 @@ export const useAudioRecorder = () => {
       startTimeRef.current = Date.now();
       setIsRecording(true);
       setDuration(0);
-      console.log('[Recorder] Recording started');
+      console.warn('[Recorder] Recording started');
 
       timerRef.current = setInterval(() => {
         setDuration((prev) => {
@@ -101,6 +101,7 @@ export const useAudioRecorder = () => {
       recordingActiveRef.current = false;
       setError(err.name === 'NotAllowedError' ? 'microphone_denied' : 'recording_error');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const stopRecording = useCallback(() => {
@@ -110,7 +111,7 @@ export const useAudioRecorder = () => {
     // Tính duration chính xác bằng Date.now
     if (startTimeRef.current > 0) {
       durationRef.current = (Date.now() - startTimeRef.current) / 1000;
-      console.log('[Recorder] Actual duration:', durationRef.current, 's');
+      console.warn('[Recorder] Actual duration:', durationRef.current, 's');
       startTimeRef.current = 0;
     }
 

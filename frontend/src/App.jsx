@@ -16,7 +16,7 @@ function App() {
     setAppState('home');
   };
 
-  const handleSelectFeature = (feature) => {
+  const handleSelectFeature = () => {
     setAppState('chat');
   };
 

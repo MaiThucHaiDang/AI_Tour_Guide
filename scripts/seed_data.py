@@ -1,6 +1,6 @@
 """Seed PostgreSQL database with data from the original SQL Server schema.
 
-Run: python scripts/seed_data.py
+Run after migrations: alembic upgrade head && python scripts/seed_data.py
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ from pathlib import Path
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "backend"))
 
-from core.database import engine, Base, async_session_factory
+from core.database import async_session_factory
 from models.location import Location
 from models.artifact import Artifact
 from models.precomputed_audio import PrecomputedAudio
@@ -500,9 +500,6 @@ BILINGUAL_CONTENT = [
 
 
 async def seed():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
     async with async_session_factory() as session:
         # Check if data already exists
         from sqlalchemy import select, func

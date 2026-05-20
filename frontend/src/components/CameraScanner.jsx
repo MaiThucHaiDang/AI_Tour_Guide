@@ -1,21 +1,19 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { Camera, X, Check, Image as ImageIcon, Upload } from 'lucide-react';
+import React, { useCallback, useRef, useEffect, useState } from 'react';
+import { X, Check, Image as ImageIcon, Upload } from 'lucide-react';
 
 const CameraScanner = ({ onCapture }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
-  const [stream, setStream] = useState(null);
+  const streamRef = useRef(null);
   const [photo, setPhoto] = useState(null);
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
 
   // Xây dựng màn hình chụp ảnh: mở camera
-  const startCamera = async () => {
-    setIsLoading(true);
+  const startCamera = useCallback(async () => {
     try {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
       }
 
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -30,34 +28,31 @@ const CameraScanner = ({ onCapture }) => {
         }
       });
       
-      setStream(mediaStream);
+      streamRef.current = mediaStream;
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
-        // Wait for video to be ready
-        videoRef.current.onloadedmetadata = () => {
-          setIsLoading(false);
-        };
       }
       setError('');
     } catch (err) {
       console.error("Camera error:", err);
-      setIsLoading(false);
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         setError('Bạn đã từ chối quyền truy cập camera. Vui lòng cấp quyền trong trình duyệt hoặc dùng nút Tải ảnh lên.');
       } else {
         setError(`Lỗi mở camera: ${err.message || err.name}`);
       }
     }
-  };
+  }, []);
 
   useEffect(() => {
     startCamera();
     return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+      const activeStream = streamRef.current;
+      if (activeStream) {
+        activeStream.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
       }
     };
-  }, []);
+  }, [startCamera]);
 
   // Nút chụp: lấy ảnh từ luồng video hiện tại
   const takePhoto = () => {

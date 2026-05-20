@@ -21,7 +21,10 @@ class FallbackLLMProvider(BaseLLM):
         last_exc: Exception | None = None
         for provider in self._providers:
             try:
-                return await provider.generate_response(prompt, context_data, lang)
+                response = await provider.generate_response(prompt, context_data, lang)
+                if not response.strip():
+                    raise RuntimeError("Provider returned an empty response.")
+                return response
             except Exception as exc:
                 _LOGGER.warning(
                     "LLM provider %s failed: %s", type(provider).__name__, exc,

@@ -15,7 +15,7 @@ from typing import Any
 from groq import Groq
 
 from services.ai.interfaces import BaseSTT
-from core.config import settings
+from core.config import get_settings, settings
 
 
 class GroqSTTProvider(BaseSTT):
@@ -34,10 +34,12 @@ class GroqSTTProvider(BaseSTT):
     }
 
     def __init__(self) -> None:
-        api_key = settings.GROQ_API_KEY.strip()
+        current_settings = get_settings()
+        api_key = current_settings.GROQ_API_KEY.strip()
         if not api_key:
             raise ValueError("GROQ_API_KEY is not set in environment variables.")
         self._client = Groq(api_key=api_key)
+        self._model = current_settings.GROQ_STT_MODEL
 
     async def transcribe(
         self,
@@ -56,7 +58,7 @@ class GroqSTTProvider(BaseSTT):
             def _do_transcribe() -> Any:
                 with open(temp_path, "rb") as audio_file:
                     request = {
-                        "model": "whisper-large-v3",
+                        "model": self._model,
                         "file": audio_file,
                         "temperature": 0.0,
                         "response_format": "verbose_json",

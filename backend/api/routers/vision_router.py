@@ -10,12 +10,15 @@ import logging
 
 from fastapi import APIRouter, Request, HTTPException, Depends
 
+from core.config import settings
+from core.security import limiter
 from schemas.vision import RecognizeRequest, RecognizeResponse
 from services.vision.image_recognition import recognize_image
 from services.vision.response_generator import generate_response
 from repositories.artifact_repository import get_artifact_by_id
 from core.dependencies import get_conversation_memory
 from services.memory.conversation_memory import ConversationMemory
+from utils.request_validation import normalize_lang, validate_image_base64_size
 
 logger = logging.getLogger(__name__)
 
@@ -23,12 +26,14 @@ router = APIRouter(prefix="/api/v1", tags=["Vision"])
 
 
 @router.post("/recognize", response_model=RecognizeResponse)
+@limiter.limit(settings.RATE_LIMIT)
 async def recognize_artifact(
     request: Request, 
     body: RecognizeRequest,
     memory: ConversationMemory = Depends(get_conversation_memory)
 ):
-    lang = body.lang if body.lang in ("vi", "en") else "vi"
+    lang = normalize_lang(body.lang)
+    validate_image_base64_size(body.image_base64)
     session_id = body.session_id
 
     # 1. Image recognition (Gemini Vision)
@@ -95,7 +100,7 @@ async def recognize_artifact(
     try:
         llm_response = await generate_response(artifact_data=artifact_data, lang=lang)
     except Exception as e:
-        logger.error(f"LLM error: {e}")
+        logger.error("LLM error: %s", e)
         raise HTTPException(
             status_code=502, detail="LLM service tạm thời không khả dụng"
         )

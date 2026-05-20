@@ -1,26 +1,156 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Camera, Mic, Send, Volume2, VolumeX, Image as ImageIcon, ArrowLeft, Loader2, Play, Pause, X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  ArrowLeft,
+  Camera,
+  ChevronDown,
+  CheckCircle2,
+  FileText,
+  Image as ImageIcon,
+  Landmark,
+  Loader2,
+  MapPin,
+  Mic,
+  RotateCcw,
+  Send,
+  Sparkles,
+  ThumbsDown,
+  ThumbsUp,
+  Upload,
+  Volume2,
+  VolumeX,
+  X
+} from 'lucide-react';
 import LanguageToggle from '../shared/LanguageToggle';
-import VoiceRecorder from './VoiceRecorder';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder';
-import { unifiedChatAPI, playTTS, stopTTS } from '../../services/apiService';
+import { unifiedChatAPI, playTTS, stopTTS, submitFeedbackAPI } from '../../services/apiService';
 import { compressImage } from '../../utils/imageUtils';
 import CameraScanner from '../CameraScanner';
 
+const COPY = {
+  vi: {
+    title: 'AI Tour Guide',
+    subtitle: 'Hướng dẫn viên số cho hành trình văn hóa',
+    status: 'Sẵn sàng',
+    back: 'Trang chủ',
+    upload: 'Tải ảnh',
+    camera: 'Chụp ảnh',
+    askPlaceholder: 'Hỏi về hiện vật, lịch sử hoặc địa điểm...',
+    greeting: 'Xin chào! Hãy tải ảnh hiện vật, dùng webcam hoặc hỏi trực tiếp về một địa điểm lịch sử.',
+    processing: 'Đang chuẩn bị câu trả lời',
+    artifactPanel: 'Thông tin hiện vật',
+    noArtifact: 'Tải ảnh, chụp hiện vật hoặc đặt câu hỏi để nhận thông tin phù hợp.',
+    confidence: 'Độ tin cậy',
+    year: 'Năm',
+    author: 'Tác giả/triều đại',
+    summary: 'Tóm tắt',
+    suggestions: 'Gợi ý hỏi nhanh',
+    locations: 'Địa điểm nổi bật',
+    explore: 'Câu hỏi gợi ý',
+    recording: 'Đang ghi âm...',
+    transcribing: 'Đang chuyển giọng nói thành văn bản...',
+    pendingImage: 'Ảnh chờ gửi',
+    detailEmpty: 'Thông tin chi tiết sẽ xuất hiện sau khi tìm thấy hiện vật liên quan.',
+    assistantEyebrow: 'Hướng dẫn tham quan',
+    reset: 'Bắt đầu lại',
+    listen: 'Nghe câu trả lời',
+    helpful: 'Hữu ích',
+    notHelpful: 'Chưa đúng',
+    feedbackThanks: 'Cảm ơn phản hồi của bạn',
+    closeCamera: 'Đóng camera',
+    removeImage: 'Bỏ ảnh',
+    send: 'Gửi câu hỏi',
+    record: 'Ghi âm',
+    latest: 'Tin nhắn mới nhất',
+    quickPrompts: [
+      'Ngọ Môn được xây năm nào?',
+      'Ai xây Điện Thái Hòa?',
+      'Kể ngắn về Cửu Đỉnh trong 30 giây',
+      'Ý nghĩa lịch sử của Dinh Độc Lập là gì?'
+    ],
+    locationsList: [
+      { name: 'Kinh thành Huế', detail: 'Ngọ Môn, Điện Thái Hòa, Cửu Đỉnh' },
+      { name: 'Dinh Độc Lập', detail: 'Phòng Nội các, Hầm chỉ huy, Xe tăng 843' },
+      { name: 'Bảo tàng Chứng tích Chiến tranh', detail: 'F-5E Tiger, M48 Patton, UH-1 Huey' }
+    ]
+  },
+  en: {
+    title: 'AI Tour Guide',
+    subtitle: 'A digital guide for cultural journeys',
+    status: 'Ready',
+    back: 'Home',
+    upload: 'Upload',
+    camera: 'Capture',
+    askPlaceholder: 'Ask about an artifact, history, or destination...',
+    greeting: 'Hello! Upload an artifact photo, use the webcam, or ask about a historical site.',
+    processing: 'Preparing your answer',
+    artifactPanel: 'Artifact detail',
+    noArtifact: 'Upload a photo, capture an artifact, or ask a question to get relevant guidance.',
+    confidence: 'Confidence',
+    year: 'Year',
+    author: 'Author/dynasty',
+    summary: 'Summary',
+    suggestions: 'Suggested questions',
+    locations: 'Featured destinations',
+    explore: 'Suggested questions',
+    recording: 'Recording...',
+    transcribing: 'Transcribing voice...',
+    pendingImage: 'Pending image',
+    detailEmpty: 'Artifact details will appear after a related item is found.',
+    assistantEyebrow: 'Tour guidance',
+    reset: 'Start over',
+    listen: 'Listen to answer',
+    helpful: 'Helpful',
+    notHelpful: 'Not right',
+    feedbackThanks: 'Thanks for your feedback',
+    closeCamera: 'Close camera',
+    removeImage: 'Remove image',
+    send: 'Send question',
+    record: 'Record voice',
+    latest: 'Latest messages',
+    quickPrompts: [
+      'When was Ngo Mon Gate built?',
+      'Who built Thai Hoa Palace?',
+      'Summarize the Nine Dynastic Urns in 30 seconds',
+      'What is the historical meaning of Independence Palace?'
+    ],
+    locationsList: [
+      { name: 'Hue Imperial City', detail: 'Ngo Mon, Thai Hoa Palace, Nine Dynastic Urns' },
+      { name: 'Independence Palace', detail: 'Cabinet Room, Command Bunker, Tank 843' },
+      { name: 'War Remnants Museum', detail: 'F-5E Tiger, M48 Patton, UH-1 Huey' }
+    ]
+  }
+};
+
 const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
+  const copy = COPY[language] || COPY.vi;
   const [messages, setMessages] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [autoSpeak, setAutoSpeak] = useState(true);
   const [inputText, setInputText] = useState('');
   const [showCamera, setShowCamera] = useState(false);
   const [pendingImage, setPendingImage] = useState(null);
-  
+  const [currentArtifact, setCurrentArtifact] = useState(null);
+  const [processingSteps, setProcessingSteps] = useState([]);
+  const [selectedLocation, setSelectedLocation] = useState(0);
+  const [showJumpToLatest, setShowJumpToLatest] = useState(false);
+
   const messagesEndRef = useRef(null);
+  const messageListRef = useRef(null);
+  const shouldStickToBottomRef = useRef(true);
   const sessionIdRef = useRef(null);
   const audioRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // Initialize Session ID
+  const {
+    isRecording,
+    audioBlob,
+    duration,
+    startRecording,
+    stopRecording,
+    resetRecording,
+    getFilename
+  } = useAudioRecorder();
+
   useEffect(() => {
     const cached = sessionStorage.getItem('unified_chat_session_id');
     if (cached) {
@@ -31,51 +161,71 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
       sessionStorage.setItem('unified_chat_session_id', newId);
     }
 
-    // Chào mừng người dùng
-    const welcomeMsg = {
+    setMessages([{
       id: 'welcome',
       role: 'ai',
       type: 'text',
-      content: language === 'vi' 
-        ? 'Xin chào! Tôi là hướng dẫn viên AI của bạn. Hãy gửi ảnh di tích hoặc đặt câu hỏi cho tôi nhé.' 
-        : 'Hello! I am your AI tour guide. Feel free to send artifact photos or ask me anything.',
-      timestamp: new Date()
-    };
-    setMessages([welcomeMsg]);
-  }, []);
+      content: copy.greeting,
+      timestamp: new Date(),
+      source: 'template'
+    }]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [language]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  useEffect(() => {
+    if (!shouldStickToBottomRef.current) return;
+    scrollToLatest('smooth');
+  }, [messages, isProcessing]);
 
-  useEffect(scrollToBottom, [messages, isProcessing]);
+  useEffect(() => {
+    if (audioBlob) {
+      const imageToSend = pendingImage;
+      setPendingImage(null);
+      processUnifiedChat({
+        audioBlob,
+        imageBase64: imageToSend,
+        filename: getFilename()
+      }).finally(resetRecording);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [audioBlob]);
 
-  // --- COMMON PROCESSING LOGIC ---
   const processUnifiedChat = async ({ text, audioBlob, imageBase64, filename }) => {
     setIsProcessing(true);
-    
-    // If we have an image, add it to the chat immediately as a user message
+    shouldStickToBottomRef.current = true;
+    setShowJumpToLatest(false);
+    setProcessingSteps([copy.processing]);
+
+    let voiceMsgId = null;
     if (imageBase64) {
-      const userImgMsg = {
-        id: 'img-' + Date.now(),
+      setMessages(prev => [...prev, {
+        id: `img-${Date.now()}`,
         role: 'user',
         type: 'image',
         content: imageBase64,
         timestamp: new Date()
-      };
-      setMessages(prev => [...prev, userImgMsg]);
+      }]);
     }
 
-    // Add text message if exists
     if (text) {
-      const userTextMsg = {
-        id: 'txt-' + Date.now(),
+      setMessages(prev => [...prev, {
+        id: `txt-${Date.now()}`,
         role: 'user',
         type: 'text',
         content: text,
         timestamp: new Date()
-      };
-      setMessages(prev => [...prev, userTextMsg]);
+      }]);
+    }
+
+    if (audioBlob && !text) {
+      voiceMsgId = `voice-${Date.now()}`;
+      setMessages(prev => [...prev, {
+        id: voiceMsgId,
+        role: 'user',
+        type: 'text',
+        content: copy.transcribing,
+        timestamp: new Date()
+      }]);
     }
 
     try {
@@ -88,693 +238,1062 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
         filename
       });
 
-      if (response.success) {
-        const aiMsg = {
-          id: Date.now() + 1,
-          role: 'ai',
-          type: 'text',
-          content: response.responseText,
-          audioBlob: response.audioBlob,
-          timestamp: new Date(),
-          artifactData: response.artifactId ? {
-            artifact_id: response.artifactId,
-            artifact_name: response.artifactName
-          } : null
-        };
-        setMessages(prev => [...prev, aiMsg]);
-        
-        if (autoSpeak) {
-          handleSpeakMessage(aiMsg);
-        }
-      } else {
-        addErrorMessage(language === 'vi' ? 'Không thể xử lý yêu cầu.' : 'Could not process request.');
+      if (voiceMsgId && response.transcript) {
+        setMessages(prev => prev.map(message => (
+          message.id === voiceMsgId
+            ? { ...message, content: response.transcript }
+            : message
+        )));
       }
+
+      if (response.artifactId || response.artifactName) {
+        setCurrentArtifact({
+          id: response.artifactId,
+          name: response.artifactName,
+          year: response.artifactYear,
+          author: response.artifactAuthor,
+          summary: response.artifactSummary,
+          source: response.answerSource,
+        });
+      }
+
+      setProcessingSteps(response.processingSteps || []);
+
+      const aiMsg = {
+        id: `ai-${Date.now()}`,
+        role: 'ai',
+        type: 'text',
+        content: response.responseText || '',
+        audioBlob: response.audioBlob,
+        timestamp: new Date(),
+        source: response.answerSource,
+        artifactData: response.artifactId ? {
+          artifact_id: response.artifactId,
+          artifact_name: response.artifactName
+        } : null
+      };
+      setIsProcessing(false);
+      await appendAssistantMessageProgressively(aiMsg);
     } catch (error) {
       addErrorMessage(error.message);
+      setProcessingSteps([]);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  // --- VOICE HANDLING ---
-  const {
-    isRecording,
-    audioBlob,
-    duration,
-    startRecording,
-    stopRecording,
-    resetRecording,
-    getFilename
-  } = useAudioRecorder();
-
-  useEffect(() => {
-    if (audioBlob) {
-      handleVoiceMessage(audioBlob);
-    }
-  }, [audioBlob]);
-
-  const handleVoiceMessage = async (blob) => {
-    // Tạo tin nhắn tạm thời cho người dùng
-    const userMsgId = Date.now();
-    const userMsg = {
-      id: userMsgId,
-      role: 'user',
-      type: 'audio',
-      content: language === 'vi' ? '🎤 Đang chuyển hóa văn bản...' : '🎤 Transcribing...',
-      timestamp: new Date()
-    };
-    setMessages(prev => [...prev, userMsg]);
-    
-    // If there's a pending image, send it with the voice
-    let imgToSend = pendingImage;
-    if (pendingImage) {
-      setPendingImage(null);
-    }
-
-    try {
-      const response = await unifiedChatAPI({ 
-        audioBlob: blob, 
-        filename: getFilename(),
-        imageBase64: imgToSend,
-        lang: language,
-        sessionId: sessionIdRef.current
-      });
-
-      if (response.success) {
-        // CẬP NHẬT tin nhắn của người dùng với transcript thật
-        setMessages(prev => prev.map(m => 
-          m.id === userMsgId 
-            ? { ...m, content: response.transcript || (language === 'vi' ? 'Bản tin thoại' : 'Voice message') } 
-            : m
-        ));
-
-        const aiMsg = {
-          id: Date.now() + 1,
-          role: 'ai',
-          type: 'text',
-          content: response.responseText,
-          audioBlob: response.audioBlob,
-          timestamp: new Date(),
-          artifactData: response.artifactId ? {
-            artifact_id: response.artifactId,
-            artifact_name: response.artifactName
-          } : null
-        };
-        setMessages(prev => [...prev, aiMsg]);
-        
-        if (autoSpeak && response.audioBlob) {
-          playAudioBlob(response.audioBlob);
-        }
-      } else {
-        addErrorMessage(language === 'vi' ? 'Không thể xử lý yêu cầu.' : 'Could not process request.');
-      }
-    } catch (error) {
-      addErrorMessage(error.message);
-    } finally {
-      setIsProcessing(false);
-      resetRecording();
-    }
-  };
-
-  // --- IMAGE HANDLING ---
   const handleCapture = async (photoBase64) => {
     setShowCamera(false);
-    setIsProcessing(true); // Show loader during compression
+    setIsProcessing(true);
     try {
       const compressed = await compressImage(photoBase64, 800, 800, 0.7);
       setPendingImage(compressed);
     } catch (err) {
-      console.error("Compression error:", err);
-      setPendingImage(photoBase64); // Fallback
+      console.error('Compression error:', err);
+      setPendingImage(photoBase64);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const removePendingImage = () => {
-    setPendingImage(null);
-  };
-
-  // --- TEXT HANDLING ---
-  const handleSendText = async () => {
-    if (!inputText.trim() && !pendingImage) return;
-
-    const text = inputText.trim();
-    const image = pendingImage;
-    
-    setInputText('');
-    setPendingImage(null);
-
-    // Image is already compressed now
-    await processUnifiedChat({ text, imageBase64: image });
-  };
-
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
+  const handleFileUpload = async (event) => {
+    const file = event.target.files?.[0];
     if (!file) return;
-    
     setIsProcessing(true);
     const reader = new FileReader();
-    reader.onload = async (event) => {
+    reader.onload = async (readerEvent) => {
       try {
-        const compressed = await compressImage(event.target.result, 800, 800, 0.7);
+        const compressed = await compressImage(readerEvent.target.result, 800, 800, 0.7);
         setPendingImage(compressed);
       } catch (err) {
-        console.error("Compression error:", err);
-        setPendingImage(event.target.result);
+        console.error('Compression error:', err);
+        setPendingImage(readerEvent.target.result);
       } finally {
         setIsProcessing(false);
+        event.target.value = '';
       }
     };
     reader.readAsDataURL(file);
   };
 
-  const triggerFileUpload = () => {
-    fileInputRef.current?.click();
+  const handleSendText = async (overrideText = null) => {
+    const text = (overrideText ?? inputText).trim();
+    if (!text && !pendingImage) return;
+    const image = pendingImage;
+    setInputText('');
+    setPendingImage(null);
+    await processUnifiedChat({ text, imageBase64: image });
   };
 
-  const addErrorMessage = (msg) => {
+  const addErrorMessage = (message) => {
+    shouldStickToBottomRef.current = true;
+    setShowJumpToLatest(false);
     setMessages(prev => [...prev, {
-      id: Date.now(),
+      id: `err-${Date.now()}`,
       role: 'ai',
       type: 'error',
-      content: msg || 'Đã có lỗi xảy ra.',
-      timestamp: new Date()
+      content: getFriendlyError(message),
+      timestamp: new Date(),
+      source: 'error'
     }]);
+  };
+
+  const appendAssistantMessageProgressively = async (message) => {
+    const fullContent = message.content || '';
+    const streamId = message.id;
+    const baseMessage = { ...message, content: '', isStreaming: true };
+    setMessages(prev => [...prev, baseMessage]);
+
+    if (!fullContent) {
+      setMessages(prev => prev.map(item => (
+        item.id === streamId ? { ...item, isStreaming: false } : item
+      )));
+      return;
+    }
+
+    const parts = fullContent.match(/\S+\s*/g) || [fullContent];
+    let rendered = '';
+    const chunkSize = fullContent.length > 500 ? 3 : 2;
+
+    for (let index = 0; index < parts.length; index += chunkSize) {
+      rendered += parts.slice(index, index + chunkSize).join('');
+      setMessages(prev => prev.map(item => (
+        item.id === streamId ? { ...item, content: rendered } : item
+      )));
+      await new Promise(resolve => setTimeout(resolve, 18));
+    }
+
+    setMessages(prev => prev.map(item => (
+      item.id === streamId ? { ...item, content: fullContent, isStreaming: false } : item
+    )));
+
+    if (autoSpeak) {
+      handleSpeakMessage(message);
+    }
+  };
+
+  const getFriendlyError = (message = '') => {
+    const lower = message.toLowerCase();
+    if (lower.includes('too large') || lower.includes('quá lớn')) {
+      return language === 'vi'
+        ? 'Ảnh hoặc đoạn ghi âm đang quá lớn. Hãy thử ảnh nhỏ hơn hoặc ghi âm ngắn hơn.'
+        : 'The photo or recording is too large. Try a smaller photo or a shorter recording.';
+    }
+    if (lower.includes('timeout') || lower.includes('quá lâu')) {
+      return language === 'vi'
+        ? 'Kết nối đang chậm. Hãy thử lại với câu hỏi ngắn hơn hoặc ảnh rõ hơn.'
+        : 'The connection is slow. Try again with a shorter question or a clearer photo.';
+    }
+    if (lower.includes('provider') || lower.includes('api key')) {
+      return language === 'vi'
+        ? 'Tính năng giọng nói hoặc nhận diện hiện chưa sẵn sàng. Bạn vẫn có thể nhập câu hỏi bằng chữ.'
+        : 'Voice or recognition is not ready yet. You can still type your question.';
+    }
+    if (lower.includes('failed to fetch') || lower.includes('network')) {
+      return language === 'vi'
+        ? 'Chưa kết nối được với hướng dẫn viên. Hãy đợi vài giây rồi thử lại.'
+        : 'The guide is not reachable yet. Wait a few seconds and try again.';
+    }
+    return message || (language === 'vi'
+      ? 'Mình chưa xử lý được yêu cầu này. Hãy thử hỏi ngắn hơn hoặc gửi ảnh rõ hơn.'
+      : 'I could not handle this request. Try a shorter question or a clearer photo.');
   };
 
   const playAudioBlob = async (blob) => {
     stopTTS();
     if (!blob || blob.size === 0) return false;
-
     if (audioRef.current) {
       audioRef.current.pause();
-      audioRef.current.src = "";
+      audioRef.current.src = '';
     }
-
     const url = URL.createObjectURL(blob);
     const audio = new Audio(url);
     audioRef.current = audio;
-
     try {
       await audio.play();
-      audio.onended = () => {
-        URL.revokeObjectURL(url);
-      };
+      audio.onended = () => URL.revokeObjectURL(url);
       return true;
     } catch (err) {
-      console.error("Playback failed:", err);
+      console.error('Playback failed:', err);
       URL.revokeObjectURL(url);
       return false;
     }
   };
 
-  const handleSpeakMessage = async (msg) => {
+  const handleSpeakMessage = async (message) => {
     let played = false;
-    if (msg.audioBlob && msg.audioBlob.size > 0) {
-      played = await playAudioBlob(msg.audioBlob);
+    if (message.audioBlob && message.audioBlob.size > 0) {
+      played = await playAudioBlob(message.audioBlob);
     }
-    
-    // Fallback to Browser TTS if audioBlob failed or doesn't exist
-    if (!played && msg.content) {
-      playTTS(msg.content, language);
+    if (!played && message.content) {
+      playTTS(message.content, language);
     }
   };
 
+  const formatDuration = (seconds) => {
+    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const secs = (seconds % 60).toString().padStart(2, '0');
+    return `${mins}:${secs}`;
+  };
+
+  const handleResetConversation = () => {
+    shouldStickToBottomRef.current = true;
+    setShowJumpToLatest(false);
+    stopTTS();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = '';
+    }
+    const newId = `chat-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    sessionIdRef.current = newId;
+    sessionStorage.setItem('unified_chat_session_id', newId);
+    setMessages([{
+      id: 'welcome',
+      role: 'ai',
+      type: 'text',
+      content: copy.greeting,
+      timestamp: new Date(),
+      source: 'template'
+    }]);
+    setPendingImage(null);
+    setCurrentArtifact(null);
+    setProcessingSteps([]);
+  };
+
+  const scrollToLatest = (behavior = 'auto') => {
+    const list = messageListRef.current;
+    if (!list) return;
+    list.scrollTo({
+      top: list.scrollHeight,
+      behavior,
+    });
+  };
+
+  const handleMessageListScroll = () => {
+    const list = messageListRef.current;
+    if (!list) return;
+    const distanceFromBottom = list.scrollHeight - list.scrollTop - list.clientHeight;
+    const isNearBottom = distanceFromBottom < 96;
+    shouldStickToBottomRef.current = isNearBottom;
+    setShowJumpToLatest(!isNearBottom);
+  };
+
+  const handleJumpToLatest = () => {
+    shouldStickToBottomRef.current = true;
+    setShowJumpToLatest(false);
+    scrollToLatest('smooth');
+  };
+
+  const handleFeedback = (message, value) => {
+    setMessages(prev => prev.map(item => (
+      item.id === message.id ? { ...item, feedback: value } : item
+    )));
+    submitFeedbackAPI({
+      sessionId: sessionIdRef.current,
+      messageId: message.id,
+      artifactId: message.artifactData?.artifact_id || currentArtifact?.id || null,
+      rating: value === 'up' ? 'helpful' : 'not_helpful'
+    }).catch(() => undefined);
+  };
+
   return (
-    <div className="unified-chat-page">
-      {/* Header */}
-      <div className="chat-header">
-        <button className="icon-btn" onClick={onBack}>
-          <ArrowLeft size={24} />
+    <div className="tour-workspace">
+      <header className="tour-topbar">
+        <button className="topbar-back" onClick={onBack} aria-label={copy.back}>
+          <ArrowLeft size={18} />
+          <span>{copy.back}</span>
         </button>
-        <div className="header-info">
-          <h3>AI Tour Guide</h3>
-          <span className="status-dot"></span>
+        <div className="brand-block">
+          <div className="brand-mark"><Landmark size={22} /></div>
+          <div>
+            <h1>{copy.title}</h1>
+            <p>{copy.subtitle}</p>
+          </div>
         </div>
-        <div className="header-actions">
-          <button 
-            className={`icon-btn ${autoSpeak ? 'active' : ''}`} 
-            onClick={() => setAutoSpeak(!autoSpeak)}
-            title={autoSpeak ? 'Auto-speak ON' : 'Auto-speak OFF'}
+        <div className="topbar-actions">
+          <div className="backend-status">
+            <span className="status-dot" />
+            {copy.status}
+          </div>
+          <button
+            className="topbar-icon"
+            onClick={handleResetConversation}
+            aria-label={copy.reset}
+            title={copy.reset}
           >
-            {autoSpeak ? <Volume2 size={20} /> : <VolumeX size={20} />}
+            <RotateCcw size={18} />
+          </button>
+          <button
+            className={`topbar-icon ${autoSpeak ? 'active' : ''}`}
+            onClick={() => setAutoSpeak(!autoSpeak)}
+            aria-label={autoSpeak ? 'Disable auto speak' : 'Enable auto speak'}
+          >
+            {autoSpeak ? <Volume2 size={18} /> : <VolumeX size={18} />}
           </button>
           <LanguageToggle language={language} setLanguage={setLanguage} />
         </div>
-      </div>
+      </header>
 
-      {/* Message List */}
-      <div className="message-list">
-        {messages.map((msg) => (
-          <div key={msg.id} className={`message-bubble ${msg.role}`}>
-            {msg.type === 'image' ? (
-              <div className="image-content">
-                <img src={msg.content} alt="User upload" />
-              </div>
-            ) : msg.type === 'status' ? (
-              <div className="status-content">
-                <Loader2 className="animate-spin" size={16} />
-                <span>{msg.content}</span>
-              </div>
-            ) : (
-              <div className="text-content">
-                {msg.content}
-                {msg.role === 'ai' && msg.type !== 'error' && (
-                  <button className="msg-speak-btn" onClick={() => handleSpeakMessage(msg)}>
-                    <Volume2 size={14} />
-                  </button>
+      <main className="workspace-grid">
+        <aside className="explore-panel">
+          <section className="panel-section">
+            <div className="section-heading">
+              <MapPin size={17} />
+              <h2>{copy.locations}</h2>
+            </div>
+            <div className="location-list">
+              {copy.locationsList.map((location, index) => (
+                <button
+                  key={location.name}
+                  className={`location-card ${selectedLocation === index ? 'selected' : ''}`}
+                  onClick={() => setSelectedLocation(index)}
+                >
+                  <strong>{location.name}</strong>
+                  <span>{location.detail}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="panel-section">
+            <div className="section-heading">
+              <Sparkles size={17} />
+              <h2>{copy.explore}</h2>
+            </div>
+            <div className="quick-actions">
+              {copy.quickPrompts.map((prompt) => (
+                <button key={prompt} onClick={() => handleSendText(prompt)}>
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          </section>
+        </aside>
+
+        <section className="conversation-panel">
+          <div className="conversation-header">
+            <div>
+              <span className="eyebrow">{copy.assistantEyebrow}</span>
+              <h2>{copy.title}</h2>
+            </div>
+            <div className="conversation-tools">
+              <button onClick={() => setShowCamera(true)} aria-label={copy.camera}>
+                <Camera size={18} />
+                {copy.camera}
+              </button>
+              <button onClick={() => fileInputRef.current?.click()} aria-label={copy.upload}>
+                <Upload size={18} />
+                {copy.upload}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+                style={{ display: 'none' }}
+              />
+            </div>
+          </div>
+
+          <div
+            ref={messageListRef}
+            className="message-list"
+            aria-live="polite"
+            onScroll={handleMessageListScroll}
+          >
+            {messages.map((message) => (
+              <article key={message.id} className={`message ${message.role} ${message.type}`}>
+                {message.type === 'image' ? (
+                  <img src={message.content} alt="Uploaded artifact" />
+                ) : (
+                  <>
+                    <div className="message-body">
+                      <p>{message.content}</p>
+                      {message.isStreaming && <span className="stream-caret" aria-hidden="true" />}
+                      {message.role === 'ai' && message.type !== 'error' && (
+                        <button onClick={() => handleSpeakMessage(message)} aria-label={copy.listen}>
+                          <Volume2 size={14} />
+                        </button>
+                      )}
+                    </div>
+                    {message.role === 'ai' && message.type !== 'error' && (
+                      <div className="message-feedback">
+                        {message.feedback ? (
+                          <span>{copy.feedbackThanks}</span>
+                        ) : (
+                          <>
+                            <button onClick={() => handleFeedback(message, 'up')} aria-label={copy.helpful}>
+                              <ThumbsUp size={14} />
+                              {copy.helpful}
+                            </button>
+                            <button onClick={() => handleFeedback(message, 'down')} aria-label={copy.notHelpful}>
+                              <ThumbsDown size={14} />
+                              {copy.notHelpful}
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </>
                 )}
+                <time>{new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</time>
+              </article>
+            ))}
+            {isProcessing && (
+              <article className="message ai">
+                <div className="message-body loading">
+                  <Loader2 size={16} className="spin" />
+                  <p>{copy.processing}</p>
+                </div>
+              </article>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {showJumpToLatest && (
+            <button className="jump-latest" onClick={handleJumpToLatest} aria-label={copy.latest}>
+              <ChevronDown size={16} />
+              {copy.latest}
+            </button>
+          )}
+
+          <div className="composer">
+            {pendingImage && (
+              <div className="pending-image">
+                <img src={pendingImage} alt={copy.pendingImage} />
+                <span>{copy.pendingImage}</span>
+                <button onClick={() => setPendingImage(null)} aria-label={copy.removeImage}>
+                  <X size={16} />
+                </button>
               </div>
             )}
-            <div className="message-time">
-              {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </div>
-          </div>
-        ))}
-        {isProcessing && (
-          <div className="message-bubble ai typing">
-            <div className="typing-indicator">
-              <span></span><span></span><span></span>
-            </div>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
 
-      {/* Input Area */}
-      <div className="chat-input-container">
-        {pendingImage && (
-          <div className="pending-image-preview">
-            <img src={pendingImage} alt="Pending" />
-            <button className="remove-img-btn" onClick={removePendingImage}>
-              <X size={16} />
-            </button>
+            {isRecording ? (
+              <div className="recording-bar">
+                <div className="recording-left">
+                  <span className="recording-dot" />
+                  <strong>{copy.recording}</strong>
+                </div>
+                <span className="recording-time">{formatDuration(duration)}</span>
+                <button onClick={stopRecording}>
+                  <Mic size={18} />
+                </button>
+              </div>
+            ) : (
+              <div className="composer-row">
+                <button onClick={() => setShowCamera(true)} aria-label={copy.camera}>
+                  <Camera size={20} />
+                </button>
+                <button onClick={() => fileInputRef.current?.click()} aria-label={copy.upload}>
+                  <ImageIcon size={20} />
+                </button>
+                <input
+                  value={inputText}
+                  onChange={(event) => setInputText(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') handleSendText();
+                  }}
+                  placeholder={copy.askPlaceholder}
+                />
+                <button
+                  className="send-button"
+                  disabled={!inputText.trim() && !pendingImage}
+                  onClick={() => handleSendText()}
+                  aria-label={copy.send}
+                >
+                  <Send size={19} />
+                </button>
+                <button className="mic-button" onMouseDown={startRecording} onTouchStart={startRecording} aria-label={copy.record}>
+                  <Mic size={20} />
+                </button>
+              </div>
+            )}
           </div>
-        )}
-        
-        {isRecording ? (
-          <div className="recording-bar animate-pop-in">
-            <div className="recording-indicator">
-              <div className="recording-dot"></div>
-              <span>{language === 'vi' ? 'Đang ghi âm...' : 'Recording...'}</span>
-            </div>
-            <div className="recording-timer">
-              {Math.floor(duration / 60).toString().padStart(2, '0')}:
-              {(duration % 60).toString().padStart(2, '0')}
-            </div>
-            <div className="recording-visualizer">
-              <span></span><span></span><span></span><span></span><span></span>
-            </div>
-            <button className="stop-recording-btn" onClick={stopRecording}>
-              <Mic size={20} />
-            </button>
-          </div>
-        ) : (
-          <div className="chat-input-area">
-            <button className="action-btn" onClick={() => setShowCamera(true)} title="Mở Camera">
-              <Camera size={24} />
-            </button>
-            
-            <button className="action-btn" onClick={triggerFileUpload} title="Tải ảnh lên">
-              <ImageIcon size={24} />
-            </button>
-            
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              onChange={handleFileUpload} 
-              accept="image/*" 
-              style={{ display: 'none' }} 
-            />
-            
-            <div className="input-wrapper">
-              <input 
-                type="text" 
-                placeholder={language === 'vi' ? 'Hỏi tôi điều gì đó...' : 'Ask me anything...'} 
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendText()}
-              />
-              <button className="send-btn" onClick={handleSendText} disabled={!inputText.trim() && !pendingImage}>
-                <Send size={20} />
-              </button>
+        </section>
+
+        <aside className="artifact-panel">
+          <section className="artifact-card">
+            <div className="section-heading">
+              <FileText size={17} />
+              <h2>{copy.artifactPanel}</h2>
             </div>
 
-            <div className="voice-btn-container">
-              <button 
-                className="voice-btn"
-                onMouseDown={startRecording}
-                onTouchStart={startRecording}
-              >
-                <Mic size={24} />
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+            {currentArtifact ? (
+              <>
+                <div className="artifact-visual">
+                  <Landmark size={46} />
+                </div>
+                <h3>{currentArtifact.name || copy.artifactPanel}</h3>
+                <div className="artifact-meta-grid">
+                  <div>
+                    <span>{copy.year}</span>
+                    <strong>{currentArtifact.year || '-'}</strong>
+                  </div>
+                  <div>
+                    <span>{copy.author}</span>
+                    <strong>{currentArtifact.author || '-'}</strong>
+                  </div>
+                  <div>
+                    <span>ID</span>
+                    <strong>{currentArtifact.id || '-'}</strong>
+                  </div>
+                </div>
+                <div className="summary-block">
+                  <span>{copy.summary}</span>
+                  <p>{currentArtifact.summary || copy.detailEmpty}</p>
+                </div>
+              </>
+            ) : (
+              <div className="empty-artifact">
+                <Landmark size={44} />
+                <p>{copy.noArtifact}</p>
+              </div>
+            )}
+          </section>
 
-      {/* Camera Overlay */}
+          <section className="steps-card">
+            <div className="section-heading">
+              <CheckCircle2 size={17} />
+              <h2>{language === 'vi' ? 'Trạng thái hỗ trợ' : 'Guidance status'}</h2>
+            </div>
+            {processingSteps.length > 0 ? (
+              <ol className="processing-steps">
+                {processingSteps.map((step, index) => (
+                  <li key={`${step}-${index}`}>{step}</li>
+                ))}
+              </ol>
+            ) : (
+              <p className="muted">{copy.detailEmpty}</p>
+            )}
+          </section>
+
+          <section className="panel-section suggestions-card">
+            <div className="section-heading">
+              <Sparkles size={17} />
+              <h2>{copy.suggestions}</h2>
+            </div>
+            <div className="quick-actions">
+              {copy.quickPrompts.slice(0, 3).map((prompt) => (
+                <button key={prompt} onClick={() => handleSendText(prompt)}>
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          </section>
+        </aside>
+      </main>
+
       {showCamera && (
         <div className="camera-overlay">
           <div className="camera-header">
-            <button className="close-btn" onClick={() => setShowCamera(false)}>
-              <X size={24} /> {language === 'vi' ? 'Hủy' : 'Cancel'}
+            <button onClick={() => setShowCamera(false)}>
+              <X size={22} />
+              {copy.closeCamera}
             </button>
           </div>
           <CameraScanner onCapture={handleCapture} />
         </div>
       )}
 
-      <style jsx>{`
-        .unified-chat-page {
+      <style>{`
+        .tour-workspace {
+          height: 100dvh;
+          background: #f5f1e8;
+          color: #1f2a2e;
           display: flex;
           flex-direction: column;
-          height: 100vh;
-          background: #f0f2f5;
-          position: relative;
+          overflow: hidden;
         }
-        .chat-header {
+        .tour-topbar {
+          height: 72px;
           display: flex;
           align-items: center;
-          padding: 10px 15px;
-          background: white;
-          box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-          z-index: 10;
+          gap: 18px;
+          padding: 0 24px;
+          background: #fffdf7;
+          border-bottom: 1px solid #ded6c5;
         }
-        .header-info {
-          flex: 1;
-          margin-left: 10px;
-        }
-        .header-info h3 {
-          margin: 0;
-          font-size: 16px;
-        }
-        .status-dot {
-          display: inline-block;
-          width: 8px;
-          height: 8px;
-          background: #4caf50;
-          border-radius: 50%;
-          margin-right: 5px;
-        }
-        .header-actions {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-        .icon-btn {
-          background: none;
-          border: none;
-          padding: 8px;
-          border-radius: 50%;
-          cursor: pointer;
-          color: #65676b;
-        }
-        .icon-btn.active {
-          color: #0084ff;
-          background: rgba(0,132,255,0.1);
-        }
-        .message-list {
-          flex: 1;
-          overflow-y: auto;
-          padding: 15px;
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-        .message-bubble {
-          max-width: 80%;
-          padding: 10px 15px;
-          border-radius: 18px;
-          font-size: 15px;
-          position: relative;
-          word-wrap: break-word;
-        }
-        .message-bubble.user {
-          align-self: flex-end;
-          background: #0084ff;
-          color: white;
-          border-bottom-right-radius: 4px;
-        }
-        .message-bubble.ai {
-          align-self: flex-start;
-          background: white;
-          color: black;
-          border-bottom-left-radius: 4px;
-          box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
-        .image-content img {
-          max-width: 100%;
-          border-radius: 12px;
-          display: block;
-        }
-        .status-content {
-          display: flex;
+        .topbar-back,
+        .topbar-icon,
+        .conversation-tools button,
+        .composer-row button,
+        .recording-bar button,
+        .camera-header button {
+          border: 1px solid #d8cdb9;
+          background: #fffaf0;
+          color: #254247;
+          border-radius: 8px;
+          display: inline-flex;
           align-items: center;
           gap: 8px;
-          font-style: italic;
-          color: #65676b;
+          padding: 9px 12px;
+          font-weight: 650;
+        }
+        .topbar-icon {
+          width: 38px;
+          height: 38px;
+          justify-content: center;
+          padding: 0;
+        }
+        .topbar-icon.active {
+          background: #e4f1ed;
+          color: #116149;
+        }
+        .brand-block {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          flex: 1;
+          min-width: 260px;
+        }
+        .brand-mark {
+          width: 42px;
+          height: 42px;
+          border-radius: 10px;
+          background: #1f5f5b;
+          color: #fffaf0;
+          display: grid;
+          place-items: center;
+        }
+        .brand-block h1 {
+          font-size: 19px;
+          margin: 0;
+        }
+        .brand-block p {
+          margin: 2px 0 0;
+          color: #69716d;
           font-size: 13px;
         }
-        .message-time {
-          font-size: 10px;
-          margin-top: 4px;
-          opacity: 0.7;
-          text-align: right;
-        }
-        .user .message-time {
-          color: rgba(255,255,255,0.8);
-        }
-        .msg-speak-btn {
-          background: none;
-          border: none;
-          margin-left: 8px;
-          color: #0084ff;
-          cursor: pointer;
-        }
-        .chat-input-container {
-          background: white;
-          border-top: 1px solid #eee;
-          padding: 10px;
-        }
-        .pending-image-preview {
-          position: relative;
-          display: inline-block;
-          margin-bottom: 10px;
-          margin-left: 10px;
-        }
-        .pending-image-preview img {
-          width: 60px;
-          height: 60px;
-          object-fit: cover;
-          border-radius: 8px;
-          border: 1px solid #ddd;
-        }
-        .remove-img-btn {
-          position: absolute;
-          top: -8px;
-          right: -8px;
-          background: #fa3e3e;
-          color: white;
-          border: none;
-          border-radius: 50%;
-          width: 20px;
-          height: 20px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        .chat-input-area {
+        .topbar-actions {
           display: flex;
           align-items: center;
           gap: 10px;
         }
-        .input-wrapper {
+        .backend-status {
+          color: #116149;
+          font-size: 13px;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          gap: 7px;
+        }
+        .status-dot {
+          width: 9px;
+          height: 9px;
+          border-radius: 999px;
+          background: #2f9d69;
+        }
+        .workspace-grid {
           flex: 1;
-          display: flex;
-          align-items: center;
-          background: #f0f2f5;
-          border-radius: 20px;
-          padding: 5px 15px;
+          min-height: 0;
+          height: calc(100dvh - 72px);
+          overflow: hidden;
+          display: grid;
+          grid-template-columns: minmax(240px, 280px) minmax(420px, 1fr) minmax(300px, 360px);
+          gap: 18px;
+          padding: 18px;
         }
-        .input-wrapper input {
-          flex: 1;
-          background: none;
-          border: none;
-          padding: 8px 0;
-          outline: none;
-          font-size: 15px;
+        .explore-panel,
+        .conversation-panel,
+        .artifact-panel {
+          min-height: 0;
         }
-        .action-btn, .send-btn {
-          background: none;
-          border: none;
-          color: #0084ff;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: transform 0.2s;
-        }
-        .action-btn:active {
-          transform: scale(0.9);
-        }
-        .send-btn:disabled {
-          color: #bcc0c4;
-        }
-        .voice-btn {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          background: #0084ff;
-          color: white;
-          border: none;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          position: relative;
-        }
-        .voice-btn.recording {
-          background: #fa3e3e;
-          transform: scale(1.2);
-        }
-        .recording-ring {
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          border-radius: 50%;
-          border: 2px solid #fa3e3e;
-          animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-          0% { transform: scale(1); opacity: 1; }
-          100% { transform: scale(2); opacity: 0; }
-        }
-        .typing-indicator {
-          display: flex;
-          gap: 4px;
-        }
-        .typing-indicator span {
-          width: 6px;
-          height: 6px;
-          background: #90949c;
-          border-radius: 50%;
-          animation: bounce 1s infinite;
-        }
-        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes bounce {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-5px); }
-        }
-        .camera-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          z-index: 100;
-          background: black;
+        .explore-panel,
+        .artifact-panel {
           display: flex;
           flex-direction: column;
+          gap: 14px;
         }
-        .camera-header {
-          padding: 15px;
-          background: rgba(0,0,0,0.8);
-          z-index: 110;
-          display: flex;
-          justify-content: flex-start;
+        .panel-section,
+        .artifact-card,
+        .steps-card,
+        .conversation-panel {
+          background: #fffdf7;
+          border: 1px solid #ded6c5;
+          border-radius: 10px;
+          box-shadow: 0 10px 26px rgba(66, 49, 24, 0.08);
         }
-        .close-btn {
-          background: none;
-          border: none;
-          color: white;
+        .panel-section,
+        .artifact-card,
+        .steps-card {
+          padding: 16px;
+        }
+        .section-heading {
           display: flex;
           align-items: center;
           gap: 8px;
-          font-size: 16px;
-          cursor: pointer;
+          color: #1f5f5b;
+          margin-bottom: 12px;
         }
-
-        /* Recording Bar Styles */
-        .recording-bar {
+        .section-heading h2 {
+          margin: 0;
+          font-size: 15px;
+        }
+        .location-list,
+        .quick-actions {
+          display: flex;
+          flex-direction: column;
+          gap: 9px;
+        }
+        .location-card,
+        .quick-actions button {
+          text-align: left;
+          border: 1px solid #e0d5c2;
+          background: #fffaf0;
+          border-radius: 8px;
+          padding: 11px;
+          color: #263437;
+        }
+        .location-card.selected {
+          border-color: #1f5f5b;
+          box-shadow: inset 3px 0 0 #1f5f5b;
+        }
+        .location-card strong {
+          display: block;
+          font-size: 14px;
+          margin-bottom: 5px;
+        }
+        .location-card span,
+        .muted {
+          color: #6b746f;
+          font-size: 13px;
+          line-height: 1.45;
+        }
+        .conversation-panel {
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          position: relative;
+        }
+        .conversation-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          background: #fff0f0;
-          border: 1px solid #ffcccc;
-          border-radius: 25px;
-          padding: 8px 15px;
-          margin: 0 5px;
-          animation: popIn 0.3s ease-out;
+          gap: 16px;
+          padding: 16px 18px;
+          border-bottom: 1px solid #ebe2d0;
         }
-        .recording-indicator {
+        .conversation-header h2 {
+          margin: 3px 0 0;
+          font-size: 18px;
+        }
+        .eyebrow {
+          color: #9b5a2e;
+          font-size: 12px;
+          font-weight: 800;
+          text-transform: uppercase;
+        }
+        .conversation-tools {
+          display: flex;
+          gap: 8px;
+        }
+        .message-list {
+          flex: 1;
+          min-height: 0;
+          overflow-y: auto;
+          overscroll-behavior: contain;
+          scroll-behavior: smooth;
+          padding: 18px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          background: linear-gradient(180deg, #fffdf7 0%, #f8f2e7 100%);
+        }
+        .message-list::-webkit-scrollbar {
+          width: 10px;
+        }
+        .message-list::-webkit-scrollbar-track {
+          background: #f4ead8;
+        }
+        .message-list::-webkit-scrollbar-thumb {
+          background: #c8b99e;
+          border-radius: 999px;
+          border: 2px solid #f4ead8;
+        }
+        .message {
+          max-width: 76%;
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+        }
+        .message.user {
+          align-self: flex-end;
+        }
+        .message.ai,
+        .message.error {
+          align-self: flex-start;
+        }
+        .message-body {
+          display: flex;
+          gap: 8px;
+          align-items: flex-start;
+          padding: 12px 13px;
+          border-radius: 10px;
+          background: #ffffff;
+          border: 1px solid #e7dcc9;
+          box-shadow: 0 4px 12px rgba(66, 49, 24, 0.06);
+        }
+        .message.user .message-body {
+          background: #1f5f5b;
+          color: #ffffff;
+          border-color: #1f5f5b;
+        }
+        .message.error .message-body {
+          border-color: #d97b67;
+          background: #fff2ed;
+        }
+        .message-body p {
+          margin: 0;
+          line-height: 1.55;
+          white-space: pre-wrap;
+        }
+        .stream-caret {
+          width: 7px;
+          height: 18px;
+          background: #1f5f5b;
+          display: inline-block;
+          border-radius: 999px;
+          animation: blink 0.9s steps(2, start) infinite;
+          margin-top: 2px;
+        }
+        @keyframes blink {
+          50% { opacity: 0; }
+        }
+        .message-body button {
+          color: #1f5f5b;
+          padding: 2px;
+        }
+        .message.image img {
+          max-width: 260px;
+          border-radius: 10px;
+          border: 1px solid #e0d5c2;
+        }
+        .message time {
+          color: #7d847e;
+          font-size: 11px;
+        }
+        .message.user time {
+          text-align: right;
+        }
+        .message-feedback {
           display: flex;
           align-items: center;
           gap: 8px;
-          color: #fa3e3e;
-          font-weight: 500;
-          font-size: 14px;
+          color: #6b746f;
+          font-size: 12px;
+        }
+        .message-feedback button {
+          border: 1px solid #e0d5c2;
+          background: #fffaf0;
+          color: #425054;
+          border-radius: 999px;
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 5px 8px;
+          font-size: 12px;
+          font-weight: 700;
+        }
+        .message-feedback span {
+          color: #116149;
+          font-weight: 700;
+        }
+        .loading {
+          align-items: center;
+        }
+        .spin {
+          animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        .composer {
+          border-top: 1px solid #e7dcc9;
+          padding: 14px;
+          background: #fffdf7;
+          flex-shrink: 0;
+          position: relative;
+          z-index: 2;
+        }
+        .jump-latest {
+          position: absolute;
+          right: 18px;
+          bottom: 86px;
+          z-index: 3;
+          border: 1px solid #d8cdb9;
+          background: #1f5f5b;
+          color: #ffffff;
+          border-radius: 999px;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 12px;
+          font-size: 13px;
+          font-weight: 800;
+          box-shadow: 0 10px 24px rgba(31, 95, 91, 0.22);
+        }
+        .pending-image {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 10px;
+          padding: 8px;
+          background: #f4ead8;
+          border-radius: 8px;
+        }
+        .pending-image img {
+          width: 46px;
+          height: 46px;
+          object-fit: cover;
+          border-radius: 6px;
+        }
+        .pending-image span {
+          flex: 1;
+          font-size: 13px;
+          font-weight: 700;
+        }
+        .composer-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .composer-row input {
+          flex: 1;
+          height: 42px;
+          border: 1px solid #d8cdb9;
+          border-radius: 9px;
+          padding: 0 12px;
+          color: #1f2a2e;
+          background: #fffaf0;
+        }
+        .send-button {
+          background: #9b4d2d !important;
+          color: #ffffff !important;
+          border-color: #9b4d2d !important;
+        }
+        .send-button:disabled {
+          opacity: 0.45;
+        }
+        .mic-button {
+          background: #1f5f5b !important;
+          color: #ffffff !important;
+          border-color: #1f5f5b !important;
+        }
+        .recording-bar {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          background: #fff2ed;
+          border: 1px solid #d97b67;
+          border-radius: 9px;
+          padding: 10px;
+        }
+        .recording-left {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex: 1;
+          color: #9b3a2c;
         }
         .recording-dot {
           width: 10px;
           height: 10px;
-          background: #fa3e3e;
-          border-radius: 50%;
-          animation: blink 1s infinite;
+          border-radius: 999px;
+          background: #c84736;
         }
-        .recording-timer {
-          font-family: monospace;
-          font-size: 16px;
-          color: #333;
-          font-weight: bold;
+        .artifact-card,
+        .steps-card {
+          overflow: hidden;
         }
-        .recording-visualizer {
+        .artifact-visual,
+        .empty-artifact {
+          border: 1px dashed #d4c7b2;
+          background: #f7eddb;
+          border-radius: 10px;
+          min-height: 120px;
+          display: grid;
+          place-items: center;
+          color: #1f5f5b;
+          text-align: center;
+          padding: 18px;
+        }
+        .artifact-card h3 {
+          margin: 14px 0 12px;
+          font-size: 22px;
+          color: #1f2a2e;
+        }
+        .artifact-meta-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 9px;
+          margin-bottom: 14px;
+        }
+        .artifact-meta-grid div {
+          background: #fffaf0;
+          border: 1px solid #e0d5c2;
+          border-radius: 8px;
+          padding: 9px;
+        }
+        .artifact-meta-grid span,
+        .summary-block span {
+          display: block;
+          color: #777f79;
+          font-size: 11px;
+          font-weight: 800;
+          text-transform: uppercase;
+          margin-bottom: 5px;
+        }
+        .artifact-meta-grid strong {
+          font-size: 13px;
+          line-height: 1.35;
+        }
+        .summary-block {
+          background: #f8f2e7;
+          border-radius: 8px;
+          padding: 11px;
+        }
+        .summary-block p {
+          margin: 0;
+          line-height: 1.5;
+          font-size: 14px;
+        }
+        .processing-steps {
+          margin: 0;
+          padding-left: 20px;
           display: flex;
-          align-items: center;
-          gap: 3px;
-          height: 20px;
+          flex-direction: column;
+          gap: 8px;
+          color: #334143;
+          font-size: 14px;
         }
-        .recording-visualizer span {
-          width: 3px;
-          background: #fa3e3e;
-          border-radius: 3px;
-          animation: visualize 0.8s infinite ease-in-out;
+        .camera-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 100;
+          background: #000;
+          display: flex;
+          flex-direction: column;
         }
-        .recording-visualizer span:nth-child(1) { height: 8px; animation-delay: 0.1s; }
-        .recording-visualizer span:nth-child(2) { height: 15px; animation-delay: 0.2s; }
-        .recording-visualizer span:nth-child(3) { height: 12px; animation-delay: 0.3s; }
-        .recording-visualizer span:nth-child(4) { height: 18px; animation-delay: 0.4s; }
-        .recording-visualizer span:nth-child(5) { height: 10px; animation-delay: 0.5s; }
-
-        .stop-recording-btn {
-          width: 36px;
-          height: 36px;
-          border-radius: 50%;
-          background: #fa3e3e;
+        .camera-header {
+          padding: 12px 16px;
+          background: rgba(0,0,0,0.82);
+          display: flex;
+          justify-content: flex-start;
+        }
+        .camera-header button {
           color: white;
-          border: none;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          box-shadow: 0 2px 8px rgba(250, 62, 62, 0.3);
+          background: rgba(255,255,255,0.12);
+          border-color: rgba(255,255,255,0.2);
         }
-
-        @keyframes blink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.3; }
-        }
-        @keyframes visualize {
-          0%, 100% { transform: scaleY(1); }
-          50% { transform: scaleY(1.5); }
-        }
-        @keyframes popIn {
-          0% { transform: scale(0.9); opacity: 0; }
-          100% { transform: scale(1); opacity: 1; }
+        @media (max-width: 1120px) {
+          .workspace-grid {
+            grid-template-columns: 230px 1fr;
+          }
+          .artifact-panel {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+          }
         }
       `}</style>
     </div>

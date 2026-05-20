@@ -7,6 +7,7 @@ Logic preserved exactly — only import paths updated.
 from __future__ import annotations
 
 import asyncio
+import inspect
 from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 import logging
@@ -57,7 +58,7 @@ class VoiceOrchestrator:
         stt: BaseSTT,
         llm: BaseLLM,
         tts: BaseTTS,
-        db_lookup: Callable[[str, str], Coroutine[Any, Any, str]] | None = None,
+        db_lookup: Callable[[str, str], Coroutine[Any, Any, str] | str] | None = None,
         memory: ConversationMemory | None = None,
     ) -> None:
         self._stt = stt
@@ -117,14 +118,14 @@ class VoiceOrchestrator:
             if prefetched_context is not None:
                 db_data = prefetched_context
             elif self._db_lookup:
-                db_data = await self._db_lookup(text_query, context["db_field"])
+                db_data = await self._call_db_lookup(text_query, context["db_field"])
         except Exception as exc:
             _LOGGER.exception("Voice database lookup failed")
             raise RuntimeError(f"Database lookup failed: {exc}") from exc
 
         if self._is_unhelpful_context(db_data) and cleaned_hint and self._db_lookup:
             try:
-                db_data = await self._db_lookup(cleaned_hint, context["db_field"])
+                db_data = await self._call_db_lookup(cleaned_hint, context["db_field"])
             except Exception as exc:
                 _LOGGER.warning("Voice database lookup with hint failed: %s", exc)
 
@@ -173,6 +174,14 @@ class VoiceOrchestrator:
 
     def _mock_get_db_data(self, text: str, db_field: str) -> str:
         return f"Mock data for '{text}' from {db_field}."
+
+    async def _call_db_lookup(self, text: str, db_field: str) -> str:
+        if self._db_lookup is None:
+            return ""
+        result = self._db_lookup(text, db_field)
+        if inspect.isawaitable(result):
+            return await result
+        return result
 
     @staticmethod
     def _is_unhelpful_context(context_data: str) -> bool:

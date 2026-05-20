@@ -6,49 +6,59 @@ Logic preserved exactly.
 
 from __future__ import annotations
 
-import base64
 import io
 import json
 import logging
 
 from PIL import Image
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 from core.config import settings
 from schemas.vision import VisionResult
 from services.artifacts.label_mapping import map_vision_label_to_artifact_id
 from repositories.artifact_repository import find_artifact_by_name
+from utils.request_validation import decode_image_base64, validate_image_base64_size
 
 logger = logging.getLogger(__name__)
 
-# Configure Gemini API
-genai.configure(api_key=settings.GEMINI_API_KEY)
-_vision_model = genai.GenerativeModel(
-    "gemini-flash-latest",
-    generation_config={"response_mime_type": "application/json"}
-)
+_vision_model = None
 
-CONFIDENCE_THRESHOLD = 0.6
+
+def _get_vision_model():
+    """Initialize Gemini Vision lazily so app startup stays local-demo friendly."""
+    global _vision_model
+    if _vision_model is not None:
+        return _vision_model
+
+    api_key = settings.GEMINI_API_KEY.strip()
+    if not api_key:
+        raise RuntimeError("401: GEMINI_API_KEY is not configured.")
+
+    _vision_model = genai.Client(api_key=api_key)
+    return _vision_model
 
 
 async def recognize_image(image_base64: str, lang: str = "vi") -> VisionResult:
     """Recognize an artifact from a base64-encoded image."""
     try:
-        if "," in image_base64:
-            image_base64 = image_base64.split(",", 1)[1]
-
-        image_bytes = base64.b64decode(image_base64)
+        validate_image_base64_size(image_base64)
+        image_bytes = decode_image_base64(image_base64)
+        image = Image.open(io.BytesIO(image_bytes))
+        image.verify()
         image = Image.open(io.BytesIO(image_bytes))
 
         from utils.prompt_templates import build_vision_recognition_prompt
         prompt = build_vision_recognition_prompt(lang)
 
-        response = await _vision_model.generate_content_async(
-            [prompt, image]
+        response = await _get_vision_model().aio.models.generate_content(
+            model=settings.GEMINI_VISION_MODEL,
+            contents=[prompt, image],
+            config=types.GenerateContentConfig(response_mime_type="application/json"),
         )
         
         response_text = response.text.strip()
-        logger.info(f"Gemini Vision raw response: {response_text}")
+        logger.debug("Gemini Vision raw response: %s", response_text)
 
         # Basic failure detection
         if not response_text or "UNKNOWN" in response_text.upper() or "KHÔNG BIẾT" in response_text.upper():
@@ -70,12 +80,12 @@ async def recognize_image(image_base64: str, lang: str = "vi") -> VisionResult:
             if not is_artifact or not label or label.upper() == "UNKNOWN":
                 return VisionResult(recognized=False, error="NOT_AN_ARTIFACT")
             
-            if confidence < CONFIDENCE_THRESHOLD:
-                logger.warning(f"Low confidence ({confidence}) for label: {label}")
+            if confidence < settings.VISION_CONFIDENCE_THRESHOLD:
+                logger.warning("Low confidence (%s) for label: %s", confidence, label)
                 return VisionResult(recognized=False, error="LOW_CONFIDENCE", confidence_score=confidence)
 
         except json.JSONDecodeError:
-            logger.warning(f"Failed to parse JSON response: {response_text}")
+            logger.warning("Failed to parse JSON response from vision model")
             # Minimal fallback if it's just a string (though response_mime_type should prevent this)
             label = response_text[:100]
             confidence = 0.5
@@ -102,9 +112,9 @@ async def recognize_image(image_base64: str, lang: str = "vi") -> VisionResult:
                 confidence_score=confidence,
             )
 
-        logger.warning(f"Label '{label}' recognized by AI but not found in DB or mapping")
+        logger.warning("Label '%s' recognized by AI but not found in DB or mapping", label)
         return VisionResult(recognized=False, error="UNRECOGNIZED", confidence_score=confidence)
 
     except Exception as e:
-        logger.error(f"Gemini recognition error: {e}", exc_info=True)
+        logger.error("Gemini recognition error: %s", e, exc_info=True)
         return VisionResult(recognized=False, error=str(e))

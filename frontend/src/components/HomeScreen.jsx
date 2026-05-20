@@ -1,71 +1,77 @@
 import React from 'react';
+import { Camera, Image as ImageIcon, Landmark, MessageCircle, Mic, Sparkles } from 'lucide-react';
 
 const HomeScreen = ({ onSelectFeature, language, setLanguage }) => {
+  const isVi = language === 'vi';
+
   return (
-    <div className="home-screen fade-in">
-      {/* Header with Logo and Language Toggle */}
-      <header className="home-header">
-        <div className="logo-container">
-          <div className="logo-icon">🏛️</div>
-          <h1 className="logo-text">AI Tour Guide</h1>
+    <div className="tour-home">
+      <header className="tour-home-header">
+        <div className="tour-home-brand">
+          <div className="tour-home-mark"><Landmark size={24} /></div>
+          <div>
+            <h1>AI Tour Guide</h1>
+            <p>{isVi ? 'Hướng dẫn viên số cho chuyến tham quan' : 'A digital guide for your visit'}</p>
+          </div>
         </div>
-        
-        <div className="language-toggle glass-panel">
-          <button 
-            className={`lang-btn ${language === 'vi' ? 'active' : ''}`}
-            onClick={() => setLanguage('vi')}
-          >
-            VI
-          </button>
-          <button 
-            className={`lang-btn ${language === 'en' ? 'active' : ''}`}
-            onClick={() => setLanguage('en')}
-          >
-            EN
-          </button>
+        <div className="tour-home-lang">
+          <button className={language === 'vi' ? 'active' : ''} onClick={() => setLanguage('vi')}>VI</button>
+          <button className={language === 'en' ? 'active' : ''} onClick={() => setLanguage('en')}>EN</button>
         </div>
       </header>
 
-      {/* Main Content - Feature Selection */}
-      <main className="home-main">
-        <h2 className="welcome-text">
-          {language === 'vi' ? 'Chào mừng bạn đến với AI Tour Guide' : 'Welcome to AI Tour Guide'}
-        </h2>
-        
-        <div className="feature-cards-container">
-          {/* Unified Feature: AI Assistant */}
-          <div 
-            className="feature-card glass-panel pop-in" 
-            style={{ animationDelay: '0.1s' }}
-            onClick={() => onSelectFeature('unified')}
-          >
-            <div className="feature-icon-wrapper unified-icon">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2a10 10 0 1 0 10 10H12V2z"></path>
-                <path d="M12 12L2.7 7.3"></path>
-                <path d="M12 12V22"></path>
-                <path d="M12 12l9.3 4.7"></path>
-                <path d="M22 12A10 10 0 0 0 12 2v10h10z"></path>
-              </svg>
-            </div>
-            <h3 className="feature-title">
-              {language === 'vi' ? 'Khám phá cùng AI' : 'Explore with AI'}
-            </h3>
-            <p className="feature-desc">
-              {language === 'vi' 
-                ? 'Nhận diện hiện vật và trò chuyện hỏi đáp thông tin du lịch.' 
-                : 'Identify artifacts and chat for travel information.'}
-            </p>
-            <button className="start-btn">
-              {language === 'vi' ? 'Bắt đầu ngay' : 'Get Started'}
+      <main className="tour-home-main">
+        <section className="tour-home-copy">
+          <span className="tour-home-eyebrow">
+            <Sparkles size={16} />
+            {isVi ? 'Khám phá văn hóa' : 'Cultural discovery'}
+          </span>
+          <h2>
+            {isVi
+              ? 'Khám phá hiện vật bằng ảnh, giọng nói và hội thoại AI'
+              : 'Explore artifacts with images, voice, and AI chat'}
+          </h2>
+          <p>
+            {isVi
+              ? 'Chọn địa điểm, chụp hoặc tải ảnh hiện vật, đặt câu hỏi bằng chữ hoặc giọng nói và nhận phần thuyết minh ngắn gọn, dễ hiểu.'
+              : 'Choose a destination, capture or upload an artifact, ask by text or voice, and receive concise guidance in context.'}
+          </p>
+          <div className="tour-home-actions">
+            <button className="primary" onClick={() => onSelectFeature('unified')}>
+              {isVi ? 'Bắt đầu tham quan' : 'Start exploring'}
             </button>
           </div>
-        </div>
-      </main>
+        </section>
 
-      {/* Decorative background elements */}
-      <div className="bg-blob blob-1"></div>
-      <div className="bg-blob blob-2"></div>
+        <section className="tour-home-preview" aria-label="AI Tour Guide capabilities">
+          <div className="preview-top">
+            <span>{isVi ? 'Trải nghiệm chính' : 'Main experience'}</span>
+            <strong>{isVi ? 'Sẵn sàng' : 'Ready'}</strong>
+          </div>
+          <div className="preview-grid">
+            <div>
+              <Camera size={24} />
+              <strong>{isVi ? 'Webcam' : 'Webcam'}</strong>
+              <span>{isVi ? 'Chụp ảnh hiện vật' : 'Capture artifacts'}</span>
+            </div>
+            <div>
+              <ImageIcon size={24} />
+              <strong>{isVi ? 'Tải ảnh' : 'Upload'}</strong>
+              <span>{isVi ? 'Dùng ảnh từ thiết bị' : 'Use photos from your device'}</span>
+            </div>
+            <div>
+              <MessageCircle size={24} />
+              <strong>{isVi ? 'Hỏi đáp' : 'Ask'}</strong>
+              <span>{isVi ? 'Câu hỏi theo ngữ cảnh' : 'Context-aware Q&A'}</span>
+            </div>
+            <div>
+              <Mic size={24} />
+              <strong>{isVi ? 'Giọng nói' : 'Voice'}</strong>
+              <span>{isVi ? 'Hỏi bằng lời nói' : 'Ask by speaking'}</span>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
   );
 };

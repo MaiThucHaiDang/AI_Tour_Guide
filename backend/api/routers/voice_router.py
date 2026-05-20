@@ -9,33 +9,39 @@ from __future__ import annotations
 import base64
 import logging
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 
+from core.config import settings
 from core.dependencies import (
     get_stt_provider,
     get_llm_provider,
     get_tts_provider,
     get_conversation_memory,
 )
+from core.security import limiter
 from repositories.artifact_repository import get_artifact_context, get_artifact_context_by_id
+from schemas.voice import VoiceChatResponse
 from utils.language_manager import LanguageManager
 from orchestrators.voice_orchestrator import VoiceOrchestrator
+from utils.request_validation import normalize_lang, validate_audio_size
 
 router = APIRouter(prefix="/api/v1", tags=["Voice"])
 _LOGGER = logging.getLogger(__name__)
 
 
 @router.post("/voice/chat")
+@limiter.limit(settings.RATE_LIMIT)
 async def voice_chat(
+    request: Request,
     audio: UploadFile = File(...),
     lang: str = Form(...),
     session_id: str | None = Form(None),
     artifact_id: str | None = Form(None),
     artifact_name: str | None = Form(None),
-) -> JSONResponse:
+) -> VoiceChatResponse:
     """Process a voice chat request and return synthesized audio."""
     try:
+        lang = normalize_lang(lang)
         _LOGGER.info(
             "voice_chat request started filename=%s content_type=%s lang=%s",
             audio.filename, audio.content_type, lang,
@@ -47,7 +53,10 @@ async def voice_chat(
             memory = get_conversation_memory()
         except Exception as err:
             _LOGGER.error("Failed to initialize providers: %s", err)
-            raise HTTPException(status_code=500, detail=str(err)) from err
+            raise HTTPException(
+                status_code=500,
+                detail="Không khởi tạo được AI provider. Vui lòng kiểm tra .env.",
+            ) from err
 
         orchestrator = VoiceOrchestrator(
             stt, llm, tts,
@@ -67,6 +76,7 @@ async def voice_chat(
                     _LOGGER.warning("Artifact prefetch failed: %s", exc)
 
             audio_bytes = await audio.read()
+            validate_audio_size(audio_bytes)
             result = await orchestrator.process_voice_request(
                 audio_bytes, lang, audio.filename, audio.content_type,
                 session_id, artifact_name, prefetched_context,
@@ -78,14 +88,14 @@ async def voice_chat(
             )
 
             audio_b64 = base64.b64encode(result.audio_bytes).decode("ascii")
-            return JSONResponse(content={
-                "audio_base64": audio_b64,
-                "audio_mime": "audio/mpeg",
-                "transcript": result.transcript,
-                "response_text": result.response_text,
-                "lang": result.lang,
-                "detected_lang": result.detected_lang,
-            })
+            return VoiceChatResponse(
+                audio_base64=audio_b64,
+                audio_mime="audio/mpeg",
+                transcript=result.transcript,
+                response_text=result.response_text,
+                lang=result.lang,
+                detected_lang=result.detected_lang,
+            )
 
         except ValueError as err:
             detail = str(err)
@@ -96,4 +106,7 @@ async def voice_chat(
         raise
     except Exception as exc:
         _LOGGER.exception("Unhandled voice_chat error")
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=500,
+            detail="Không xử lý được giọng nói lúc này. Vui lòng thử lại.",
+        ) from exc

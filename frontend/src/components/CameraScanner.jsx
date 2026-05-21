@@ -1,13 +1,42 @@
 import React, { useCallback, useRef, useEffect, useState } from 'react';
 import { X, Check, Image as ImageIcon, Upload } from 'lucide-react';
 
-const CameraScanner = ({ onCapture }) => {
+const CAMERA_COPY = {
+  vi: {
+    unsupported: 'Trình duyệt không hỗ trợ camera hoặc trang chưa chạy qua localhost/HTTPS.',
+    denied: 'Bạn đã từ chối quyền truy cập camera. Hãy cấp quyền trong trình duyệt hoặc dùng nút tải ảnh lên.',
+    unavailable: 'Không mở được camera. Hãy thử lại hoặc tải ảnh từ máy tính.',
+    captureFailed: 'Không thể chụp ảnh. Hãy thử lại hoặc tải ảnh lên.',
+    retry: 'Thử lại',
+    upload: 'Tải ảnh lên',
+    retake: 'Chụp lại',
+    usePhoto: 'Sử dụng'
+  },
+  en: {
+    unsupported: 'This browser does not support camera access, or the page is not running on localhost/HTTPS.',
+    denied: 'Camera permission was denied. Allow camera access in the browser or upload a photo instead.',
+    unavailable: 'Could not open the camera. Try again or upload a photo from your computer.',
+    captureFailed: 'Could not capture the photo. Try again or upload a photo.',
+    retry: 'Retry',
+    upload: 'Upload photo',
+    retake: 'Retake',
+    usePhoto: 'Use photo'
+  }
+};
+
+const CameraScanner = ({ onCapture, language = 'vi', onError }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
   const streamRef = useRef(null);
+  const onErrorRef = useRef(onError);
   const [photo, setPhoto] = useState(null);
   const [error, setError] = useState('');
+  const copy = CAMERA_COPY[language] || CAMERA_COPY.vi;
+
+  useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
 
   // Xây dựng màn hình chụp ảnh: mở camera
   const startCamera = useCallback(async () => {
@@ -17,7 +46,7 @@ const CameraScanner = ({ onCapture }) => {
       }
 
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error("Trình duyệt không hỗ trợ Camera API hoặc đang truy cập qua HTTP.");
+        throw new Error("camera_unsupported");
       }
       
       const mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -34,14 +63,18 @@ const CameraScanner = ({ onCapture }) => {
       }
       setError('');
     } catch (err) {
-      console.error("Camera error:", err);
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        setError('Bạn đã từ chối quyền truy cập camera. Vui lòng cấp quyền trong trình duyệt hoặc dùng nút Tải ảnh lên.');
+        setError(copy.denied);
+        onErrorRef.current?.('camera_denied');
+      } else if (err.message === 'camera_unsupported') {
+        setError(copy.unsupported);
+        onErrorRef.current?.('camera_unsupported');
       } else {
-        setError(`Lỗi mở camera: ${err.message || err.name}`);
+        setError(copy.unavailable);
+        onErrorRef.current?.('camera_unavailable');
       }
     }
-  }, []);
+  }, [copy.denied, copy.unavailable, copy.unsupported]);
 
   useEffect(() => {
     startCamera();
@@ -89,9 +122,9 @@ const CameraScanner = ({ onCapture }) => {
       // Reduce quality to 0.8 to save space while keeping enough detail for AI
       const imageData = canvas.toDataURL('image/jpeg', 0.8);
       setPhoto(imageData);
-    } catch (err) {
-      console.error("Capture error:", err);
-      setError("Không thể chụp ảnh. Vui lòng thử lại.");
+    } catch {
+      setError(copy.captureFailed);
+      onErrorRef.current?.('camera_capture_failed');
     }
   };
 
@@ -155,10 +188,10 @@ const CameraScanner = ({ onCapture }) => {
               <p style={{ backgroundColor: 'rgba(0,0,0,0.7)', padding: '10px', borderRadius: '8px', display: 'inline-block' }}>{error}</p>
               <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: 15 }}>
                 <button onClick={startCamera} style={{ padding: '10px 20px', backgroundColor: '#555', borderRadius: 8, color: 'white', border: 'none' }}>
-                  Thử lại
+                  {copy.retry}
                 </button>
                 <button onClick={triggerFileInput} style={{ padding: '10px 20px', backgroundColor: 'var(--primary-color)', borderRadius: 8, color: 'white', border: 'none', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <Upload size={18} /> Tải ảnh lên
+                  <Upload size={18} /> {copy.upload}
                 </button>
               </div>
             </div>
@@ -230,14 +263,14 @@ const CameraScanner = ({ onCapture }) => {
               <div style={{ width: 50, height: 50, borderRadius: 25, backgroundColor: 'rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 5 }}>
                 <X size={24} />
               </div>
-              <span style={{ fontSize: 12 }}>Chụp lại</span>
+              <span style={{ fontSize: 12 }}>{copy.retake}</span>
             </button>
 
             <button onClick={confirmPhoto} style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#3b82f6', cursor: 'pointer' }}>
               <div style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(59, 130, 246, 0.2)', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 5, border: '2px solid #3b82f6' }}>
                 <Check size={36} />
               </div>
-              <span style={{ fontSize: 14, fontWeight: 'bold' }}>Sử dụng</span>
+              <span style={{ fontSize: 14, fontWeight: 'bold' }}>{copy.usePhoto}</span>
             </button>
           </div>
         </div>

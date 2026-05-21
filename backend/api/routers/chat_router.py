@@ -19,7 +19,7 @@ from core.dependencies import (
     get_conversation_memory,
 )
 from core.security import limiter
-from orchestrators.unified_orchestrator import UnifiedOrchestrator
+from orchestrators.unified_orchestrator import MIN_AUDIO_BYTES, UnifiedOrchestrator
 from schemas.voice import UnifiedChatResponse
 from utils.request_validation import (
     normalize_lang,
@@ -52,19 +52,28 @@ async def unified_chat(
         
         stt = None
         tts = None
+        audio_bytes = None
+        audio_filename = None
+        audio_content_type = None
+        
         if audio:
-            try:
-                stt = get_stt_provider()
-                tts = get_tts_provider()
-            except Exception as err:
-                _LOGGER.warning("Voice provider initialization failed: %s", err)
-                raise HTTPException(
-                    status_code=503,
-                    detail=(
-                        "Chưa cấu hình voice provider. Hãy kiểm tra GROQ_API_KEY "
-                        "trong file .env rồi khởi động lại backend."
-                    ),
-                ) from err
+            audio_bytes = await audio.read()
+            validate_audio_size(audio_bytes)
+            audio_filename = audio.filename
+            audio_content_type = audio.content_type
+            if len(audio_bytes) >= MIN_AUDIO_BYTES:
+                try:
+                    stt = get_stt_provider()
+                    tts = get_tts_provider()
+                except Exception as err:
+                    _LOGGER.warning("Voice provider initialization failed: %s", err)
+                    raise HTTPException(
+                        status_code=503,
+                        detail=(
+                            "Chưa cấu hình voice provider. Hãy kiểm tra GROQ_API_KEY "
+                            "trong file .env rồi khởi động lại backend."
+                        ),
+                    ) from err
 
         memory = get_conversation_memory()
         
@@ -76,16 +85,6 @@ async def unified_chat(
             llm_factory=get_llm_provider,
             tts_factory=get_tts_provider,
         )
-        
-        audio_bytes = None
-        audio_filename = None
-        audio_content_type = None
-        
-        if audio:
-            audio_bytes = await audio.read()
-            validate_audio_size(audio_bytes)
-            audio_filename = audio.filename
-            audio_content_type = audio.content_type
             
         result = await orchestrator.process_chat_request(
             text_query=text,

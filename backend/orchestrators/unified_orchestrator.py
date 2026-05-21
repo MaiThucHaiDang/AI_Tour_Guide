@@ -23,6 +23,7 @@ from services.vision.image_recognition import recognize_image
 from services.memory.conversation_memory import ConversationMemory
 from utils.language_manager import LanguageManager
 from repositories.artifact_repository import (
+    canonicalize_transcript_entities,
     find_artifact_by_name,
     get_artifact_by_id,
     get_artifact_context,
@@ -39,6 +40,7 @@ STT_TIMEOUT = 20
 VISION_TIMEOUT = 25
 LLM_TIMEOUT = 20
 TTS_TIMEOUT = 20
+MIN_AUDIO_BYTES = 800
 ANSWER_CACHE_MAX_SIZE = 128
 _ANSWER_CACHE: dict[str, str] = {}
 
@@ -97,7 +99,7 @@ class UnifiedOrchestrator:
         processing_steps: list[str] = []
 
         # 1. Handle Audio (STT)
-        if audio_bytes and len(audio_bytes) > 800:
+        if audio_bytes and len(audio_bytes) >= MIN_AUDIO_BYTES:
             try:
                 if self._stt is None:
                     raise RuntimeError("Speech-to-text provider is not configured.")
@@ -109,7 +111,7 @@ class UnifiedOrchestrator:
                     timeout=STT_TIMEOUT
                 )
                 if stt_text.strip():
-                    final_query = stt_text
+                    final_query = await canonicalize_transcript_entities(stt_text, lang_code)
                     detected_lang = det_lang
             except Exception as e:
                 _LOGGER.error(f"STT failed or timed out: {e}")
@@ -177,6 +179,7 @@ class UnifiedOrchestrator:
         if artifact_info:
             cached = self._get_cached_answer(artifact_info, final_query, lang_code)
             if cached:
+                increment("chat.llm_calls_avoided")
                 return self._finalize_without_tts(
                     cached, final_query, lang_code, session_id, artifact_info,
                     recognized_artifact_id, recognized_artifact_name,
@@ -186,6 +189,7 @@ class UnifiedOrchestrator:
             direct_answer = self._build_direct_answer(artifact_info, final_query, lang_code)
             if direct_answer:
                 self._set_cached_answer(artifact_info, final_query, lang_code, direct_answer)
+                increment("chat.llm_calls_avoided")
                 return self._finalize_without_tts(
                     direct_answer, final_query, lang_code, session_id, artifact_info,
                     recognized_artifact_id, recognized_artifact_name,
@@ -194,6 +198,7 @@ class UnifiedOrchestrator:
 
         small_talk = self._build_small_talk_answer(final_query, lang_code)
         if small_talk:
+            increment("chat.llm_calls_avoided")
             return self._finalize_without_tts(
                 small_talk, final_query, lang_code, session_id, artifact_info,
                 recognized_artifact_id, recognized_artifact_name,
@@ -343,7 +348,7 @@ class UnifiedOrchestrator:
                 return f"{artifact.name_vi} thuộc mã địa điểm {artifact.loc_id}. Bạn có thể xem chi tiết địa điểm ở bảng thông tin bên phải."
             return f"{artifact.name_en} belongs to location ID {artifact.loc_id}. You can review the location details in the side panel."
 
-        if any(keyword in normalized for keyword in ("tom tat", "gioi thieu", "ke ngan", "summary", "describe", "what is")):
+        if any(keyword in normalized for keyword in ("tom tat", "gioi thieu", "ke ngan", "y nghia", "meaning", "summary", "describe", "what is")):
             return self._summary_answer(artifact, lang_code)
 
         return None

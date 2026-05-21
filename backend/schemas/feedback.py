@@ -11,7 +11,10 @@ class FeedbackRequest(BaseModel):
     artifact_id: str | None = None
     rating: str = Field(pattern="^(helpful|not_helpful)$")
     comment: str | None = Field(default=None, max_length=500)
+    intent: str | None = Field(default=None, max_length=64)
+    answer_source: str | None = Field(default=None, max_length=64)
 
 
 class FeedbackResponse(BaseModel):
     success: bool = True
+    feedback_id: int | None = None

@@ -26,7 +26,6 @@ export const useAudioRecorder = () => {
       durationRef.current = 0;
       startTimeRef.current = 0;
 
-      console.warn('[Recorder] Requesting microphone...');
       const audioConstraints = {
         echoCancellation: true,
         noiseSuppression: true,
@@ -38,7 +37,6 @@ export const useAudioRecorder = () => {
       // Kiểm tra xem có bị hủy trong khi chờ getUserMedia không
       if (!recordingActiveRef.current) {
         stream.getTracks().forEach(t => t.stop());
-        console.warn('[Recorder] Cancelled during getUserMedia');
         return;
       }
 
@@ -74,7 +72,6 @@ export const useAudioRecorder = () => {
       mediaRecorder.onstop = () => {
         const finalMime = mimeTypeRef.current || 'audio/wav';
         const blob = new Blob(chunks, { type: finalMime });
-        console.warn('[Recorder] Blob created, size:', blob.size, 'duration:', durationRef.current);
         setAudioBlob(blob);
       };
 
@@ -82,8 +79,6 @@ export const useAudioRecorder = () => {
       startTimeRef.current = Date.now();
       setIsRecording(true);
       setDuration(0);
-      console.warn('[Recorder] Recording started');
-
       timerRef.current = setInterval(() => {
         setDuration((prev) => {
           const next = prev + 1;
@@ -97,9 +92,14 @@ export const useAudioRecorder = () => {
       }, 1000);
 
     } catch (err) {
-      console.error('[Recorder] Error starting recording:', err);
       recordingActiveRef.current = false;
-      setError(err.name === 'NotAllowedError' ? 'microphone_denied' : 'recording_error');
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setError('microphone_denied');
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        setError('microphone_not_found');
+      } else {
+        setError('recording_error');
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -111,7 +111,6 @@ export const useAudioRecorder = () => {
     // Tính duration chính xác bằng Date.now
     if (startTimeRef.current > 0) {
       durationRef.current = (Date.now() - startTimeRef.current) / 1000;
-      console.warn('[Recorder] Actual duration:', durationRef.current, 's');
       startTimeRef.current = 0;
     }
 

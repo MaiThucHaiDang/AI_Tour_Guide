@@ -20,9 +20,16 @@ if str(BACKEND_ROOT) not in sys.path:
 load_dotenv(BACKEND_ROOT / ".env")
 
 from services.llm.groq_llm import GroqLLMProvider
+from services.voice.groq_stt import GroqSTTProvider
 from services.ai.interfaces import BaseLLM, BaseSTT, BaseTTS
 from utils.language_manager import LanguageManager
 from orchestrators.voice_orchestrator import VoiceOrchestrator
+from repositories.artifact_repository import (
+    _replace_fuzzy_canonical_phrases,
+    _replace_fuzzy_canonical_tokens,
+    _replace_canonical_phrases,
+    _replace_canonical_tokens,
+)
 
 TEST_AUDIO = b"x" * 1200
 
@@ -30,6 +37,11 @@ TEST_AUDIO = b"x" * 1200
 class MockTTSProvider(BaseTTS):
     async def synthesize(self, text: str, lang: str) -> bytes:
         return text.encode("utf-8")
+
+
+class FailingTTSProvider(BaseTTS):
+    async def synthesize(self, text: str, lang: str) -> bytes:
+        raise RuntimeError("tts unavailable")
 
 
 @pytest.mark.asyncio
@@ -154,3 +166,114 @@ def test_language_manager_maps_supported_languages() -> None:
     en = lm.setup_context("en")
     assert en["db_field"] == "history_text_en"
     assert en["ui_locale"] == "en-US"
+
+
+def test_transcript_entity_canonicalization_fixes_vietnamese_diacritics() -> None:
+    text = "Giới thiệu về ngò môn Huệ"
+
+    canonicalized = _replace_canonical_phrases(text, ["Ngọ Môn", "Kinh thành Huế"])
+    canonicalized = _replace_canonical_tokens(canonicalized, ["Huế"])
+
+    assert canonicalized == "Giới thiệu về Ngọ Môn Huế"
+
+
+def test_transcript_entity_canonicalization_fixes_near_sound_errors() -> None:
+    canonical_phrases = ["Ngọ Môn", "Điện Thái Hòa", "Dinh Độc Lập", "Cửu Đỉnh"]
+    canonical_tokens = ["Huế"]
+
+    first = _replace_canonical_phrases("Giới thiệu về ngọn mộng hệ", canonical_phrases)
+    first = _replace_fuzzy_canonical_phrases(first, canonical_phrases)
+    first = _replace_fuzzy_canonical_tokens(first, canonical_tokens)
+
+    second = _replace_canonical_phrases("Giới thiệu điện thái hoà", canonical_phrases)
+    second = _replace_fuzzy_canonical_phrases(second, canonical_phrases)
+    third = _replace_canonical_phrases("Kể về cửu đỉnh", canonical_phrases)
+    third = _replace_fuzzy_canonical_phrases(third, canonical_phrases)
+
+    assert first == "Giới thiệu về Ngọ Môn Huế"
+    assert second == "Giới thiệu Điện Thái Hòa"
+    assert third == "Kể về Cửu Đỉnh"
+
+
+@pytest.mark.asyncio
+async def test_voice_llm_failure_returns_fallback_text() -> None:
+    class MockSTTProvider(BaseSTT):
+        async def transcribe(self, audio_bytes, filename=None, content_type=None, language_hint=None):
+            return "Ngọ Môn được xây năm nào?", "vi"
+
+    class FailingLLMProvider(BaseLLM):
+        async def generate_response(self, prompt: str, context_data: str, lang: str) -> str:
+            raise RuntimeError("quota exceeded")
+
+    orchestrator = VoiceOrchestrator(
+        MockSTTProvider(),
+        FailingLLMProvider(),
+        MockTTSProvider(),
+        db_lookup=lambda text, db_field: "Ngọ Môn / Ngo Mon Gate: built in 1833",
+    )
+
+    result = await orchestrator.process_voice_request(TEST_AUDIO, "vi")
+
+    assert result.transcript == "Ngọ Môn được xây năm nào?"
+    assert "dịch vụ tạo câu trả lời" in result.response_text
+    assert result.audio_bytes == result.response_text.encode("utf-8")
+
+
+@pytest.mark.asyncio
+async def test_voice_tts_failure_keeps_text_response() -> None:
+    class MockSTTProvider(BaseSTT):
+        async def transcribe(self, audio_bytes, filename=None, content_type=None, language_hint=None):
+            return "Tell me about Ngo Mon", "en"
+
+    class MockLLMProvider(BaseLLM):
+        async def generate_response(self, prompt: str, context_data: str, lang: str) -> str:
+            return "Ngo Mon Gate is the main southern gate of Hue Imperial City."
+
+    orchestrator = VoiceOrchestrator(
+        MockSTTProvider(),
+        MockLLMProvider(),
+        FailingTTSProvider(),
+        db_lookup=lambda text, db_field: "Ngo Mon Gate: context",
+    )
+
+    result = await orchestrator.process_voice_request(TEST_AUDIO, "en")
+
+    assert result.response_text == "Ngo Mon Gate is the main southern gate of Hue Imperial City."
+    assert result.audio_bytes == b""
+
+
+@pytest.mark.asyncio
+async def test_groq_stt_rejects_high_no_speech_transcript(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("GROQ_API_KEY", "test-key")
+
+    from core.config import get_settings
+    get_settings.cache_clear()
+
+    provider = GroqSTTProvider()
+
+    class _MockResponse:
+        text = "Hãy subscribe cho kênh để không bỏ lỡ video hấp dẫn"
+        language = "vi"
+        segments = [
+            {
+                "text": text,
+                "no_speech_prob": 0.95,
+                "avg_logprob": -0.2,
+                "compression_ratio": 1.2,
+            }
+        ]
+
+    def _mock_create(**kwargs):
+        return _MockResponse()
+
+    monkeypatch.setattr(provider._client.audio.transcriptions, "create", _mock_create)
+
+    transcript, detected_lang = await provider.transcribe(
+        b"0" * 1200,
+        filename="silence.webm",
+        content_type="audio/webm",
+        language_hint="vi",
+    )
+
+    assert transcript == ""
+    assert detected_lang == "vi"

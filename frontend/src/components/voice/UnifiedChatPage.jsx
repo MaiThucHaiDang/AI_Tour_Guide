@@ -121,9 +121,18 @@ const COPY = {
   }
 };
 
+const createWelcomeMessage = (greeting) => ({
+  id: 'welcome',
+  role: 'ai',
+  type: 'text',
+  content: greeting,
+  timestamp: new Date(),
+  source: 'template'
+});
+
 const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
   const copy = COPY[language] || COPY.vi;
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState(() => [createWelcomeMessage(copy.greeting)]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [autoSpeak, setAutoSpeak] = useState(true);
   const [inputText, setInputText] = useState('');
@@ -145,6 +154,7 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
     isRecording,
     audioBlob,
     duration,
+    error: recordingError,
     startRecording,
     stopRecording,
     resetRecording,
@@ -161,16 +171,24 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
       sessionStorage.setItem('unified_chat_session_id', newId);
     }
 
-    setMessages([{
-      id: 'welcome',
-      role: 'ai',
-      type: 'text',
-      content: copy.greeting,
-      timestamp: new Date(),
-      source: 'template'
-    }]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [language]);
+  }, []);
+
+  useEffect(() => {
+    setMessages(prev => {
+      let changed = false;
+      const next = prev.map(message => {
+        if (message.id !== 'welcome' || message.source !== 'template') {
+          return message;
+        }
+        if (message.content === copy.greeting) {
+          return message;
+        }
+        changed = true;
+        return { ...message, content: copy.greeting };
+      });
+      return changed ? next : prev;
+    });
+  }, [copy.greeting]);
 
   useEffect(() => {
     if (!shouldStickToBottomRef.current) return;
@@ -374,6 +392,46 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
 
   const getFriendlyError = (message = '') => {
     const lower = message.toLowerCase();
+    if (lower.includes('microphone_denied')) {
+      return language === 'vi'
+        ? 'Trình duyệt đang chặn micro. Hãy cấp quyền micro hoặc nhập câu hỏi bằng chữ.'
+        : 'Microphone access is blocked. Allow microphone permission or type your question instead.';
+    }
+    if (lower.includes('microphone_not_found')) {
+      return language === 'vi'
+        ? 'Không tìm thấy micro trên thiết bị này. Bạn vẫn có thể nhập câu hỏi bằng chữ.'
+        : 'No microphone was found on this device. You can still type your question.';
+    }
+    if (lower.includes('recording_error')) {
+      return language === 'vi'
+        ? 'Không thể bắt đầu ghi âm. Hãy thử lại hoặc nhập câu hỏi bằng chữ.'
+        : 'Could not start recording. Try again or type your question.';
+    }
+    if (lower.includes('recording_too_quiet')) {
+      return language === 'vi'
+        ? 'Mình chưa nghe thấy giọng nói đủ rõ. Hãy nói gần micro hơn hoặc nhập câu hỏi bằng chữ.'
+        : 'I could not hear a clear voice. Speak closer to the microphone or type your question.';
+    }
+    if (lower.includes('camera_denied')) {
+      return language === 'vi'
+        ? 'Trình duyệt đang chặn camera. Hãy cấp quyền camera hoặc dùng nút tải ảnh.'
+        : 'Camera access is blocked. Allow camera permission or upload a photo instead.';
+    }
+    if (lower.includes('camera_unsupported')) {
+      return language === 'vi'
+        ? 'Trình duyệt không hỗ trợ camera ở chế độ hiện tại. Hãy dùng localhost/HTTPS hoặc tải ảnh lên.'
+        : 'Camera access is not supported in the current browser mode. Use localhost/HTTPS or upload a photo.';
+    }
+    if (lower.includes('camera_unavailable') || lower.includes('camera_capture_failed')) {
+      return language === 'vi'
+        ? 'Không mở hoặc chụp được camera. Hãy thử lại hoặc tải ảnh từ máy tính.'
+        : 'The camera could not be opened or captured. Try again or upload a photo.';
+    }
+    if (lower.includes('feedback_failed')) {
+      return language === 'vi'
+        ? 'Chưa lưu được phản hồi của bạn. Hãy kiểm tra backend rồi thử lại.'
+        : 'Your feedback could not be saved. Check the backend, then try again.';
+    }
     if (lower.includes('too large') || lower.includes('quá lớn')) {
       return language === 'vi'
         ? 'Ảnh hoặc đoạn ghi âm đang quá lớn. Hãy thử ảnh nhỏ hơn hoặc ghi âm ngắn hơn.'
@@ -389,15 +447,23 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
         ? 'Tính năng giọng nói hoặc nhận diện hiện chưa sẵn sàng. Bạn vẫn có thể nhập câu hỏi bằng chữ.'
         : 'Voice or recognition is not ready yet. You can still type your question.';
     }
-    if (lower.includes('failed to fetch') || lower.includes('network')) {
+    if (lower.includes('failed to fetch') || lower.includes('network') || lower.includes('load failed')) {
       return language === 'vi'
-        ? 'Chưa kết nối được với hướng dẫn viên. Hãy đợi vài giây rồi thử lại.'
-        : 'The guide is not reachable yet. Wait a few seconds and try again.';
+        ? 'Chưa kết nối được backend. Hãy kiểm tra server FastAPI đang chạy rồi thử lại.'
+        : 'The backend is not reachable. Check that the FastAPI server is running, then try again.';
     }
     return message || (language === 'vi'
       ? 'Mình chưa xử lý được yêu cầu này. Hãy thử hỏi ngắn hơn hoặc gửi ảnh rõ hơn.'
       : 'I could not handle this request. Try a shorter question or a clearer photo.');
   };
+
+  useEffect(() => {
+    if (!recordingError) return;
+    addErrorMessage(recordingError);
+    resetRecording();
+    // addErrorMessage intentionally reads the current language copy.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recordingError, resetRecording]);
 
   const playAudioBlob = async (blob) => {
     stopTTS();
@@ -447,14 +513,7 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
     const newId = `chat-${Date.now()}-${Math.random().toString(16).slice(2)}`;
     sessionIdRef.current = newId;
     sessionStorage.setItem('unified_chat_session_id', newId);
-    setMessages([{
-      id: 'welcome',
-      role: 'ai',
-      type: 'text',
-      content: copy.greeting,
-      timestamp: new Date(),
-      source: 'template'
-    }]);
+    setMessages([createWelcomeMessage(copy.greeting)]);
     setPendingImage(null);
     setCurrentArtifact(null);
     setProcessingSteps([]);
@@ -484,16 +543,27 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
     scrollToLatest('smooth');
   };
 
-  const handleFeedback = (message, value) => {
+  const handleFeedback = async (message, value) => {
     setMessages(prev => prev.map(item => (
       item.id === message.id ? { ...item, feedback: value } : item
     )));
-    submitFeedbackAPI({
-      sessionId: sessionIdRef.current,
-      messageId: message.id,
-      artifactId: message.artifactData?.artifact_id || currentArtifact?.id || null,
-      rating: value === 'up' ? 'helpful' : 'not_helpful'
-    }).catch(() => undefined);
+    try {
+      const result = await submitFeedbackAPI({
+        sessionId: sessionIdRef.current,
+        messageId: message.id,
+        artifactId: message.artifactData?.artifact_id || null,
+        rating: value === 'up' ? 'helpful' : 'not_helpful',
+        answerSource: message.source || null
+      });
+      if (!result?.success) {
+        throw new Error('feedback_failed');
+      }
+    } catch {
+      setMessages(prev => prev.map(item => (
+        item.id === message.id ? { ...item, feedback: null } : item
+      )));
+      addErrorMessage('feedback_failed');
+    }
   };
 
   return (
@@ -703,7 +773,13 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
                 >
                   <Send size={19} />
                 </button>
-                <button className="mic-button" onMouseDown={startRecording} onTouchStart={startRecording} aria-label={copy.record}>
+                <button
+                  className="mic-button"
+                  onMouseDown={startRecording}
+                  onTouchStart={startRecording}
+                  disabled={isProcessing}
+                  aria-label={copy.record}
+                >
                   <Mic size={20} />
                 </button>
               </div>
@@ -791,7 +867,11 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
               {copy.closeCamera}
             </button>
           </div>
-          <CameraScanner onCapture={handleCapture} />
+          <CameraScanner
+            onCapture={handleCapture}
+            language={language}
+            onError={addErrorMessage}
+          />
         </div>
       )}
 
@@ -1293,6 +1373,667 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
             grid-column: 1 / -1;
             display: grid;
             grid-template-columns: 1fr 1fr;
+          }
+        }
+
+        .tour-workspace {
+          --ui-bg: #f7f7f4;
+          --ui-surface: #ffffff;
+          --ui-surface-muted: #faf9f5;
+          --ui-surface-strong: #f3f4f6;
+          --ui-text: #111827;
+          --ui-muted: #6b7280;
+          --ui-border: #e5e7eb;
+          --ui-border-strong: #d1d5db;
+          --ui-primary: #fece14;
+          --ui-primary-border: #eab308;
+          --ui-success: #16a34a;
+          --ui-danger: #dc2626;
+          height: 100dvh;
+          background: var(--ui-bg);
+          color: var(--ui-text);
+          font-family: 'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .tour-topbar {
+          height: 68px;
+          gap: 16px;
+          padding: 0 20px;
+          background: var(--ui-surface);
+          border-bottom: 1px solid var(--ui-border);
+        }
+
+        .topbar-back,
+        .topbar-icon,
+        .conversation-tools button,
+        .composer-row button,
+        .recording-bar button,
+        .camera-header button {
+          min-height: 36px;
+          border: 1px solid var(--ui-border);
+          background: var(--ui-surface);
+          color: var(--ui-text);
+          border-radius: 8px;
+          padding: 8px 11px;
+          font-size: 13px;
+          font-weight: 700;
+          line-height: 1;
+          box-shadow: none;
+          transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .topbar-back:hover,
+        .topbar-icon:hover,
+        .conversation-tools button:hover,
+        .composer-row button:hover,
+        .recording-bar button:hover {
+          background: var(--ui-surface-strong);
+          border-color: var(--ui-border-strong);
+        }
+
+        .topbar-back:active,
+        .topbar-icon:active,
+        .conversation-tools button:active,
+        .composer-row button:active,
+        .recording-bar button:active {
+          transform: translateY(1px);
+        }
+
+        .topbar-icon {
+          width: 36px;
+          height: 36px;
+          padding: 0;
+        }
+
+        .topbar-icon.active {
+          background: #fff8d9;
+          color: var(--ui-text);
+          border-color: var(--ui-primary-border);
+        }
+
+        .brand-block {
+          gap: 11px;
+          min-width: 220px;
+        }
+
+        .brand-mark {
+          width: 40px;
+          height: 40px;
+          border-radius: 8px;
+          background: var(--ui-primary);
+          color: var(--ui-text);
+        }
+
+        .brand-block h1 {
+          color: var(--ui-text);
+          font-size: 18px;
+          letter-spacing: 0;
+        }
+
+        .brand-block p {
+          color: var(--ui-muted);
+          font-size: 13px;
+        }
+
+        .backend-status {
+          color: var(--ui-text);
+          border: 1px solid var(--ui-border);
+          border-radius: 8px;
+          padding: 8px 10px;
+          background: var(--ui-surface-muted);
+          font-size: 12px;
+        }
+
+        .status-dot {
+          background: var(--ui-success);
+          box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
+        }
+
+        .tour-workspace .language-toggle {
+          background: var(--ui-surface-strong);
+          border: 1px solid var(--ui-border);
+          border-radius: 8px;
+          padding: 4px;
+          gap: 4px;
+        }
+
+        .tour-workspace .lang-btn {
+          border-radius: 6px;
+          color: var(--ui-muted);
+          padding: 6px 10px;
+          font-size: 12px;
+          font-weight: 800;
+        }
+
+        .tour-workspace .lang-btn.active {
+          background: var(--ui-text);
+          color: #ffffff;
+          box-shadow: none;
+        }
+
+        .workspace-grid {
+          height: calc(100dvh - 68px);
+          grid-template-columns: minmax(240px, 286px) minmax(440px, 1fr) minmax(300px, 348px);
+          gap: 16px;
+          padding: 16px;
+          background: var(--ui-bg);
+        }
+
+        .explore-panel,
+        .artifact-panel {
+          gap: 12px;
+        }
+
+        .panel-section,
+        .artifact-card,
+        .steps-card,
+        .conversation-panel {
+          background: var(--ui-surface);
+          border: 1px solid var(--ui-border);
+          border-radius: 8px;
+          box-shadow: 0 8px 22px rgba(17, 24, 39, 0.05);
+        }
+
+        .panel-section,
+        .artifact-card,
+        .steps-card {
+          padding: 14px;
+        }
+
+        .section-heading {
+          color: var(--ui-text);
+          gap: 8px;
+          margin-bottom: 12px;
+        }
+
+        .section-heading svg {
+          color: var(--ui-text);
+          background: var(--ui-primary);
+          border-radius: 6px;
+          padding: 3px;
+          width: 22px;
+          height: 22px;
+        }
+
+        .section-heading h2 {
+          color: var(--ui-text);
+          font-size: 14px;
+          letter-spacing: 0;
+        }
+
+        .location-list,
+        .quick-actions {
+          gap: 8px;
+        }
+
+        .location-card,
+        .quick-actions button {
+          border: 1px solid var(--ui-border);
+          background: var(--ui-surface-muted);
+          border-radius: 8px;
+          padding: 10px;
+          color: var(--ui-text);
+          transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .location-card:hover,
+        .quick-actions button:hover {
+          background: #fff8d9;
+          border-color: var(--ui-primary-border);
+          transform: translateY(-1px);
+        }
+
+        .location-card.selected {
+          border-color: var(--ui-text);
+          background: #fff8d9;
+          box-shadow: inset 3px 0 0 var(--ui-primary);
+        }
+
+        .location-card strong {
+          color: var(--ui-text);
+          font-size: 13px;
+          margin-bottom: 4px;
+        }
+
+        .location-card span,
+        .muted {
+          color: var(--ui-muted);
+          font-size: 12px;
+          line-height: 1.45;
+        }
+
+        .conversation-header {
+          padding: 14px 16px;
+          border-bottom: 1px solid var(--ui-border);
+          background: var(--ui-surface);
+        }
+
+        .conversation-header h2 {
+          color: var(--ui-text);
+          font-size: 17px;
+          letter-spacing: 0;
+        }
+
+        .eyebrow {
+          color: var(--ui-muted);
+          font-size: 11px;
+          letter-spacing: 0;
+        }
+
+        .conversation-tools {
+          gap: 8px;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+        }
+
+        .message-list {
+          background: #fbfbf8;
+          padding: 16px;
+          gap: 12px;
+        }
+
+        .message-list::-webkit-scrollbar-track {
+          background: #f3f4f6;
+        }
+
+        .message-list::-webkit-scrollbar-thumb {
+          background: #d1d5db;
+          border-color: #f3f4f6;
+        }
+
+        .message {
+          max-width: min(78%, 760px);
+        }
+
+        .message-body {
+          background: var(--ui-surface);
+          border: 1px solid var(--ui-border);
+          border-radius: 8px;
+          box-shadow: 0 6px 18px rgba(17, 24, 39, 0.05);
+          color: var(--ui-text);
+          padding: 11px 12px;
+        }
+
+        .message.user .message-body {
+          background: var(--ui-text);
+          color: #ffffff;
+          border-color: var(--ui-text);
+        }
+
+        .message.error .message-body {
+          border-color: rgba(220, 38, 38, 0.35);
+          background: #fff1f2;
+          color: #991b1b;
+        }
+
+        .message-body p {
+          font-size: 14px;
+          line-height: 1.58;
+        }
+
+        .message-body button {
+          color: var(--ui-muted);
+          border-radius: 6px;
+        }
+
+        .message-body button:hover {
+          background: var(--ui-surface-strong);
+          color: var(--ui-text);
+        }
+
+        .message.user .message-body button {
+          color: #ffffff;
+        }
+
+        .stream-caret {
+          background: var(--ui-primary);
+        }
+
+        .message.image img {
+          max-width: 280px;
+          border-radius: 8px;
+          border: 1px solid var(--ui-border);
+          box-shadow: 0 8px 22px rgba(17, 24, 39, 0.08);
+        }
+
+        .message time {
+          color: var(--ui-muted);
+          font-size: 11px;
+        }
+
+        .message-feedback {
+          gap: 7px;
+          color: var(--ui-muted);
+        }
+
+        .message-feedback button {
+          border: 1px solid var(--ui-border);
+          background: var(--ui-surface);
+          color: var(--ui-text);
+          border-radius: 8px;
+          padding: 6px 8px;
+          font-size: 12px;
+        }
+
+        .message-feedback button:hover {
+          background: #fff8d9;
+          border-color: var(--ui-primary-border);
+        }
+
+        .message-feedback span {
+          color: var(--ui-success);
+        }
+
+        .composer {
+          border-top: 1px solid var(--ui-border);
+          padding: 12px;
+          background: var(--ui-surface);
+        }
+
+        .jump-latest {
+          right: 16px;
+          bottom: 78px;
+          background: var(--ui-text);
+          color: #ffffff;
+          border: 1px solid var(--ui-text);
+          border-radius: 8px;
+          box-shadow: 0 10px 22px rgba(17, 24, 39, 0.18);
+        }
+
+        .pending-image {
+          background: var(--ui-surface-muted);
+          border: 1px solid var(--ui-border);
+          border-radius: 8px;
+          padding: 8px;
+        }
+
+        .pending-image img {
+          border-radius: 6px;
+        }
+
+        .pending-image button {
+          width: 30px;
+          height: 30px;
+          border-radius: 6px;
+          color: var(--ui-muted);
+        }
+
+        .pending-image button:hover {
+          background: #fee2e2;
+          color: var(--ui-danger);
+        }
+
+        .composer-row {
+          gap: 8px;
+          min-width: 0;
+        }
+
+        .composer-row button {
+          width: 40px;
+          height: 40px;
+          min-width: 40px;
+          justify-content: center;
+          padding: 0;
+        }
+
+        .composer-row input {
+          min-width: 0;
+          height: 40px;
+          border: 1px solid var(--ui-border);
+          border-radius: 8px;
+          background: var(--ui-surface-muted);
+          color: var(--ui-text);
+          padding: 0 12px;
+          font-size: 14px;
+        }
+
+        .composer-row input::placeholder {
+          color: #9ca3af;
+        }
+
+        .composer-row input:focus {
+          background: var(--ui-surface);
+          border-color: var(--ui-primary-border);
+        }
+
+        .send-button {
+          background: var(--ui-primary) !important;
+          color: var(--ui-text) !important;
+          border-color: var(--ui-primary-border) !important;
+        }
+
+        .send-button:disabled {
+          opacity: 0.48;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .composer-row .mic-button {
+          width: 40px;
+          height: 40px;
+          min-width: 40px;
+          border-radius: 8px;
+          background: var(--ui-text) !important;
+          color: #ffffff !important;
+          border-color: var(--ui-text) !important;
+          animation: none;
+          box-shadow: none;
+          transform: none;
+        }
+
+        .composer-row .mic-button:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .recording-bar {
+          border: 1px solid rgba(220, 38, 38, 0.3);
+          background: #fff1f2;
+          border-radius: 8px;
+          padding: 9px 10px;
+        }
+
+        .recording-left {
+          color: #991b1b;
+        }
+
+        .recording-dot {
+          background: var(--ui-danger);
+          box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.12);
+        }
+
+        .recording-time {
+          color: var(--ui-text);
+          font-variant-numeric: tabular-nums;
+          font-weight: 800;
+        }
+
+        .recording-bar button {
+          background: var(--ui-danger);
+          border-color: var(--ui-danger);
+          color: #ffffff;
+        }
+
+        .artifact-visual,
+        .empty-artifact {
+          border: 1px dashed var(--ui-border-strong);
+          background: var(--ui-surface-muted);
+          border-radius: 8px;
+          color: var(--ui-text);
+          min-height: 118px;
+        }
+
+        .empty-artifact {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .empty-artifact p {
+          color: var(--ui-muted);
+          line-height: 1.5;
+          margin: 0;
+          max-width: 260px;
+        }
+
+        .artifact-card h3 {
+          color: var(--ui-text);
+          font-size: 20px;
+          letter-spacing: 0;
+        }
+
+        .artifact-meta-grid {
+          gap: 8px;
+          margin-bottom: 12px;
+        }
+
+        .artifact-meta-grid div {
+          background: var(--ui-surface-muted);
+          border: 1px solid var(--ui-border);
+          border-radius: 8px;
+          padding: 9px;
+        }
+
+        .artifact-meta-grid span,
+        .summary-block span {
+          color: var(--ui-muted);
+          letter-spacing: 0;
+          font-size: 11px;
+        }
+
+        .artifact-meta-grid strong {
+          color: var(--ui-text);
+          font-size: 13px;
+        }
+
+        .summary-block {
+          background: var(--ui-surface-muted);
+          border: 1px solid var(--ui-border);
+          border-radius: 8px;
+          padding: 10px;
+        }
+
+        .summary-block p {
+          color: var(--ui-text);
+          font-size: 13px;
+          line-height: 1.5;
+        }
+
+        .processing-steps {
+          color: var(--ui-text);
+          font-size: 13px;
+          gap: 7px;
+        }
+
+        .camera-header button {
+          background: rgba(255, 255, 255, 0.12);
+          border-color: rgba(255, 255, 255, 0.24);
+          color: #ffffff;
+        }
+
+        .tour-workspace button:focus-visible,
+        .tour-workspace input:focus-visible {
+          outline: 3px solid rgba(254, 206, 20, 0.42);
+          outline-offset: 2px;
+        }
+
+        @media (max-width: 1260px) {
+          .workspace-grid {
+            grid-template-columns: minmax(220px, 260px) minmax(420px, 1fr);
+          }
+
+          .artifact-panel {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+          }
+        }
+
+        @media (max-width: 920px) {
+          .tour-workspace {
+            overflow-y: auto;
+          }
+
+          .tour-topbar {
+            height: auto;
+            min-height: 68px;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            padding: 12px 14px;
+          }
+
+          .brand-block {
+            order: 1;
+            flex: 1 1 240px;
+          }
+
+          .topbar-back {
+            order: 0;
+          }
+
+          .topbar-actions {
+            order: 2;
+            flex: 1 1 100%;
+            justify-content: flex-end;
+          }
+
+          .workspace-grid {
+            height: auto;
+            min-height: 0;
+            overflow: visible;
+            grid-template-columns: 1fr;
+            padding: 12px;
+          }
+
+          .conversation-panel {
+            min-height: 620px;
+          }
+
+          .artifact-panel {
+            grid-column: auto;
+            grid-template-columns: 1fr;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .tour-topbar {
+            gap: 10px;
+          }
+
+          .backend-status {
+            display: none;
+          }
+
+          .topbar-actions {
+            justify-content: space-between;
+          }
+
+          .conversation-header {
+            align-items: flex-start;
+            flex-direction: column;
+          }
+
+          .conversation-tools {
+            width: 100%;
+            justify-content: stretch;
+          }
+
+          .conversation-tools button {
+            flex: 1;
+            justify-content: center;
+          }
+
+          .message {
+            max-width: 92%;
+          }
+
+          .composer-row {
+            flex-wrap: wrap;
+          }
+
+          .composer-row input {
+            flex: 1 1 100%;
+            order: -1;
           }
         }
       `}</style>

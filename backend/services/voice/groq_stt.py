@@ -17,6 +17,10 @@ from groq import Groq
 from services.ai.interfaces import BaseSTT
 from core.config import get_settings, settings
 
+MAX_NO_SPEECH_PROB = 0.6
+MIN_AVG_LOGPROB = -1.0
+MAX_COMPRESSION_RATIO = 2.8
+
 
 class GroqSTTProvider(BaseSTT):
     """Speech-to-Text implementation powered by Groq's Whisper models."""
@@ -39,7 +43,7 @@ class GroqSTTProvider(BaseSTT):
         if not api_key:
             raise ValueError("GROQ_API_KEY is not set in environment variables.")
         self._client = Groq(api_key=api_key)
-        self._model = current_settings.GROQ_STT_MODEL
+        self._model = current_settings.GROQ_STT_MODEL.strip()
 
     async def transcribe(
         self,
@@ -73,6 +77,8 @@ class GroqSTTProvider(BaseSTT):
             response = await asyncio.to_thread(_do_transcribe)
             text = self._extract_text(response)
             detected_lang = self._extract_language(response)
+            if self._is_low_confidence_transcription(response, text):
+                return "", detected_lang
             return text, detected_lang
         finally:
             if temp_path and os.path.exists(temp_path):
@@ -92,6 +98,49 @@ class GroqSTTProvider(BaseSTT):
         if isinstance(response, dict):
             return response.get("language", "")
         return getattr(response, "language", "") or ""
+
+    @classmethod
+    def _is_low_confidence_transcription(cls, response: Any, text: str) -> bool:
+        """Reject likely silence/noise hallucinations using Whisper segment metadata."""
+        if not (text or "").strip():
+            return True
+
+        segments = cls._extract_segments(response)
+        if not segments:
+            return False
+
+        no_speech_probs = cls._segment_values(segments, "no_speech_prob")
+        avg_logprobs = cls._segment_values(segments, "avg_logprob")
+        compression_ratios = cls._segment_values(segments, "compression_ratio")
+
+        if no_speech_probs and min(no_speech_probs) >= MAX_NO_SPEECH_PROB:
+            return True
+        if avg_logprobs and max(avg_logprobs) <= MIN_AVG_LOGPROB:
+            return True
+        if compression_ratios and min(compression_ratios) >= MAX_COMPRESSION_RATIO:
+            return True
+        return False
+
+    @staticmethod
+    def _extract_segments(response: Any) -> list[Any]:
+        if isinstance(response, dict):
+            segments = response.get("segments", [])
+        else:
+            segments = getattr(response, "segments", [])
+        return list(segments or [])
+
+    @staticmethod
+    def _segment_values(segments: list[Any], key: str) -> list[float]:
+        values: list[float] = []
+        for segment in segments:
+            raw_value = segment.get(key) if isinstance(segment, dict) else getattr(segment, key, None)
+            if raw_value is None:
+                continue
+            try:
+                values.append(float(raw_value))
+            except (TypeError, ValueError):
+                continue
+        return values
 
     @classmethod
     def _resolve_suffix(cls, filename: str | None, content_type: str | None) -> str:

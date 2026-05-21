@@ -22,7 +22,7 @@ from core.security import limiter
 from repositories.artifact_repository import get_artifact_context, get_artifact_context_by_id
 from schemas.voice import VoiceChatResponse
 from utils.language_manager import LanguageManager
-from orchestrators.voice_orchestrator import VoiceOrchestrator
+from orchestrators.voice_orchestrator import MIN_AUDIO_BYTES, VoiceOrchestrator
 from utils.request_validation import normalize_lang, validate_audio_size
 
 router = APIRouter(prefix="/api/v1", tags=["Voice"])
@@ -46,15 +46,22 @@ async def voice_chat(
             "voice_chat request started filename=%s content_type=%s lang=%s",
             audio.filename, audio.content_type, lang,
         )
+        audio_bytes = await audio.read()
+        validate_audio_size(audio_bytes)
+
         try:
-            stt = get_stt_provider()
-            llm = get_llm_provider()
             tts = get_tts_provider()
             memory = get_conversation_memory()
+            if len(audio_bytes) >= MIN_AUDIO_BYTES:
+                stt = get_stt_provider()
+                llm = get_llm_provider()
+            else:
+                stt = None
+                llm = None
         except Exception as err:
             _LOGGER.error("Failed to initialize providers: %s", err)
             raise HTTPException(
-                status_code=500,
+                status_code=503,
                 detail="Không khởi tạo được AI provider. Vui lòng kiểm tra .env.",
             ) from err
 
@@ -75,8 +82,6 @@ async def voice_chat(
                 except Exception as exc:
                     _LOGGER.warning("Artifact prefetch failed: %s", exc)
 
-            audio_bytes = await audio.read()
-            validate_audio_size(audio_bytes)
             result = await orchestrator.process_voice_request(
                 audio_bytes, lang, audio.filename, audio.content_type,
                 session_id, artifact_name, prefetched_context,

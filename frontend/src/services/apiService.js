@@ -252,7 +252,9 @@ export const submitFeedbackAPI = async ({
   messageId = null,
   artifactId = null,
   rating,
-  comment = null
+  comment = null,
+  intent = null,
+  answerSource = null
 }) => {
   if (!rating) return { success: false };
   const response = await fetch('/api/v1/feedback', {
@@ -265,7 +267,9 @@ export const submitFeedbackAPI = async ({
       message_id: messageId,
       artifact_id: artifactId,
       rating,
-      comment
+      comment,
+      intent,
+      answer_source: answerSource
     })
   });
 

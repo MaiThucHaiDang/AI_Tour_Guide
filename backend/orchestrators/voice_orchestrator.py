@@ -17,6 +17,7 @@ from typing import Any
 from services.ai.interfaces import BaseLLM, BaseSTT, BaseTTS
 from utils.language_manager import LanguageManager
 from services.memory.conversation_memory import ConversationMemory
+from repositories.artifact_repository import canonicalize_transcript_entities
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -55,9 +56,9 @@ class VoiceOrchestrator:
 
     def __init__(
         self,
-        stt: BaseSTT,
-        llm: BaseLLM,
-        tts: BaseTTS,
+        stt: BaseSTT | None,
+        llm: BaseLLM | None,
+        tts: BaseTTS | None,
         db_lookup: Callable[[str, str], Coroutine[Any, Any, str] | str] | None = None,
         memory: ConversationMemory | None = None,
     ) -> None:
@@ -87,6 +88,8 @@ class VoiceOrchestrator:
             return await self._respond_not_heard(lang_code, "")
 
         try:
+            if self._stt is None:
+                raise RuntimeError("STT provider is not configured.")
             text_query, detected_lang = await asyncio.wait_for(
                 self._stt.transcribe(
                     audio_bytes, audio_filename, audio_content_type, lang_code,
@@ -102,6 +105,8 @@ class VoiceOrchestrator:
 
         if not text_query.strip():
             return await self._respond_not_heard(lang_code, detected_lang or "")
+
+        text_query = await canonicalize_transcript_entities(text_query, lang_code)
 
         detected = (detected_lang or "").strip().lower()
         if detected and detected != lang_code:
@@ -144,16 +149,18 @@ class VoiceOrchestrator:
 
         if context_data is not None:
             try:
+                if self._llm is None:
+                    raise RuntimeError("LLM provider is not configured.")
                 response_text = await asyncio.wait_for(
                     self._llm.generate_response(text_query, context_data, lang_code),
                     timeout=LLM_TIMEOUT_SECONDS,
                 )
             except TimeoutError as exc:
                 _LOGGER.exception("Voice LLM step timed out")
-                raise RuntimeError("LLM step timed out. Please try again.") from exc
+                response_text = self._llm_fallback_message(lang_code, not self._is_unhelpful_context(db_data))
             except Exception as exc:
                 _LOGGER.exception("Voice LLM step failed")
-                raise RuntimeError(f"LLM step failed: {exc}") from exc
+                response_text = self._llm_fallback_message(lang_code, not self._is_unhelpful_context(db_data))
 
         if response_text is None or not response_text.strip():
             response_text = self._no_context_message(lang_code)
@@ -223,15 +230,17 @@ class VoiceOrchestrator:
 
     async def _synthesize_response(self, text: str, lang_code: str) -> bytes:
         try:
+            if self._tts is None:
+                return b""
             return await asyncio.wait_for(
                 self._tts.synthesize(text, lang_code), timeout=TTS_TIMEOUT_SECONDS,
             )
         except TimeoutError as exc:
             _LOGGER.exception("Voice TTS step timed out")
-            raise RuntimeError("TTS step timed out. Please try again.") from exc
+            return b""
         except Exception as exc:
             _LOGGER.exception("Voice TTS step failed")
-            raise RuntimeError(f"TTS step failed: {exc}") from exc
+            return b""
 
     @staticmethod
     def _build_db_context(
@@ -267,6 +276,30 @@ class VoiceOrchestrator:
         if history_context:
             parts.append("CONVERSATION_HISTORY:\n" + history_context)
         return "\n\n".join(parts)
+
+    @staticmethod
+    def _llm_fallback_message(lang_code: str, has_database_context: bool) -> str:
+        if lang_code == "en":
+            if has_database_context:
+                return (
+                    "I heard your question and found related artifact data, but the AI answer service "
+                    "is temporarily unavailable. Please try a shorter question about year, author, "
+                    "location, or meaning."
+                )
+            return (
+                "I heard your question, but the AI answer service is temporarily unavailable and "
+                "I do not have a matching artifact in the current collection."
+            )
+        if has_database_context:
+            return (
+                "Mình đã nghe được câu hỏi và tìm thấy dữ liệu liên quan, nhưng dịch vụ tạo câu trả lời "
+                "đang tạm thời không sẵn sàng. Bạn có thể hỏi ngắn hơn về năm xây dựng, tác giả, vị trí "
+                "hoặc ý nghĩa."
+            )
+        return (
+            "Mình đã nghe được câu hỏi, nhưng dịch vụ tạo câu trả lời đang tạm thời không sẵn sàng "
+            "và chưa tìm thấy hiện vật khớp trong dữ liệu hiện tại."
+        )
 
     @classmethod
     def _classify_intent(cls, text: str) -> str:

@@ -16,7 +16,7 @@ if str(BACKEND_ROOT) not in sys.path:
 from orchestrators.unified_orchestrator import UnifiedOrchestrator, UnifiedChatResult
 from services.ai.interfaces import BaseLLM, BaseSTT, BaseTTS
 from services.memory.conversation_memory import ConversationMemory
-from schemas.vision import VisionResult
+from schemas.vision import ArtifactInfo, VisionResult
 
 class MockSTT(BaseSTT):
     async def transcribe(self, audio_bytes, filename=None, content_type=None, language_hint=None):
@@ -33,6 +33,25 @@ class FailingLLM(BaseLLM):
 class MockTTS(BaseTTS):
     async def synthesize(self, text, lang):
         return b"mock_audio_bytes"
+
+
+def sample_artifact() -> ArtifactInfo:
+    return ArtifactInfo(
+        art_id="1",
+        loc_id="1",
+        name_vi="Ngọ Môn",
+        name_en="Ngo Mon Gate",
+        history_text_vi=(
+            "Ngọ Môn là cổng chính phía nam của Hoàng thành Huế. "
+            "Công trình gắn với nhiều nghi lễ quan trọng của triều Nguyễn."
+        ),
+        history_text_en=(
+            "Ngo Mon Gate is the main southern entrance of the Hue Imperial City. "
+            "It is associated with major ceremonies of the Nguyen Dynasty."
+        ),
+        author="Minh Mang Emperor",
+        year=1833,
+    )
 
 @pytest.fixture
 def orchestrator():
@@ -134,3 +153,52 @@ async def test_unknown_database_question_gets_resilient_fallback():
     assert "chưa có mục dữ liệu khớp" in result.response_text
     assert result.answer_source == "llm"
     assert result.transcript == "Hãy kể về một hiện vật chưa có trong dữ liệu"
+
+
+@pytest.mark.asyncio
+async def test_direct_fact_answer_avoids_llm():
+    orchestrator = UnifiedOrchestrator(
+        MockSTT(),
+        FailingLLM(),
+        MockTTS(),
+        ConversationMemory(),
+    )
+
+    with patch(
+        "orchestrators.unified_orchestrator.find_artifact_by_name",
+        AsyncMock(return_value=sample_artifact()),
+    ):
+        result = await orchestrator.process_chat_request(
+            text_query="Ngọ Môn được xây năm nào?",
+            lang="vi",
+            session_id="direct_fact_session",
+        )
+
+    assert "1833" in result.response_text
+    assert result.answer_source == "db_direct"
+    assert result.audio_bytes is None
+
+
+@pytest.mark.asyncio
+async def test_meaning_question_uses_stored_summary_without_llm():
+    orchestrator = UnifiedOrchestrator(
+        MockSTT(),
+        FailingLLM(),
+        MockTTS(),
+        ConversationMemory(),
+    )
+
+    with patch(
+        "orchestrators.unified_orchestrator.find_artifact_by_name",
+        AsyncMock(return_value=sample_artifact()),
+    ):
+        result = await orchestrator.process_chat_request(
+            text_query="Ý nghĩa lịch sử của Ngọ Môn là gì?",
+            lang="vi",
+            session_id="meaning_session",
+        )
+
+    assert "Ngọ Môn" in result.response_text
+    assert "cổng chính" in result.response_text
+    assert result.answer_source == "db_direct"
+    assert result.audio_bytes is None

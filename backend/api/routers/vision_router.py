@@ -38,7 +38,12 @@ async def recognize_artifact(
 
     # 1. Image recognition (Gemini Vision)
     logger.info(f"Recognize request received, lang={lang}, session_id={session_id}")
-    vision_result = await recognize_image(body.image_base64, lang=lang)
+    vision_result = await recognize_image(
+        body.image_base64, 
+        lang=lang,
+        lat=body.lat,
+        lng=body.lng
+    )
 
     if not vision_result.recognized:
         error_code = vision_result.error or "UNRECOGNIZED"

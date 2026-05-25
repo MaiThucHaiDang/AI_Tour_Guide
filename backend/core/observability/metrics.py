@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import defaultdict, deque
 from time import perf_counter
 from typing import Any
 
 _COUNTERS: dict[str, int] = defaultdict(int)
-_DURATIONS: dict[str, list[float]] = defaultdict(list)
+_DURATIONS: dict[str, deque[float]] = defaultdict(lambda: deque(maxlen=200))
 
 
 def increment(name: str, value: int = 1) -> None:
@@ -16,10 +16,7 @@ def increment(name: str, value: int = 1) -> None:
 
 def observe_duration(name: str, started_at: float) -> None:
     elapsed_ms = (perf_counter() - started_at) * 1000
-    values = _DURATIONS[name]
-    values.append(elapsed_ms)
-    if len(values) > 200:
-        del values[: len(values) - 200]
+    _DURATIONS[name].append(elapsed_ms)
 
 
 def snapshot() -> dict[str, Any]:

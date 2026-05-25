@@ -7,9 +7,11 @@ All business logic preserved. Now uses dependency injection.
 from __future__ import annotations
 
 import base64
+import json
 import logging
 
 from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
+from fastapi.responses import StreamingResponse
 
 from core.config import settings
 from core.dependencies import (
@@ -115,3 +117,61 @@ async def voice_chat(
             status_code=500,
             detail="Không xử lý được giọng nói lúc này. Vui lòng thử lại.",
         ) from exc
+
+
+@router.post("/voice/chat/stream")
+@limiter.limit(settings.RATE_LIMIT)
+async def voice_chat_stream(
+    request: Request,
+    audio: UploadFile = File(...),
+    lang: str = Form(...),
+    session_id: str | None = Form(None),
+    artifact_id: str | None = Form(None),
+    artifact_name: str | None = Form(None),
+):
+    """Process a voice chat request and return a stream of text chunks and final audio."""
+    try:
+        lang = normalize_lang(lang)
+        audio_bytes = await audio.read()
+
+        # Initialization logic (similar to non-stream version)
+        try:
+            tts = get_tts_provider()
+            memory = get_conversation_memory()
+            stt = get_stt_provider() if len(audio_bytes) >= MIN_AUDIO_BYTES else None
+            llm = get_llm_provider() if len(audio_bytes) >= MIN_AUDIO_BYTES else None
+        except Exception as err:
+            _LOGGER.error("Failed to initialize providers: %s", err)
+            raise HTTPException(status_code=503, detail="AI providers not ready")
+
+        orchestrator = VoiceOrchestrator(
+            stt, llm, tts, db_lookup=get_artifact_context, memory=memory
+        )
+
+        async def event_generator():
+            try:
+                prefetched_context = None
+                if artifact_id:
+                    context_setup = LanguageManager().setup_context(lang)
+                    prefetched_context = await get_artifact_context_by_id(artifact_id, context_setup["db_field"])
+
+                async for chunk in orchestrator.process_voice_request_stream(
+                    audio_bytes, lang, audio.filename, audio.content_type,
+                    session_id, artifact_name, prefetched_context
+                ):
+                    if chunk["type"] == "audio":
+                        chunk["audio_base64"] = base64.b64encode(chunk["audio_bytes"]).decode("ascii")
+                        chunk["audio_mime"] = "audio/mpeg"
+                        del chunk["audio_bytes"]
+
+                    yield f"data: {json.dumps(chunk)}\n\n"
+            except Exception as e:
+                _LOGGER.error("Streaming error: %s", e)
+                yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+
+        return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+    except Exception as exc:
+        _LOGGER.exception("Unhandled voice_chat_stream error")
+        raise HTTPException(status_code=500, detail=str(exc))
+

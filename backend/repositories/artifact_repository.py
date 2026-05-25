@@ -12,17 +12,89 @@ from __future__ import annotations
 import logging
 import re
 import unicodedata
-from typing import Optional
+from typing import List, Optional
 
-from sqlalchemy import select
+from sqlalchemy import select, func, or_, text
 from sqlalchemy.ext.asyncio import AsyncSession
+from aiocache import cached
 
 from core.database import async_session_factory
+from core.config import settings
 from models.artifact import Artifact
 from models.location import Location
+from models.graph import ArtifactFAQ, ArtifactRelation
 from schemas.vision import ArtifactInfo
+from services.ai.embedding_service import EmbeddingService
 
 _LOGGER = logging.getLogger(__name__)
+
+# ─── Graph-Augmented Retrieval ──────────────────────────────────────────────
+
+@cached(ttl=settings.CACHE_TTL_SECONDS, key_builder=lambda f, query: f"hybrid:{query}")
+async def graph_augmented_search(query: str, top_k: int = 3) -> List[ArtifactInfo]:
+    """State-of-the-Art Hybrid Search: Vector FAQ + Knowledge Graph.
+    
+    1. Vector Search on FAQ to find Entry Points.
+    2. Graph Traversal to find related artifacts.
+    3. Merge and return enriched context.
+    """
+    if not query:
+        return []
+
+    try:
+        # Step 1: Vector Search on FAQs to get Entry Points
+        query_vector = await EmbeddingService.get_embedding(query)
+        
+        async with async_session_factory() as session:
+            # PostgreSQL <-> is Euclidean distance, <=> is Cosine distance
+            stmt = select(ArtifactFAQ.artifact_id).order_by(
+                ArtifactFAQ.embedding.cosine_distance(query_vector)
+            ).limit(top_k)
+            
+            result = await session.execute(stmt)
+            entry_artifact_ids = result.scalars().all()
+
+            if not entry_artifact_ids:
+                # Fallback to fuzzy search if vector finds nothing
+                fuzzy_art = await find_artifact_by_name(query)
+                if fuzzy_art:
+                    entry_artifact_ids = [int(fuzzy_art.art_id)]
+                else:
+                    return []
+
+            # Step 2: Graph Traversal (Get neighbors of entry points)
+            # We want artifacts related by SAME_AUTHOR, SAME_PERIOD, or LOCATED_NEAR
+            related_stmt = select(ArtifactRelation.target_artifact_id).where(
+                ArtifactRelation.source_artifact_id.in_(entry_artifact_ids)
+            ).limit(top_k)
+            
+            rel_result = await session.execute(related_stmt)
+            related_ids = rel_result.scalars().all()
+            
+            # Combine all unique IDs
+            all_ids = list(set(entry_artifact_ids) | set(related_ids))
+            
+            # Step 3: Fetch full Artifact Info
+            final_stmt = select(Artifact).where(Artifact.art_id.in_(all_ids))
+            final_result = await session.execute(final_stmt)
+            rows = final_result.scalars().all()
+            
+            return [
+                ArtifactInfo(
+                    art_id=str(row.art_id),
+                    loc_id=str(row.loc_id),
+                    name_vi=row.name_vi,
+                    name_en=row.name_en,
+                    history_text_vi=row.history_text_vi,
+                    history_text_en=row.history_text_en,
+                    author=row.author,
+                    year=row.year,
+                ) for row in rows
+            ]
+
+    except Exception as exc:
+        _LOGGER.error("Graph-Augmented search failed: %s", exc)
+        return []
 
 _STOP_WORDS = {
     "la", "ve", "noi", "ke", "gioi", "thieu", "cho", "toi", "ban",
@@ -37,6 +109,7 @@ _STOP_WORDS = {
 # ─── Vision Pipeline Methods ────────────────────────────────────────────────
 
 
+@cached(ttl=settings.CACHE_TTL_SECONDS, key_builder=lambda f, artifact_id: f"art:{artifact_id}")
 async def get_artifact_by_id(artifact_id: str) -> Optional[ArtifactInfo]:
     """Fetch artifact info by ID. Used by the vision pipeline."""
     try:
@@ -65,41 +138,81 @@ async def get_artifact_by_id(artifact_id: str) -> Optional[ArtifactInfo]:
         )
 
 
-async def find_artifact_by_name(name: str) -> Optional[ArtifactInfo]:
-    """Robustly find an artifact by its name (VI or EN).
+@cached(ttl=settings.CACHE_TTL_SECONDS, key_builder=lambda f, name, lat=None, lng=None: f"name:{name}:{lat}:{lng}")
+async def find_artifact_by_name(name: str, lat: float = None, lng: float = None) -> Optional[ArtifactInfo]:
+    """Robustly find an artifact by its name (VI or EN) with GPS reranking.
     
-    Used by the vision pipeline to resolve AI-detected labels to DB entities.
+    Now uses PostgreSQL pg_trgm for fuzzy/similarity search.
+    If GPS coordinates are provided, it reranks candidates by proximity.
     """
     if not name:
         return None
 
     try:
         async with async_session_factory() as session:
-            # 1. Direct match (checks if any DB name is in the input name)
-            row = await _direct_match(session, name)
-
-            # 2. Unaccented match
-            if not row:
-                unaccented = _normalize_text(name)
-                row = await _direct_match(session, unaccented)
-
-            # 3. Token-based match
-            if not row:
-                tokens = _tokenize_query(name)
-                if tokens:
-                    row = await _token_match(session, tokens)
-
-            if row:
-                return ArtifactInfo(
-                    art_id=str(row.art_id),
-                    loc_id=str(row.loc_id),
-                    name_vi=row.name_vi,
-                    name_en=row.name_en,
-                    history_text_vi=row.history_text_vi,
-                    history_text_en=row.history_text_en,
-                    author=row.author,
-                    year=row.year,
+            # 1. Fetch potential candidates using word_similarity
+            # We take up to 5 candidates to allow for GPS reranking
+            stmt = select(Artifact).join(Location).where(
+                or_(
+                    func.word_similarity(Artifact.name_vi, name) > 0.4,
+                    func.word_similarity(Artifact.name_en, name) > 0.4,
+                    Artifact.name_vi.ilike(f"%{name}%"),
+                    Artifact.name_en.ilike(f"%{name}%")
                 )
+            ).order_by(
+                func.word_similarity(Artifact.name_vi, name).desc()
+            ).limit(5)
+            
+            result = await session.execute(stmt)
+            rows = result.scalars().all()
+
+            if not rows:
+                # Unaccented fallback
+                unaccented = _normalize_text(name)
+                if unaccented != name.lower():
+                    stmt = select(Artifact).join(Location).where(
+                        or_(
+                            func.word_similarity(Artifact.name_vi, unaccented) > 0.5,
+                            func.word_similarity(Artifact.name_en, unaccented) > 0.5
+                        )
+                    ).order_by(func.word_similarity(Artifact.name_vi, unaccented).desc()).limit(5)
+                    result = await session.execute(stmt)
+                    rows = result.scalars().all()
+
+            if not rows:
+                return None
+
+            # 2. Rerank by GPS if available
+            best_row = rows[0]
+            if lat is not None and lng is not None:
+                min_dist = float('inf')
+                for row in rows:
+                    # Fetch location to get GPS
+                    loc_stmt = select(Location).where(Location.loc_id == row.loc_id)
+                    loc_res = await session.execute(loc_stmt)
+                    location = loc_res.scalar_one_or_none()
+                    
+                    if location and location.gps_coordinates:
+                        try:
+                            # Assume "lat,lng" format
+                            l_lat, l_lng = map(float, location.gps_coordinates.split(','))
+                            dist = (l_lat - lat)**2 + (l_lng - lng)**2 # Euclidean is fine for local
+                            if dist < min_dist:
+                                min_dist = dist
+                                best_row = row
+                        except Exception:
+                            continue
+
+            return ArtifactInfo(
+                art_id=str(best_row.art_id),
+                loc_id=str(best_row.loc_id),
+                name_vi=best_row.name_vi,
+                name_en=best_row.name_en,
+                history_text_vi=best_row.history_text_vi,
+                history_text_en=best_row.history_text_en,
+                author=best_row.author,
+                year=best_row.year,
+            )
     except Exception as exc:
         _LOGGER.warning("Database lookup by name failed: %s", exc)
 
@@ -216,40 +329,66 @@ async def canonicalize_transcript_entities(text: str, lang: str = "vi") -> str:
 
 
 async def _direct_match(session: AsyncSession, query: str):
-    """Try matching query text against artifact names using LIKE."""
-    # Check if any artifact name appears within the query text
-    # We fetch all artifacts and check in Python for maximum compatibility
-    result = await session.execute(select(Artifact))
-    all_artifacts = result.scalars().all()
+    """Try matching query text against artifact names using SQL ILIKE."""
+    query_lower = query.lower()
+    normalized_query = _normalize_text(query)
+
+    # Step 1: SQL-filtered candidates (push work to database)
+    stmt = select(Artifact).where(
+        or_(
+            func.lower(Artifact.name_vi).contains(query_lower),
+            func.lower(Artifact.name_en).contains(query_lower),
+            # Also check if an artifact name appears within the query
+            func.lower(func.concat('%', query_lower, '%')).contains(func.lower(Artifact.name_vi)),
+        )
+    )
+    result = await session.execute(stmt)
+    candidates = result.scalars().all()
 
     # Sort by name length (longer names first for more specific matches)
     candidates = sorted(
-        all_artifacts,
+        candidates,
         key=lambda a: max(len(a.name_vi), len(a.name_en)),
         reverse=True,
     )
 
-    query_lower = query.lower()
-    normalized_query = _normalize_text(query)
     for artifact in candidates:
         names = (artifact.name_vi, artifact.name_en)
         if any(name.lower() in query_lower for name in names):
             return artifact
-        if any(_normalize_text(name) in normalized_query for name in names):
+        if any(query_lower in name.lower() for name in names):
             return artifact
-        if normalized_query and any(normalized_query in _normalize_text(name) for name in names):
-            return artifact
+
+    # Step 2: Fallback — diacritic-free matching on full table (rare path)
+    if normalized_query:
+        fallback_result = await session.execute(select(Artifact))
+        for artifact in fallback_result.scalars().all():
+            names = (artifact.name_vi, artifact.name_en)
+            if any(_normalize_text(name) in normalized_query for name in names):
+                return artifact
+            if any(normalized_query in _normalize_text(name) for name in names):
+                return artifact
 
     return None
 
 
 async def _token_match(session: AsyncSession, tokens: list[str]):
-    """Score token overlap against normalized artifact names."""
+    """Score token overlap against artifact names using SQL pre-filtering."""
     if not tokens:
         return None
 
-    result = await session.execute(select(Artifact))
+    # Pre-filter: only load artifacts whose names contain at least one token
+    token_filters = [
+        or_(
+            func.lower(Artifact.name_vi).contains(token),
+            func.lower(Artifact.name_en).contains(token),
+        )
+        for token in tokens[:5]  # Limit to avoid overly complex queries
+    ]
+    stmt = select(Artifact).where(or_(*token_filters))
+    result = await session.execute(stmt)
     candidates = result.scalars().all()
+
     best_artifact = None
     best_score = 0.0
 
@@ -266,6 +405,7 @@ async def _token_match(session: AsyncSession, tokens: list[str]):
     if best_artifact and (best_score >= 0.5 or len(tokens) <= 2):
         return best_artifact
     return None
+
 
 
 def _normalize_text(text: str) -> str:

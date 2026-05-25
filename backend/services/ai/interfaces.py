@@ -35,6 +35,13 @@ class BaseLLM(ABC):
         """Generate a response using the language model."""
         pass
 
+    @abstractmethod
+    async def generate_response_stream(
+        self, prompt: str, context_data: str, lang: str
+    ):
+        """Generate a response stream using the language model."""
+        pass
+
 
 class BaseTTS(ABC):
     """Abstract base class for Text-to-Speech services."""

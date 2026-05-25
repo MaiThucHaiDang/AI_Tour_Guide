@@ -46,3 +46,22 @@ class GeminiLLMProvider(BaseLLM):
         response = await asyncio.to_thread(_do_generate)
         text = getattr(response, "text", None)
         return text.strip() if text else ""
+
+    async def generate_response_stream(self, prompt: str, context_data: str, lang: str):
+        from utils.prompt_templates import build_voice_system_prompt
+
+        system_instruction = build_voice_system_prompt(lang)
+        full_prompt = (
+            f"System Instruction:\n{system_instruction}\n\n"
+            f"Context Data:\n{context_data}\n\n"
+            f"User Prompt:\n{prompt}"
+        )
+
+        response = await self._client.aio.models.generate_content(
+            model=self._model_name,
+            contents=full_prompt,
+            config={"stream": True}
+        )
+        async for chunk in response:
+            if chunk.text:
+                yield chunk.text

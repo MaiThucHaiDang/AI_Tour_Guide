@@ -17,14 +17,19 @@ class Settings(BaseSettings):
 
     GEMINI_API_KEY: str = ""
     GROQ_API_KEY: str = ""
+    HUGGINGFACE_API_KEY: str = ""
 
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/ai_tour_guide"
     DATABASE_POOL_SIZE: int = 10
     DATABASE_MAX_OVERFLOW: int = 20
     DATABASE_ECHO: bool = False
 
+    REDIS_URL: str = "redis://localhost:6379/0"
+    CACHE_TTL_SECONDS: int = 3600
+
     LLM_PROVIDER_ORDER: str = "gemini,groq"
     GEMINI_TEXT_MODEL: str = "gemini-2.0-flash"
+    GEMINI_EMBEDDING_MODEL: str = "gemini-embedding-2"
     GEMINI_VISION_MODEL: str = "gemini-flash-latest"
     GROQ_LLM_MODEL: str = "llama-3.3-70b-versatile"
     GROQ_STT_MODEL: str = "whisper-large-v3"

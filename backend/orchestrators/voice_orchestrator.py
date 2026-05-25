@@ -17,7 +17,11 @@ from typing import Any
 from services.ai.interfaces import BaseLLM, BaseSTT, BaseTTS
 from utils.language_manager import LanguageManager
 from services.memory.conversation_memory import ConversationMemory
-from repositories.artifact_repository import canonicalize_transcript_entities
+from repositories.artifact_repository import (
+    canonicalize_transcript_entities,
+    graph_augmented_search,
+    get_artifact_context_by_id
+)
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -84,100 +88,171 @@ class VoiceOrchestrator:
         context = self._language_manager.setup_context(requested_lang)
         lang_code = context["lang_code"]
 
+        # Validate audio
         if not audio_bytes or len(audio_bytes) < MIN_AUDIO_BYTES:
             return await self._respond_not_heard(lang_code, "")
 
-        try:
-            if self._stt is None:
-                raise RuntimeError("STT provider is not configured.")
-            text_query, detected_lang = await asyncio.wait_for(
-                self._stt.transcribe(
-                    audio_bytes, audio_filename, audio_content_type, lang_code,
-                ),
-                timeout=STT_TIMEOUT_SECONDS,
-            )
-        except TimeoutError as exc:
-            _LOGGER.exception("Voice STT step timed out")
-            raise RuntimeError("STT step timed out. Please try again.") from exc
-        except Exception as exc:
-            _LOGGER.exception("Voice STT step failed")
-            raise RuntimeError(f"STT step failed: {exc}") from exc
+        # 1. STT
+        if self._stt is None:
+            raise RuntimeError("STT not configured")
+        text_query, detected_lang = await asyncio.wait_for(
+            self._stt.transcribe(
+                audio_bytes, audio_filename, audio_content_type, lang_code
+            ),
+            timeout=STT_TIMEOUT_SECONDS,
+        )
 
         if not text_query.strip():
             return await self._respond_not_heard(lang_code, detected_lang or "")
 
-        text_query = await canonicalize_transcript_entities(text_query, lang_code)
-
-        detected = (detected_lang or "").strip().lower()
-        if detected and detected != lang_code:
-            _LOGGER.info(
-                "Detected language '%s' differs from requested '%s'",
-                detected, lang_code,
-            )
-
-        intent = self._classify_intent(text_query)
-        cleaned_hint = (artifact_hint or "").strip()
-
-        db_data: str | None = None
-        try:
-            if prefetched_context is not None:
-                db_data = prefetched_context
+        # 2. Context Lookup (Graph-Augmented Vector Search)
+        db_data = prefetched_context
+        if db_data is None:
+            related_artifacts = await graph_augmented_search(text_query)
+            if related_artifacts:
+                context_parts = []
+                for art in related_artifacts:
+                    history = art.history_text_vi if lang_code == "vi" else art.history_text_en
+                    context_parts.append(f"[{art.name_vi} / {art.name_en}]: {history}")
+                db_data = "\n\n".join(context_parts)
             elif self._db_lookup:
                 db_data = await self._call_db_lookup(text_query, context["db_field"])
-        except Exception as exc:
-            _LOGGER.exception("Voice database lookup failed")
-            raise RuntimeError(f"Database lookup failed: {exc}") from exc
 
-        if self._is_unhelpful_context(db_data) and cleaned_hint and self._db_lookup:
-            try:
-                db_data = await self._call_db_lookup(cleaned_hint, context["db_field"])
-            except Exception as exc:
-                _LOGGER.warning("Voice database lookup with hint failed: %s", exc)
+        if self._is_unhelpful_context(db_data) and artifact_hint and self._db_lookup:
+            db_data = await self._call_db_lookup(artifact_hint, context["db_field"])
 
-        response_text: str | None = None
-        context_data: str | None = None
         history_context = self._memory.format_history(session_id or "")
+        intent = self._classify_intent(text_query)
 
         if self._is_unhelpful_context(db_data):
-            # Cải tiến 3: Fallback to GENERAL_CHAT if it's small talk or no specific artifact found
-            if intent == "small_talk" or intent == "unknown":
-                context_data = self._build_general_chat_context(history_context)
-            else:
-                context_data = self._build_missing_context(cleaned_hint, history_context)
+            context_data = (
+                self._build_general_chat_context(history_context)
+                if intent in ["small_talk", "unknown"]
+                else self._build_missing_context(artifact_hint or "", history_context)
+            )
         else:
-            context_data = self._build_db_context(db_data, history_context, cleaned_hint)
+            context_data = self._build_db_context(db_data, history_context, artifact_hint)
 
-        if context_data is not None:
-            try:
-                if self._llm is None:
-                    raise RuntimeError("LLM provider is not configured.")
-                response_text = await asyncio.wait_for(
-                    self._llm.generate_response(text_query, context_data, lang_code),
-                    timeout=LLM_TIMEOUT_SECONDS,
-                )
-            except TimeoutError as exc:
-                _LOGGER.exception("Voice LLM step timed out")
-                response_text = self._llm_fallback_message(lang_code, not self._is_unhelpful_context(db_data))
-            except Exception as exc:
-                _LOGGER.exception("Voice LLM step failed")
-                response_text = self._llm_fallback_message(lang_code, not self._is_unhelpful_context(db_data))
+        # 3. LLM (non-streaming)
+        try:
+            if self._llm is None:
+                raise RuntimeError("LLM not configured")
+            full_response = await asyncio.wait_for(
+                self._llm.generate_response(text_query, context_data, lang_code),
+                timeout=LLM_TIMEOUT_SECONDS,
+            )
+        except Exception as exc:
+            _LOGGER.exception("Voice LLM step failed")
+            full_response = self._llm_fallback_message(
+                lang_code, not self._is_unhelpful_context(db_data)
+            )
 
-        if response_text is None or not response_text.strip():
-            response_text = self._no_context_message(lang_code)
-
+        # 4. Memory update
         if session_id:
-            self._memory.add_turn(session_id, "user", text_query)
-            self._memory.add_turn(session_id, "assistant", response_text)
+            await self._memory.add_turn(session_id, "user", text_query)
+            await self._memory.add_turn(session_id, "assistant", full_response)
 
-        synthesized_audio = await self._synthesize_response(response_text, lang_code)
+        # 5. TTS
+        audio_out = await self._synthesize_response(full_response, lang_code)
 
         return VoicePipelineResult(
-            audio_bytes=synthesized_audio,
+            audio_bytes=audio_out,
             transcript=text_query,
-            response_text=response_text,
+            response_text=full_response,
             lang=lang_code,
-            detected_lang=detected,
+            detected_lang=detected_lang or "",
         )
+
+    async def process_voice_request_stream(
+        self,
+        audio_bytes: bytes,
+        lang_param: str,
+        audio_filename: str | None = None,
+        audio_content_type: str | None = None,
+        session_id: str | None = None,
+        artifact_hint: str | None = None,
+        prefetched_context: str | None = None,
+    ):
+        """Process an audio request and yield text chunks followed by final audio."""
+        requested_lang = lang_param.strip().lower()
+        context = self._language_manager.setup_context(requested_lang)
+        lang_code = context["lang_code"]
+
+        if not audio_bytes or len(audio_bytes) < MIN_AUDIO_BYTES:
+            res = await self._respond_not_heard(lang_code, "")
+            yield {"type": "text", "delta": res.response_text}
+            yield {"type": "audio", "audio_bytes": res.audio_bytes, "transcript": "", "response_text": res.response_text}
+            return
+
+        # 1. STT
+        try:
+            if self._stt is None: raise RuntimeError("STT not configured")
+            text_query, detected_lang = await self._stt.transcribe(
+                audio_bytes, audio_filename, audio_content_type, lang_code
+            )
+        except Exception as exc:
+            yield {"type": "error", "message": f"STT failed: {exc}"}
+            return
+
+        if not text_query.strip():
+            res = await self._respond_not_heard(lang_code, detected_lang or "")
+            yield {"type": "text", "delta": res.response_text}
+            yield {"type": "audio", "audio_bytes": res.audio_bytes, "transcript": "", "response_text": res.response_text}
+            return
+
+        yield {"type": "transcript", "text": text_query}
+
+        # 2. Context Lookup (Enhanced with Graph-Augmented Vector Search)
+        db_data = prefetched_context
+        if db_data is None:
+            # New Hybrid Search
+            related_artifacts = await graph_augmented_search(text_query)
+            if related_artifacts:
+                # Build context from multiple related artifacts
+                context_parts = []
+                for art in related_artifacts:
+                    history = art.history_text_vi if lang_code == "vi" else art.history_text_en
+                    context_parts.append(f"[{art.name_vi} / {art.name_en}]: {history}")
+                db_data = "\n\n".join(context_parts)
+            elif self._db_lookup:
+                # Fallback to old lookup if hybrid search finds nothing
+                db_data = await self._call_db_lookup(text_query, context["db_field"])
+        
+        if self._is_unhelpful_context(db_data) and artifact_hint and self._db_lookup:
+            db_data = await self._call_db_lookup(artifact_hint, context["db_field"])
+
+        history_context = await self._memory.format_history(session_id or "")
+        intent = self._classify_intent(text_query)
+        
+        if self._is_unhelpful_context(db_data):
+            context_data = self._build_general_chat_context(history_context) if intent in ["small_talk", "unknown"] else self._build_missing_context(artifact_hint or "", history_context)
+        else:
+            context_data = self._build_db_context(db_data, history_context, artifact_hint)
+
+        # 3. LLM Streaming
+        full_response = ""
+        try:
+            if self._llm is None: raise RuntimeError("LLM not configured")
+            async for chunk in self._llm.generate_response_stream(text_query, context_data, lang_code):
+                full_response += chunk
+                yield {"type": "text", "delta": chunk}
+        except Exception as exc:
+            full_response = self._llm_fallback_message(lang_code, not self._is_unhelpful_context(db_data))
+            yield {"type": "text", "delta": full_response}
+
+        if session_id:
+            await self._memory.add_turn(session_id, "user", text_query)
+            await self._memory.add_turn(session_id, "assistant", full_response)
+
+        # 4. TTS
+        audio_out = await self._synthesize_response(full_response, lang_code)
+        yield {
+            "type": "audio", 
+            "audio_bytes": audio_out, 
+            "transcript": text_query, 
+            "response_text": full_response,
+            "detected_lang": detected_lang
+        }
 
     def _mock_get_db_data(self, text: str, db_field: str) -> str:
         return f"Mock data for '{text}' from {db_field}."

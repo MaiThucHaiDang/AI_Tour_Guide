@@ -206,7 +206,7 @@ class UnifiedOrchestrator:
             )
 
         # 5. Prepare LLM Context
-        history_context = self._memory.format_history(session_id or "")
+        history_context = await self._memory.format_history(session_id or "")
         system_prompt = build_voice_system_prompt(lang_code)
         
         # Build a rich prompt context
@@ -249,10 +249,11 @@ class UnifiedOrchestrator:
             self._set_cached_answer(artifact_info, final_query, lang_code, response_text)
 
         # 7. Save to Memory
+        context_data = {"artifact_id": recognized_artifact_id} if recognized_artifact_id else None
         if session_id:
             if final_query:
-                self._memory.add_turn(session_id, "user", final_query)
-            self._memory.add_turn(session_id, "assistant", response_text)
+                await self._memory.add_turn(session_id, "user", final_query, context_data)
+            await self._memory.add_turn(session_id, "assistant", response_text, context_data)
 
         # 8. Generate Audio Response (TTS)
         synthesized_audio = None

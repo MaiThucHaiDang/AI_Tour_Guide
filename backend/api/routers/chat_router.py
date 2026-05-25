@@ -40,6 +40,8 @@ async def unified_chat(
     audio: Optional[UploadFile] = File(None),
     lang: str = Form("vi"),
     session_id: Optional[str] = Form(None),
+    lat: Optional[float] = Form(None),
+    lng: Optional[float] = Form(None),
 ) -> UnifiedChatResponse:
     """Process a multimodal chat request."""
     try:

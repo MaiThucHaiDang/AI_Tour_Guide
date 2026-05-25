@@ -17,10 +17,12 @@ from slowapi.errors import RateLimitExceeded
 from fastapi.responses import JSONResponse
 
 from core.config import settings
+from core.cache import setup_cache
 from core.logging import setup_logging
 from core.observability import increment, observe_duration, snapshot
 from core.security import limiter, rate_limit_exceeded_handler
 from middleware.error_handler import global_exception_handler
+from services.ai.embedding_service import EmbeddingService
 
 # Setup logging before anything else
 setup_logging()
@@ -30,6 +32,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("AI Tour Guide Backend starting...")
+    setup_cache()
     logger.info(f"Environment: {settings.ENVIRONMENT}")
     logger.info("Routers: vision (/api/v1/recognize), voice (/api/v1/voice/chat)")
     yield

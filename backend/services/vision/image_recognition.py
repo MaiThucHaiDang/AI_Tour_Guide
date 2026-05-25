@@ -9,6 +9,7 @@ from __future__ import annotations
 import io
 import json
 import logging
+import threading
 
 from PIL import Image
 from google import genai
@@ -23,6 +24,7 @@ from utils.request_validation import decode_image_base64, validate_image_base64_
 logger = logging.getLogger(__name__)
 
 _vision_model = None
+_vision_lock = threading.Lock()
 
 
 def _get_vision_model():
@@ -31,16 +33,19 @@ def _get_vision_model():
     if _vision_model is not None:
         return _vision_model
 
-    api_key = settings.GEMINI_API_KEY.strip()
-    if not api_key:
-        raise RuntimeError("401: GEMINI_API_KEY is not configured.")
+    with _vision_lock:
+        # Double-check after acquiring lock
+        if _vision_model is not None:
+            return _vision_model
+        api_key = settings.GEMINI_API_KEY.strip()
+        if not api_key:
+            raise RuntimeError("401: GEMINI_API_KEY is not configured.")
+        _vision_model = genai.Client(api_key=api_key)
+        return _vision_model
 
-    _vision_model = genai.Client(api_key=api_key)
-    return _vision_model
 
-
-async def recognize_image(image_base64: str, lang: str = "vi") -> VisionResult:
-    """Recognize an artifact from a base64-encoded image."""
+async def recognize_image(image_base64: str, lang: str = "vi", lat: float = None, lng: float = None) -> VisionResult:
+    """Recognize an artifact from a base64-encoded image with GPS support."""
     try:
         validate_image_base64_size(image_base64)
         image_bytes = decode_image_base64(image_base64)
@@ -57,7 +62,11 @@ async def recognize_image(image_base64: str, lang: str = "vi") -> VisionResult:
             config=types.GenerateContentConfig(response_mime_type="application/json"),
         )
         
-        response_text = response.text.strip()
+        raw_text = response.text
+        if not raw_text:
+            logger.warning("Gemini Vision returned empty/None response (possibly blocked by safety filter)")
+            return VisionResult(recognized=False, error="VISION_EMPTY_RESPONSE")
+        response_text = raw_text.strip()
         logger.debug("Gemini Vision raw response: %s", response_text)
 
         # Basic failure detection
@@ -90,8 +99,8 @@ async def recognize_image(image_base64: str, lang: str = "vi") -> VisionResult:
             label = response_text[:100]
             confidence = 0.5
 
-        # 1. Try dynamic database lookup (New Robust Way)
-        artifact_info = await find_artifact_by_name(label)
+        # 1. Try dynamic database lookup (New Robust Way with GPS)
+        artifact_info = await find_artifact_by_name(label, lat=lat, lng=lng)
         
         if artifact_info:
             return VisionResult(

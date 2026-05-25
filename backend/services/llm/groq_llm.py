@@ -42,6 +42,29 @@ class GroqLLMProvider(BaseLLM):
         except Exception as exc:
             raise RuntimeError(f"Groq LLM request failed: {exc}") from exc
 
+    async def generate_response_stream(self, prompt: str, context_data: str, lang: str):
+        from utils.prompt_templates import build_voice_system_prompt
+
+        system_instruction = build_voice_system_prompt(lang)
+        current_settings = get_settings()
+
+        try:
+            stream = await self._client.chat.completions.create(
+                model=self._model,
+                messages=[
+                    {"role": "system", "content": system_instruction},
+                    {"role": "user", "content": f"Context Data:\n{context_data}\n\nUser Prompt:\n{prompt}"},
+                ],
+                temperature=current_settings.LLM_TEMPERATURE,
+                max_tokens=current_settings.LLM_MAX_TOKENS,
+                stream=True,
+            )
+            async for chunk in stream:
+                if chunk.choices[0].delta.content:
+                    yield chunk.choices[0].delta.content
+        except Exception as exc:
+            raise RuntimeError(f"Groq LLM streaming failed: {exc}") from exc
+
     @staticmethod
     def _limit_words(text: str, max_words: int) -> str:
         if not text:

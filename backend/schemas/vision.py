@@ -9,6 +9,8 @@ class RecognizeRequest(BaseModel):
     image_base64: str = Field(..., description="Base64 encoded image")
     lang: str = Field(default="vi", description="Response language: 'vi' or 'en'")
     session_id: Optional[str] = Field(default=None, description="Optional session ID for chat memory")
+    lat: Optional[float] = Field(default=None, description="Latitude")
+    lng: Optional[float] = Field(default=None, description="Longitude")
 
 
 class ArtifactInfo(BaseModel):

@@ -3,7 +3,9 @@ import HomeScreen from './components/HomeScreen';
 import UnifiedChatPage from './components/voice/UnifiedChatPage';
 
 function App() {
-  const [appState, setAppState] = useState('home'); // 'home', 'chat'
+  const [appState, setAppState] = useState(() => {
+    return new URLSearchParams(window.location.search).get('view') === 'chat' ? 'chat' : 'home';
+  });
   const [language, setLanguage] = useState(() => {
     return localStorage.getItem('ai_tour_lang') || 'vi';
   });

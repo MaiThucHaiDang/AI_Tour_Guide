@@ -164,6 +164,22 @@ class UnifiedOrchestrator:
                     
                     if not final_query:
                         final_query = f"[User sent an image of {recognized_artifact_name}]"
+                else:
+                    if not final_query:
+                        return self._finalize_without_tts(
+                            self._unrecognized_image_message(lang_code),
+                            final_query,
+                            lang_code,
+                            session_id,
+                            artifact_info,
+                            recognized_artifact_id,
+                            recognized_artifact_name,
+                            detected_lang,
+                            "template",
+                            processing_steps,
+                        )
+                    else:
+                        final_query = f"[User sent an unrecognized image. User asks: {final_query}]"
             except Exception as e:
                 _LOGGER.error(f"Vision failed or timed out: {e}")
 
@@ -438,6 +454,12 @@ class UnifiedOrchestrator:
         if lang_code == "en":
             return "I did not catch that clearly. Please try speaking again or type your question."
         return "Mình chưa nghe rõ. Bạn có thể nói lại chậm hơn hoặc nhập câu hỏi bằng chữ."
+
+    @staticmethod
+    def _unrecognized_image_message(lang_code: str) -> str:
+        if lang_code == "en":
+            return "I couldn't clearly recognize the historical artifact in the image. It might be too blurry, not an artifact, or not in my database yet. Could you take a clearer photo or tell me its name?"
+        return "Mình chưa nhận diện được di tích hoặc hiện vật trong ảnh. Có thể ảnh không liên quan, bị mờ hoặc chưa có trong dữ liệu. Bạn có thể chụp rõ hơn hoặc gõ tên của nó cho mình biết nhé!"
 
     @staticmethod
     def _format_artifact_context(artifact: ArtifactInfo, lang_code: str) -> str:

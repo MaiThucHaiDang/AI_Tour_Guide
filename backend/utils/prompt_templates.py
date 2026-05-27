@@ -16,10 +16,11 @@ def build_vision_recognition_prompt(lang: str) -> str:
         return """You are an expert in Vietnamese historical artifacts and sites.
 Analyze the image and return a JSON object:
 {
-  "artifact_name": "Name of the recognized artifact or site (e.g., Noon Gate, Independence Palace...)",
+  "artifact_name": "Specific name of the recognized artifact or site (e.g., Noon Gate, Tank 843, F-5E Tiger, M48 Patton...)",
   "confidence": 0.0 to 1.0,
   "is_historical_artifact": true/false
 }
+IMPORTANT: Be as specific as possible. If you see a tank, say 'Tank 843' or 'M48 Patton' instead of just 'Independence Palace'.
 If you are unsure or it is not a historical artifact, return {"artifact_name": "UNKNOWN", "confidence": 0.0, "is_historical_artifact": false}.
 Return ONLY the JSON object.
 """
@@ -27,10 +28,11 @@ Return ONLY the JSON object.
     return """Bạn là chuyên gia nhận diện di tích lịch sử và hiện vật tại Việt Nam.
 Hãy phân tích ảnh và trả về một đối tượng JSON:
 {
-  "artifact_name": "Tên địa danh/hiện vật được nhận diện (ví dụ: Ngọ Môn, Dinh Độc Lập...)",
+  "artifact_name": "Tên cụ thể của địa danh/hiện vật được nhận diện (ví dụ: Ngọ Môn, Xe tăng 843, F-5E Tiger, M48 Patton...)",
   "confidence": 0.0 đến 1.0,
   "is_historical_artifact": true/false
 }
+QUAN TRỌNG: Hãy nhận diện chi tiết nhất có thể. Nếu thấy xe tăng, hãy gọi tên 'Xe tăng 843' hoặc 'M48 Patton' thay vì chỉ nói chung chung là 'Dinh Độc Lập'.
 Nếu không chắc chắn hoặc không phải di tích lịch sử, trả về {"artifact_name": "UNKNOWN", "confidence": 0.0, "is_historical_artifact": false}.
 CHỈ trả về đối tượng JSON.
 """

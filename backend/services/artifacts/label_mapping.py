@@ -33,9 +33,9 @@ VISION_LABEL_MAP: dict[str, str] = {
     "the mieu temple": "5",
 
     # === DINH ĐỘC LẬP (loc_id = 2) ===
-    "dinh độc lập": "6",
-    "dinh doc lap": "6",
-    "independence palace": "6",
+    "phòng nội các": "6",
+    "phong noi cac": "6",
+    "cabinet room": "6",
 
     "hầm chỉ huy": "7",
     "ham chi huy": "7",

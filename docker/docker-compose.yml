@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: public.ecr.aws/docker/library/postgres:16-alpine
     container_name: ai_tour_guide_db
     environment:
       POSTGRES_DB: ai_tour_guide

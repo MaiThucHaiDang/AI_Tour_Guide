@@ -98,18 +98,28 @@ class UnifiedOrchestrator:
         artifact_info: ArtifactInfo | None = None
         processing_steps: list[str] = []
 
-        # 1. Handle Audio (STT)
+        # 1. Start STT and Vision Concurrently
+        stt_task = None
+        vision_task = None
+
         if audio_bytes and len(audio_bytes) >= MIN_AUDIO_BYTES:
-            try:
-                if self._stt is None:
-                    raise RuntimeError("Speech-to-text provider is not configured.")
-                processing_steps.append(self._step_label("stt", lang_code))
-                stt_text, det_lang = await asyncio.wait_for(
-                    self._stt.transcribe(
-                        audio_bytes, audio_filename, audio_content_type, lang_code
-                    ),
-                    timeout=STT_TIMEOUT
+            if self._stt is None:
+                _LOGGER.error("Speech-to-text provider is not configured.")
+            else:
+                stt_task = asyncio.create_task(
+                    self._stt.transcribe(audio_bytes, audio_filename, audio_content_type, lang_code)
                 )
+
+        if image_base64:
+            vision_task = asyncio.create_task(
+                recognize_image(image_base64, lang=lang_code)
+            )
+
+        # 2. Await STT
+        if stt_task:
+            try:
+                processing_steps.append(self._step_label("stt", lang_code))
+                stt_text, det_lang = await asyncio.wait_for(stt_task, timeout=STT_TIMEOUT)
                 if stt_text.strip():
                     final_query = await canonicalize_transcript_entities(stt_text, lang_code)
                     detected_lang = det_lang
@@ -130,14 +140,11 @@ class UnifiedOrchestrator:
                 processing_steps,
             )
 
-        # 2. Handle Image (Vision)
-        if image_base64:
+        # 3. Await Vision
+        if vision_task:
             try:
                 processing_steps.append(self._step_label("vision", lang_code))
-                vision_result = await asyncio.wait_for(
-                    recognize_image(image_base64, lang=lang_code),
-                    timeout=VISION_TIMEOUT
-                )
+                vision_result = await asyncio.wait_for(vision_task, timeout=VISION_TIMEOUT)
                 if vision_result.recognized:
                     recognized_artifact_id = vision_result.artifact_id
                     try:
@@ -145,7 +152,7 @@ class UnifiedOrchestrator:
                     except Exception as exc:
                         _LOGGER.warning("Artifact detail lookup failed: %s", exc)
                         artifact_info = None
-                    # Fetch artifact details for context
+                    
                     if artifact_info:
                         db_context = self._format_artifact_context(artifact_info, lang_code)
                         recognized_artifact_name = self._artifact_name(artifact_info, lang_code)
@@ -155,7 +162,6 @@ class UnifiedOrchestrator:
                         )
                         recognized_artifact_name = vision_result.raw_label
                     
-                    # If the user didn't ask anything specific, we set a default prompt
                     if not final_query:
                         final_query = f"[User sent an image of {recognized_artifact_name}]"
             except Exception as e:

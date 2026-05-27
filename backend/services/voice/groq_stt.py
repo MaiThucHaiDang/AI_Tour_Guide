@@ -102,7 +102,18 @@ class GroqSTTProvider(BaseSTT):
     @classmethod
     def _is_low_confidence_transcription(cls, response: Any, text: str) -> bool:
         """Reject likely silence/noise hallucinations using Whisper segment metadata."""
-        if not (text or "").strip():
+        text_clean = (text or "").strip().lower()
+        if not text_clean:
+            return True
+
+        # Common Whisper hallucinations for silence/noise
+        hallucinations = [
+            "cảm ơn", "theo dõi", "youtube", "subscribe", "amara.org", 
+            "nhạc", "thank you", "subtitles", "đăng ký kênh", "like và share"
+        ]
+        
+        # If the text is very short and contains mostly the hallucinated phrases
+        if len(text_clean) < 50 and any(h in text_clean for h in hallucinations):
             return True
 
         segments = cls._extract_segments(response)

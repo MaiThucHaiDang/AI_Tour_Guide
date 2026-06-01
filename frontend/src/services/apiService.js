@@ -192,6 +192,7 @@ export const unifiedChatAPI = async ({
   imageBase64 = null,
   lang = 'vi',
   sessionId = null,
+  artifactId = null,
   filename = 'recording.webm'
 }) => {
   const formData = new FormData();
@@ -200,6 +201,7 @@ export const unifiedChatAPI = async ({
   if (audioBlob) formData.append('audio', audioBlob, filename);
   formData.append('lang', lang);
   if (sessionId) formData.append('session_id', sessionId);
+  if (artifactId) formData.append('artifact_id', artifactId);
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 35000);
@@ -290,4 +292,45 @@ const base64ToBlob = (base64, mimeType = 'audio/mpeg') => {
     bytes[i] = byteString.charCodeAt(i);
   }
   return new Blob([bytes], { type: mimeType });
+};
+
+export const getMapConfigAPI = async () => {
+  try {
+    const response = await fetch('/api/v1/map/config');
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to fetch map configuration');
+    }
+    return data;
+  } catch (error) {
+    console.error('Error fetching map configuration:', error);
+    throw error;
+  }
+};
+
+export const saveMapConfigAPI = async (mapBounds, artifacts) => {
+  try {
+    const response = await fetch('/api/v1/map/config', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        map_bounds: mapBounds,
+        artifacts: artifacts.map(art => ({
+          id: art.id,
+          lat: art.lat,
+          lng: art.lng
+        }))
+      })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to save map configuration');
+    }
+    return data;
+  } catch (error) {
+    console.error('Error saving map configuration:', error);
+    throw error;
+  }
 };

@@ -1,0 +1,157 @@
+{
+  "analysis": "The map image is oriented with the main entrance (Ngọ Môn / Lối vào) at the bottom and the North Gate (Cửa Hòa Bình) at the top. Geographically, the Imperial City of Hue is rotated approximately 37 degrees counter-clockwise from North-Up (its main axis runs from Southeast to Northwest). Therefore, in this image, North points towards the top-right (at about 37-45 degrees clockwise from vertical). To overlay this image correctly in Leaflet, you have two options: 1) Use the standard axis-aligned bounding box (SW and NE) provided below, but note that the image must be rotated to align with the real world. 2) Use a rotated image overlay plugin (like Leaflet.ImageOverlay.Rotated) with the three corner coordinates: Top-Left [16.47039, 107.57258], Top-Right [16.47554, 107.57923], and Bottom-Left [16.46369, 107.57711].",
+  "sw": [
+    16.46369,
+    107.57258
+  ],
+  "ne": [
+    16.47554,
+    107.58376
+  ],
+  "alignments": [
+    {
+      "id": 1,
+      "name": "Cửa Hòa Bình",
+      "gps": [
+        16.4721279,
+        107.5762716
+      ],
+      "description_of_position_on_image": "Top center of the inner citadel wall"
+    },
+    {
+      "id": 2,
+      "name": "Điện Kiến Trung",
+      "gps": [
+        16.4710479,
+        107.5765559
+      ],
+      "description_of_position_on_image": "Upper center area, just below Cửa Hòa Bình"
+    },
+    {
+      "id": 3,
+      "name": "Cung Trường Sanh",
+      "gps": [
+        16.469725,
+        107.574694
+      ],
+      "description_of_position_on_image": "Upper left corner inside the citadel wall"
+    },
+    {
+      "id": 4,
+      "name": "Cung Diên Thọ",
+      "gps": [
+        16.4688556,
+        107.5753417
+      ],
+      "description_of_position_on_image": "Middle-left area inside the citadel wall"
+    },
+    {
+      "id": 5,
+      "name": "Cửa Chương Đức",
+      "gps": [
+        16.4673314,
+        107.5757295
+      ],
+      "description_of_position_on_image": "Left gate of the citadel wall"
+    },
+    {
+      "id": 6,
+      "name": "Hưng Miếu (Hưng Tổ Miếu)",
+      "gps": [
+        16.4674263,
+        107.5764189
+      ],
+      "description_of_position_on_image": "Bottom-left area, just above Thế Miếu"
+    },
+    {
+      "id": 7,
+      "name": "Thế Miếu (Thế Tổ Miếu)",
+      "gps": [
+        16.4671621,
+        107.5767333
+      ],
+      "description_of_position_on_image": "Bottom-left corner inside the citadel wall"
+    },
+    {
+      "id": 8,
+      "name": "Điện Thái Hòa",
+      "gps": [
+        16.4686747,
+        107.578412
+      ],
+      "description_of_position_on_image": "Center-bottom area, aligned with the main axis"
+    },
+    {
+      "id": 9,
+      "name": "Nền điện Cần Chánh",
+      "gps": [
+        16.4695281,
+        107.5777743
+      ],
+      "description_of_position_on_image": "Center of the map, directly behind Điện Thái Hòa"
+    },
+    {
+      "id": 10,
+      "name": "Duyệt Thị Đường",
+      "gps": [
+        16.470284,
+        107.5785163
+      ],
+      "description_of_position_on_image": "Center-right area, next to Nền điện Cần Chánh"
+    },
+    {
+      "id": 11,
+      "name": "Phủ Nội Vụ",
+      "gps": [
+        16.470755,
+        107.5796368
+      ],
+      "description_of_position_on_image": "Middle-right area inside the citadel wall"
+    },
+    {
+      "id": 12,
+      "name": "Vườn Cơ Hạ",
+      "gps": [
+        16.4717727,
+        107.5788666
+      ],
+      "description_of_position_on_image": "Upper right area inside the citadel wall"
+    },
+    {
+      "id": 13,
+      "name": "Triệu Miếu (Triệu Tổ Miếu)",
+      "gps": [
+        16.4701907,
+        107.5801058
+      ],
+      "description_of_position_on_image": "Bottom-right area, just above Thái Miếu"
+    },
+    {
+      "id": 14,
+      "name": "Thái Miếu (Thái Tổ Miếu)",
+      "gps": [
+        16.4699109,
+        107.5803246
+      ],
+      "description_of_position_on_image": "Bottom-right corner inside the citadel wall"
+    },
+    {
+      "id": 15,
+      "name": "Cửa Hiển Nhơn",
+      "gps": [
+        16.4707473,
+        107.5805514
+      ],
+      "description_of_position_on_image": "Right gate of the citadel wall"
+    },
+    {
+      "id": 16,
+      "name": "Điện Long An (Bảo tàng Cổ vật Cung đình Huế)",
+      "gps": [
+        16.4712819,
+        107.5818602
+      ],
+      "description_of_position_on_image": "Outside the citadel wall on the bottom-right corner of the image"
+    }
+  ]
+}

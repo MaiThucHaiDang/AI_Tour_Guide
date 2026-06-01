@@ -8,6 +8,7 @@ import asyncio
 from google import genai
 
 from core.config import settings
+from utils.ai_utils import retry_with_backoff
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -45,7 +46,8 @@ class EmbeddingService:
                     }
                 )
 
-            result = await asyncio.to_thread(_do_embed)
+            # result = await asyncio.to_thread(_do_embed)
+            result = await retry_with_backoff(asyncio.to_thread, _do_embed)
             
             if result and result.embeddings:
                 return result.embeddings[0].values
@@ -75,7 +77,8 @@ class EmbeddingService:
                     }
                 )
 
-            result = await asyncio.to_thread(_do_embed_batch)
+            # result = await asyncio.to_thread(_do_embed_batch)
+            result = await retry_with_backoff(asyncio.to_thread, _do_embed_batch)
             
             if result and result.embeddings:
                 return [e.values for e in result.embeddings]

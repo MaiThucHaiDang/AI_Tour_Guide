@@ -85,6 +85,7 @@ class UnifiedOrchestrator:
         session_id: Optional[str] = None,
         audio_filename: Optional[str] = None,
         audio_content_type: Optional[str] = None,
+        artifact_id: Optional[int] = None,
     ) -> UnifiedChatResult:
         """Process a multimodal chat request."""
         context = self._language_manager.setup_context(lang)
@@ -92,11 +93,22 @@ class UnifiedOrchestrator:
         
         final_query = text_query or ""
         detected_lang = None
-        recognized_artifact_id = None
+        recognized_artifact_id = artifact_id
         recognized_artifact_name = None
         db_context = ""
         artifact_info: ArtifactInfo | None = None
         processing_steps: list[str] = []
+
+        # Pre-load context if artifact_id is provided
+        if recognized_artifact_id:
+            try:
+                artifact_info = await get_artifact_by_id(recognized_artifact_id)
+                if artifact_info:
+                    db_context = self._format_artifact_context(artifact_info, lang_code)
+                    recognized_artifact_name = self._artifact_name(artifact_info, lang_code)
+                    _LOGGER.info("Pre-loaded context for artifact ID: %s", recognized_artifact_id)
+            except Exception as exc:
+                _LOGGER.warning("Pre-load artifact lookup failed: %s", exc)
 
         # 1. Start STT and Vision Concurrently
         stt_task = None
@@ -127,7 +139,7 @@ class UnifiedOrchestrator:
                 _LOGGER.error(f"STT failed or timed out: {e}")
 
         if audio_bytes and not final_query.strip() and not image_base64:
-            return self._finalize_without_tts(
+            return await self._finalize_without_tts(
                 self._not_heard_message(lang_code),
                 final_query,
                 lang_code,
@@ -166,7 +178,7 @@ class UnifiedOrchestrator:
                         final_query = f"[User sent an image of {recognized_artifact_name}]"
                 else:
                     if not final_query:
-                        return self._finalize_without_tts(
+                        return await self._finalize_without_tts(
                             self._unrecognized_image_message(lang_code),
                             final_query,
                             lang_code,
@@ -202,7 +214,7 @@ class UnifiedOrchestrator:
             cached = self._get_cached_answer(artifact_info, final_query, lang_code)
             if cached:
                 increment("chat.llm_calls_avoided")
-                return self._finalize_without_tts(
+                return await self._finalize_without_tts(
                     cached, final_query, lang_code, session_id, artifact_info,
                     recognized_artifact_id, recognized_artifact_name,
                     detected_lang, "cache", processing_steps,
@@ -212,7 +224,7 @@ class UnifiedOrchestrator:
             if direct_answer:
                 self._set_cached_answer(artifact_info, final_query, lang_code, direct_answer)
                 increment("chat.llm_calls_avoided")
-                return self._finalize_without_tts(
+                return await self._finalize_without_tts(
                     direct_answer, final_query, lang_code, session_id, artifact_info,
                     recognized_artifact_id, recognized_artifact_name,
                     detected_lang, "db_direct", processing_steps,
@@ -221,7 +233,7 @@ class UnifiedOrchestrator:
         small_talk = self._build_small_talk_answer(final_query, lang_code)
         if small_talk:
             increment("chat.llm_calls_avoided")
-            return self._finalize_without_tts(
+            return await self._finalize_without_tts(
                 small_talk, final_query, lang_code, session_id, artifact_info,
                 recognized_artifact_id, recognized_artifact_name,
                 detected_lang, "template", processing_steps,
@@ -249,6 +261,9 @@ class UnifiedOrchestrator:
             llm_context_parts.append(self._build_general_context(final_query, history_context, lang_code))
 
         llm_full_context = "\n\n".join(llm_context_parts)
+        
+        # Log the full context sent to the LLM for debugging RAG data
+        _LOGGER.info(f"--- RAG CONTEXT SENT TO LLM ---\n{llm_full_context}\n-------------------------------")
 
         # 6. Generate LLM Response
         try:
@@ -304,7 +319,7 @@ class UnifiedOrchestrator:
             artifact_summary=self._short_summary(artifact_info, lang_code) if artifact_info else None,
         )
 
-    def _finalize_without_tts(
+    async def _finalize_without_tts(
         self,
         response_text: str,
         final_query: str,
@@ -317,10 +332,11 @@ class UnifiedOrchestrator:
         answer_source: str,
         processing_steps: list[str],
     ) -> UnifiedChatResult:
+        context_data = {"artifact_id": artifact_id} if artifact_id else None
         if session_id:
             if final_query:
-                self._memory.add_turn(session_id, "user", final_query)
-            self._memory.add_turn(session_id, "assistant", response_text)
+                await self._memory.add_turn(session_id, "user", final_query, context_data)
+            await self._memory.add_turn(session_id, "assistant", response_text, context_data)
         return UnifiedChatResult(
             response_text=response_text,
             audio_bytes=None,
@@ -351,6 +367,11 @@ class UnifiedOrchestrator:
         self, artifact: ArtifactInfo, query: str, lang_code: str
     ) -> str | None:
         normalized = self._normalize_text(query)
+        
+        # Never use the fast-path summary for Locations, let the LLM generate a natural response
+        if artifact.art_id and artifact.art_id.startswith("loc_"):
+            return None
+            
         if not normalized or normalized.startswith("[user sent an image"):
             return self._summary_answer(artifact, lang_code)
 
@@ -371,6 +392,7 @@ class UnifiedOrchestrator:
                 return f"{artifact.name_vi} thuộc mã địa điểm {artifact.loc_id}. Bạn có thể xem chi tiết địa điểm ở bảng thông tin bên phải."
             return f"{artifact.name_en} belongs to location ID {artifact.loc_id}. You can review the location details in the side panel."
 
+        # Let the LLM handle storytelling for maximum engagement
         if any(keyword in normalized for keyword in ("tom tat", "gioi thieu", "ke ngan", "y nghia", "meaning", "summary", "describe", "what is")):
             return self._summary_answer(artifact, lang_code)
 

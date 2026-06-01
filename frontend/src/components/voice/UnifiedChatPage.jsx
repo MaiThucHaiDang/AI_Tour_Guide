@@ -62,15 +62,15 @@ const COPY = {
     record: 'Ghi âm',
     latest: 'Tin nhắn mới nhất',
     quickPrompts: [
-      'Ngọ Môn được xây năm nào?',
-      'Ai xây Điện Thái Hòa?',
-      'Kể ngắn về Cửu Đỉnh trong 30 giây',
-      'Ý nghĩa lịch sử của Dinh Độc Lập là gì?'
+      'Điện Thái Hòa được xây năm nào?',
+      'Kể ngắn về Thế Miếu và Cửu Đỉnh',
+      'Điện Kiến Trung có ý nghĩa gì?',
+      'Duyệt Thị Đường dùng để làm gì?'
     ],
     locationsList: [
-      { name: 'Kinh thành Huế', detail: 'Ngọ Môn, Điện Thái Hòa, Cửu Đỉnh' },
-      { name: 'Dinh Độc Lập', detail: 'Phòng Nội các, Hầm chỉ huy, Xe tăng 843' },
-      { name: 'Bảo tàng Chứng tích Chiến tranh', detail: 'F-5E Tiger, M48 Patton, UH-1 Huey' }
+      { name: 'Cung điện & Miếu thờ', detail: 'Điện Thái Hòa, Thế Miếu, Hưng Miếu, Triệu Miếu, Thái Miếu' },
+      { name: 'Cung & Vườn', detail: 'Cung Diên Thọ, Cung Trường Sanh, Vườn Cơ Hạ, Điện Kiến Trung' },
+      { name: 'Cổng & Bảo tàng', detail: 'Cửa Hòa Bình, Cửa Hiển Nhơn, Cửa Chương Đức, Điện Long An' }
     ]
   },
   en: {
@@ -108,15 +108,15 @@ const COPY = {
     record: 'Record voice',
     latest: 'Latest messages',
     quickPrompts: [
-      'When was Ngo Mon Gate built?',
-      'Who built Thai Hoa Palace?',
-      'Summarize the Nine Dynastic Urns in 30 seconds',
-      'What is the historical meaning of Independence Palace?'
+      'When was Thai Hoa Palace built?',
+      'Tell me about The Mieu and the Nine Dynastic Urns',
+      'What is the significance of Kien Trung Palace?',
+      'What was Duyet Thi Duong used for?'
     ],
     locationsList: [
-      { name: 'Hue Imperial City', detail: 'Ngo Mon, Thai Hoa Palace, Nine Dynastic Urns' },
-      { name: 'Independence Palace', detail: 'Cabinet Room, Command Bunker, Tank 843' },
-      { name: 'War Remnants Museum', detail: 'F-5E Tiger, M48 Patton, UH-1 Huey' }
+      { name: 'Palaces & Temples', detail: 'Thai Hoa Palace, The Mieu, Hung Mieu, Trieu Mieu, Thai Mieu' },
+      { name: 'Residences & Gardens', detail: 'Dien Tho Palace, Truong Sanh Palace, Co Ha Garden, Kien Trung Palace' },
+      { name: 'Gates & Museum', detail: 'Hoa Binh Gate, Hien Nhon Gate, Chuong Duc Gate, Long An Palace' }
     ]
   }
 };
@@ -130,7 +130,7 @@ const createWelcomeMessage = (greeting) => ({
   source: 'template'
 });
 
-const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
+const UnifiedChatPage = ({ onBack, language, setLanguage, initialArtifact, externalPrompt, embedded = false }) => {
   const copy = COPY[language] || COPY.vi;
   const [messages, setMessages] = useState(() => [createWelcomeMessage(copy.greeting)]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -163,6 +163,42 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
   } = useAudioRecorder();
 
   useEffect(() => {
+    if (externalPrompt) {
+      // IN RA VÀ ĐỌC: Thêm tin nhắn vào khung chat cục bộ dưới danh nghĩa AI
+      const navMessage = {
+        id: `nav-${Date.now()}`,
+        role: 'ai',
+        type: 'text',
+        content: externalPrompt,
+        timestamp: new Date(),
+        source: 'navigation'
+      };
+      setMessages(prev => [...prev, navMessage]);
+      
+      // Tự động đọc chỉ dẫn
+      playTTS(externalPrompt, language);
+    }
+  }, [externalPrompt]);
+
+  useEffect(() => {
+    if (initialArtifact) {
+      const artName = language === 'vi' ? initialArtifact.name_vi : initialArtifact.name_en;
+      setCurrentArtifact({
+        id: initialArtifact.id,
+        name: artName,
+      });
+      const storytellingPrompt = language === 'vi' 
+        ? `Hướng dẫn viên: Giới thiệu ngắn gọn và hấp dẫn về ${artName}`
+        : `Tour guide: Give a short, engaging introduction to ${artName}`;
+      
+      // Delay to ensure setup is done
+      setTimeout(() => {
+        handleSendText(storytellingPrompt, initialArtifact.id);
+      }, 500);
+    }
+  }, [initialArtifact]);
+
+  useEffect(() => {
     const cached = sessionStorage.getItem('unified_chat_session_id');
     if (cached) {
       sessionIdRef.current = cached;
@@ -171,7 +207,6 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
       sessionIdRef.current = newId;
       sessionStorage.setItem('unified_chat_session_id', newId);
     }
-
   }, []);
 
   useEffect(() => {
@@ -206,10 +241,9 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
         filename: getFilename()
       }).finally(resetRecording);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audioBlob]);
 
-  const processUnifiedChat = async ({ text, audioBlob, imageBase64, filename }) => {
+  const processUnifiedChat = async ({ text, audioBlob, imageBase64, filename, artifactId = null }) => {
     setIsProcessing(true);
     shouldStickToBottomRef.current = true;
     setShowJumpToLatest(false);
@@ -254,7 +288,8 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
         imageBase64,
         lang: language,
         sessionId: sessionIdRef.current,
-        filename
+        filename,
+        artifactId: artifactId || currentArtifact?.id
       });
 
       if (voiceMsgId && response.transcript) {
@@ -335,13 +370,13 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
     reader.readAsDataURL(file);
   };
 
-  const handleSendText = async (overrideText = null) => {
+  const handleSendText = async (overrideText = null, overrideArtifactId = null) => {
     const text = (overrideText ?? inputText).trim();
     if (!text && !pendingImage) return;
     const image = pendingImage;
     setInputText('');
     setPendingImage(null);
-    await processUnifiedChat({ text, imageBase64: image });
+    await processUnifiedChat({ text, imageBase64: image, artifactId: overrideArtifactId });
   };
 
   const addErrorMessage = (message) => {
@@ -462,8 +497,6 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
     if (!recordingError) return;
     addErrorMessage(recordingError);
     resetRecording();
-    // addErrorMessage intentionally reads the current language copy.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recordingError, resetRecording]);
 
   const playAudioBlob = async (blob) => {
@@ -577,79 +610,83 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
   };
 
   return (
-    <div className="tour-workspace" ref={workspaceRef} onPointerMove={handleWorkspacePointerMove}>
+    <div className={`tour-workspace ${embedded ? 'embedded-mode' : ''}`} ref={workspaceRef} onPointerMove={handleWorkspacePointerMove}>
       <div className="chat-cursor-light" aria-hidden="true" />
-      <header className="tour-topbar">
-        <button className="topbar-back" onClick={onBack} aria-label={copy.back}>
-          <ArrowLeft size={18} />
-          <span>{copy.back}</span>
-        </button>
-        <div className="brand-block">
-          <div className="brand-mark"><span>AI</span></div>
-          <div>
-            <h1>{copy.title}</h1>
-            <p>{copy.subtitle}</p>
-          </div>
-        </div>
-        <div className="topbar-actions">
-          <div className="backend-status">
-            <span className="status-dot" />
-            {copy.status}
-          </div>
-          <button
-            className="topbar-icon"
-            onClick={handleResetConversation}
-            aria-label={copy.reset}
-            title={copy.reset}
-          >
-            <RotateCcw size={18} />
+      {!embedded && (
+        <header className="tour-topbar">
+          <button className="topbar-back" onClick={onBack} aria-label={copy.back}>
+            <ArrowLeft size={18} />
+            <span>{copy.back}</span>
           </button>
-          <button
-            className={`topbar-icon ${autoSpeak ? 'active' : ''}`}
-            onClick={() => setAutoSpeak(!autoSpeak)}
-            aria-label={autoSpeak ? 'Disable auto speak' : 'Enable auto speak'}
-          >
-            {autoSpeak ? <Volume2 size={18} /> : <VolumeX size={18} />}
-          </button>
-          <LanguageToggle language={language} setLanguage={setLanguage} />
-        </div>
-      </header>
+          <div className="brand-block">
+            <div className="brand-mark"><span>AI</span></div>
+            <div>
+              <h1>{copy.title}</h1>
+              <p>{copy.subtitle}</p>
+            </div>
+          </div>
+          <div className="topbar-actions">
+            <div className="backend-status">
+              <span className="status-dot" />
+              {copy.status}
+            </div>
+            <button
+              className="topbar-icon"
+              onClick={handleResetConversation}
+              aria-label={copy.reset}
+              title={copy.reset}
+            >
+              <RotateCcw size={18} />
+            </button>
+            <button
+              className={`topbar-icon ${autoSpeak ? 'active' : ''}`}
+              onClick={() => setAutoSpeak(!autoSpeak)}
+              aria-label={autoSpeak ? 'Disable auto speak' : 'Enable auto speak'}
+            >
+              {autoSpeak ? <Volume2 size={18} /> : <VolumeX size={18} />}
+            </button>
+            <LanguageToggle language={language} setLanguage={setLanguage} />
+          </div>
+        </header>
+      )}
 
-      <main className="workspace-grid">
-        <aside className="explore-panel">
-          <section className="panel-section">
-            <div className="section-heading">
-              <MapPin size={17} />
-              <h2>{copy.locations}</h2>
-            </div>
-            <div className="location-list">
-              {copy.locationsList.map((location, index) => (
-                <button
-                  key={location.name}
-                  className={`location-card ${selectedLocation === index ? 'selected' : ''}`}
-                  onClick={() => setSelectedLocation(index)}
-                >
-                  <strong>{location.name}</strong>
-                  <span>{location.detail}</span>
-                </button>
-              ))}
-            </div>
-          </section>
+      <main className={embedded ? 'chat-only-view' : 'workspace-grid'}>
+        {!embedded && (
+          <aside className="explore-panel">
+            <section className="panel-section">
+              <div className="section-heading">
+                <MapPin size={17} />
+                <h2>{copy.locations}</h2>
+              </div>
+              <div className="location-list">
+                {copy.locationsList.map((location, index) => (
+                  <button
+                    key={location.name}
+                    className={`location-card ${selectedLocation === index ? 'selected' : ''}`}
+                    onClick={() => setSelectedLocation(index)}
+                  >
+                    <strong>{location.name}</strong>
+                    <span>{location.detail}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
 
-          <section className="panel-section">
-            <div className="section-heading">
-              <Sparkles size={17} />
-              <h2>{copy.explore}</h2>
-            </div>
-            <div className="quick-actions">
-              {copy.quickPrompts.map((prompt) => (
-                <button key={prompt} onClick={() => handleSendText(prompt)}>
-                  {prompt}
-                </button>
-              ))}
-            </div>
-          </section>
-        </aside>
+            <section className="panel-section">
+              <div className="section-heading">
+                <Sparkles size={17} />
+                <h2>{copy.explore}</h2>
+              </div>
+              <div className="quick-actions">
+                {copy.quickPrompts.map((prompt) => (
+                  <button key={prompt} onClick={() => handleSendText(prompt)}>
+                    {prompt}
+                  </button>
+                ))}
+              </div>
+            </section>
+          </aside>
+        )}
 
         <section className="conversation-panel">
           <div className="conversation-header">
@@ -798,76 +835,78 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
           </div>
         </section>
 
-        <aside className="artifact-panel">
-          <section className="artifact-card">
-            <div className="section-heading">
-              <FileText size={17} />
-              <h2>{copy.artifactPanel}</h2>
-            </div>
-
-            {currentArtifact ? (
-              <>
-                <div className="artifact-visual">
-                  <Landmark size={46} />
-                </div>
-                <h3>{currentArtifact.name || copy.artifactPanel}</h3>
-                <div className="artifact-meta-grid">
-                  <div>
-                    <span>{copy.year}</span>
-                    <strong>{currentArtifact.year || '-'}</strong>
-                  </div>
-                  <div>
-                    <span>{copy.author}</span>
-                    <strong>{currentArtifact.author || '-'}</strong>
-                  </div>
-                  <div>
-                    <span>ID</span>
-                    <strong>{currentArtifact.id || '-'}</strong>
-                  </div>
-                </div>
-                <div className="summary-block">
-                  <span>{copy.summary}</span>
-                  <p>{currentArtifact.summary || copy.detailEmpty}</p>
-                </div>
-              </>
-            ) : (
-              <div className="empty-artifact">
-                <Landmark size={44} />
-                <p>{copy.noArtifact}</p>
+        {!embedded && (
+          <aside className="artifact-panel">
+            <section className="artifact-card">
+              <div className="section-heading">
+                <FileText size={17} />
+                <h2>{copy.artifactPanel}</h2>
               </div>
-            )}
-          </section>
 
-          <section className="steps-card">
-            <div className="section-heading">
-              <CheckCircle2 size={17} />
-              <h2>{language === 'vi' ? 'Trạng thái hỗ trợ' : 'Guidance status'}</h2>
-            </div>
-            {processingSteps.length > 0 ? (
-              <ol className="processing-steps">
-                {processingSteps.map((step, index) => (
-                  <li key={`${step}-${index}`}>{step}</li>
+              {currentArtifact ? (
+                <>
+                  <div className="artifact-visual">
+                    <Landmark size={46} />
+                  </div>
+                  <h3>{currentArtifact.name || copy.artifactPanel}</h3>
+                  <div className="artifact-meta-grid">
+                    <div>
+                      <span>{copy.year}</span>
+                      <strong>{currentArtifact.year || '-'}</strong>
+                    </div>
+                    <div>
+                      <span>{copy.author}</span>
+                      <strong>{currentArtifact.author || '-'}</strong>
+                    </div>
+                    <div>
+                      <span>ID</span>
+                      <strong>{currentArtifact.id || '-'}</strong>
+                    </div>
+                  </div>
+                  <div className="summary-block">
+                    <span>{copy.summary}</span>
+                    <p>{currentArtifact.summary || copy.detailEmpty}</p>
+                  </div>
+                </>
+              ) : (
+                <div className="empty-artifact">
+                  <Landmark size={44} />
+                  <p>{copy.noArtifact}</p>
+                </div>
+              )}
+            </section>
+
+            <section className="steps-card">
+              <div className="section-heading">
+                <CheckCircle2 size={17} />
+                <h2>{language === 'vi' ? 'Trạng thái hỗ trợ' : 'Guidance status'}</h2>
+              </div>
+              {processingSteps.length > 0 ? (
+                <ol className="processing-steps">
+                  {processingSteps.map((step, index) => (
+                    <li key={`${step}-${index}`}>{step}</li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="muted">{copy.detailEmpty}</p>
+              )}
+            </section>
+
+            <section className="panel-section suggestions-card">
+              <div className="section-heading">
+                <Sparkles size={17} />
+                <h2>{copy.suggestions}</h2>
+              </div>
+              <div className="quick-actions">
+                {copy.quickPrompts.slice(0, 3).map((prompt) => (
+                  <button key={prompt} onClick={() => handleSendText(prompt)}>
+                    {prompt}
+                  </button>
                 ))}
-              </ol>
-            ) : (
-              <p className="muted">{copy.detailEmpty}</p>
-            )}
-          </section>
-
-          <section className="panel-section suggestions-card">
-            <div className="section-heading">
-              <Sparkles size={17} />
-              <h2>{copy.suggestions}</h2>
-            </div>
-            <div className="quick-actions">
-              {copy.quickPrompts.slice(0, 3).map((prompt) => (
-                <button key={prompt} onClick={() => handleSendText(prompt)}>
-                  {prompt}
-                </button>
-              ))}
-            </div>
-          </section>
-        </aside>
+              </div>
+            </section>
+          </aside>
+        )}
       </main>
 
       {showCamera && (
@@ -918,6 +957,29 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
             linear-gradient(135deg, #f7f4ea 0%, #fbfaf5 48%, #eef4f1 100%);
           background-size: 42px 42px, 42px 42px, auto;
           font-family: 'Segoe UI', 'Noto Sans', Arial, sans-serif;
+        }
+
+        /* Embedded Mode Styles */
+        .tour-workspace.embedded-mode {
+            background: #fff;
+            border: none;
+            height: 100%;
+        }
+        .tour-workspace.embedded-mode::before {
+            display: none;
+        }
+        .tour-workspace.embedded-mode .chat-only-view {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding: 0;
+        }
+        .tour-workspace.embedded-mode .conversation-panel {
+            flex: 1;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            background: #fff;
         }
 
         .tour-topbar {
@@ -1672,167 +1734,6 @@ const UnifiedChatPage = ({ onBack, language, setLanguage }) => {
         .tour-workspace input:focus-visible {
           outline: 3px solid rgba(254, 206, 20, 0.46);
           outline-offset: 2px;
-        }
-
-        /* Landing-aligned visual layer */
-        .tour-workspace {
-          --chat-move-x: 0px;
-          --chat-move-y: 0px;
-          --ui-bg: #101818;
-          --ui-paper: rgba(255, 250, 240, 0.82);
-          --ui-surface: rgba(255, 253, 246, 0.78);
-          --ui-surface-muted: rgba(247, 250, 248, 0.72);
-          --ui-border: rgba(255, 250, 240, 0.22);
-          position: relative;
-          isolation: isolate;
-          background:
-            linear-gradient(90deg, rgba(9, 17, 18, 0.82), rgba(9, 17, 18, 0.36) 45%, rgba(9, 17, 18, 0.78)),
-            url('https://images.pexels.com/photos/20051245/pexels-photo-20051245.jpeg?auto=compress&cs=tinysrgb&w=1800');
-          background-size: cover;
-          background-position: center;
-          font-family: Aptos, 'Segoe UI', 'Noto Sans', Arial, sans-serif;
-        }
-
-        .tour-workspace::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          z-index: -1;
-          background:
-            radial-gradient(circle at center, rgba(255, 212, 71, 0.18), transparent 26%),
-            linear-gradient(135deg, rgba(255, 250, 240, 0.16), rgba(255, 250, 240, 0.02));
-          backdrop-filter: blur(7px) saturate(1.04);
-        }
-
-        .tour-topbar,
-        .workspace-grid {
-          position: relative;
-          z-index: 1;
-        }
-
-        .tour-topbar {
-          color: #fffaf0;
-          background: rgba(16, 24, 24, 0.58);
-          border-bottom-color: rgba(255, 250, 240, 0.18);
-          box-shadow: 0 14px 40px rgba(0, 0, 0, 0.16);
-        }
-
-        .brand-block {
-          transform: translate3d(calc(var(--chat-move-x) * 0.08), calc(var(--chat-move-y) * 0.08), 0);
-          transition: transform 0.18s ease-out;
-        }
-
-        .brand-block h1,
-        .brand-block p,
-        .backend-status,
-        .topbar-back {
-          color: #fffaf0;
-        }
-
-        .brand-mark {
-          position: relative;
-          overflow: hidden;
-          color: #fffaf0;
-          background: linear-gradient(135deg, #0b6b60, #163e63 58%, #a83f2e);
-          border: 1px solid rgba(255, 250, 240, 0.28);
-        }
-
-        .brand-mark::after {
-          content: '';
-          position: absolute;
-          inset: 7px;
-          border: 1px solid rgba(255, 250, 240, 0.34);
-          border-radius: 6px;
-        }
-
-        .brand-mark span {
-          position: relative;
-          z-index: 1;
-          font-family: Cambria, 'Times New Roman', serif;
-          font-size: 15px;
-          font-weight: 900;
-        }
-
-        .tour-topbar .topbar-back,
-        .tour-topbar .topbar-icon {
-          color: #fffaf0;
-          background: rgba(255, 250, 240, 0.1);
-          border-color: rgba(255, 250, 240, 0.18);
-          backdrop-filter: blur(14px);
-        }
-
-        .conversation-tools button {
-          color: #101818;
-          background: rgba(255, 255, 255, 0.82);
-          border-color: rgba(16, 24, 24, 0.12);
-          box-shadow: 0 10px 24px rgba(16, 24, 24, 0.07);
-        }
-
-        .topbar-icon.active {
-          color: #101818;
-          background: #ffd447;
-          border-color: #ffd447;
-        }
-
-        .tour-workspace .language-toggle {
-          background: rgba(255, 250, 240, 0.1);
-          border-color: rgba(255, 250, 240, 0.2);
-          backdrop-filter: blur(14px);
-        }
-
-        .tour-workspace .lang-btn {
-          color: rgba(255, 250, 240, 0.76);
-        }
-
-        .tour-workspace .lang-btn.active {
-          color: #101818;
-          background: #fffaf0;
-        }
-
-        .workspace-grid {
-          transform: translate3d(calc(var(--chat-move-x) * -0.04), calc(var(--chat-move-y) * -0.04), 0);
-          transition: transform 0.18s ease-out;
-        }
-
-        .panel-section,
-        .artifact-card,
-        .steps-card,
-        .conversation-panel {
-          background: rgba(255, 250, 240, 0.72);
-          border-color: rgba(255, 250, 240, 0.28);
-          backdrop-filter: blur(22px) saturate(1.12);
-          box-shadow: 0 18px 48px rgba(9, 17, 18, 0.18);
-        }
-
-        .conversation-panel {
-          background:
-            linear-gradient(180deg, rgba(255, 250, 240, 0.84), rgba(255, 250, 240, 0.72));
-        }
-
-        .message-list {
-          background:
-            radial-gradient(circle at top left, rgba(255, 212, 71, 0.12), transparent 28%),
-            linear-gradient(90deg, rgba(16, 24, 24, 0.035) 1px, transparent 1px),
-            linear-gradient(180deg, rgba(16, 24, 24, 0.028) 1px, transparent 1px),
-            rgba(255, 250, 240, 0.58);
-        }
-
-        .composer {
-          background: rgba(255, 250, 240, 0.82);
-          backdrop-filter: blur(20px);
-        }
-
-        .composer-row input,
-        .location-card,
-        .quick-actions button {
-          background: rgba(255, 255, 255, 0.74);
-          border-color: rgba(16, 24, 24, 0.12);
-        }
-
-        .location-card:hover,
-        .quick-actions button:hover,
-        .composer-row button:hover {
-          transform: translateY(-2px);
         }
 
         @media (max-width: 1260px) {

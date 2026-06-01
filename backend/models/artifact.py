@@ -18,6 +18,8 @@ class Artifact(Base):
     history_text_en: Mapped[str] = mapped_column(Text, nullable=False)
     author: Mapped[str | None] = mapped_column(String(255))
     year: Mapped[int | None] = mapped_column(Integer)
+    latitude: Mapped[float | None] = mapped_column(nullable=True)
+    longitude: Mapped[float | None] = mapped_column(nullable=True)
 
     location = relationship("Location", back_populates="artifacts")
     precomputed_audio = relationship("PrecomputedAudio", back_populates="artifact")

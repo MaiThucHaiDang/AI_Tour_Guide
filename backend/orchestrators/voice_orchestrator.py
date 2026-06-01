@@ -121,7 +121,7 @@ class VoiceOrchestrator:
         if self._is_unhelpful_context(db_data) and artifact_hint and self._db_lookup:
             db_data = await self._call_db_lookup(artifact_hint, context["db_field"])
 
-        history_context = self._memory.format_history(session_id or "")
+        history_context = await self._memory.format_history(session_id or "")
         intent = self._classify_intent(text_query)
 
         if self._is_unhelpful_context(db_data):

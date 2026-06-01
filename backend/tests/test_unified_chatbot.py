@@ -26,8 +26,14 @@ class MockLLM(BaseLLM):
     async def generate_response(self, prompt, context_data, lang):
         return f"AI Response to: {prompt}"
 
+    async def generate_response_stream(self, prompt, context_data, lang):
+        yield f"AI Response to: {prompt}"
+
 class FailingLLM(BaseLLM):
     async def generate_response(self, prompt, context_data, lang):
+        raise RuntimeError("provider unavailable")
+
+    async def generate_response_stream(self, prompt, context_data, lang):
         raise RuntimeError("provider unavailable")
 
 class MockTTS(BaseTTS):
@@ -77,9 +83,10 @@ async def test_text_only_chat(orchestrator):
 @pytest.mark.asyncio
 async def test_image_only_chat(orchestrator):
     # Mock vision and DB
-    mock_vision = VisionResult(recognized=True, artifact_id="1", raw_label="Ngọ Môn")
+    mock_vision = VisionResult(recognized=True, artifact_id="999", raw_label="Ngọ Môn")
     
     with patch("orchestrators.unified_orchestrator.recognize_image", AsyncMock(return_value=mock_vision)), \
+         patch("orchestrators.unified_orchestrator.get_artifact_by_id", AsyncMock(return_value=None)), \
          patch("orchestrators.unified_orchestrator.get_artifact_context_by_id", AsyncMock(return_value="Dữ liệu Ngọ Môn từ DB")):
         
         result = await orchestrator.process_chat_request(
@@ -89,16 +96,17 @@ async def test_image_only_chat(orchestrator):
         )
         
         assert "Ngọ Môn" in result.transcript
-        assert result.artifact_id == "1"
+        assert result.artifact_id == "999"
         assert result.artifact_name == "Ngọ Môn"
         assert result.response_text == "AI Response to: [User sent an image of Ngọ Môn]"
 
 @pytest.mark.asyncio
 async def test_multimodal_chat(orchestrator):
     # Mock vision and DB
-    mock_vision = VisionResult(recognized=True, artifact_id="1", raw_label="Ngọ Môn")
+    mock_vision = VisionResult(recognized=True, artifact_id="999", raw_label="Ngọ Môn")
     
     with patch("orchestrators.unified_orchestrator.recognize_image", AsyncMock(return_value=mock_vision)), \
+         patch("orchestrators.unified_orchestrator.get_artifact_by_id", AsyncMock(return_value=None)), \
          patch("orchestrators.unified_orchestrator.get_artifact_context_by_id", AsyncMock(return_value="Dữ liệu Ngọ Môn từ DB")):
         
         result = await orchestrator.process_chat_request(
@@ -109,7 +117,7 @@ async def test_multimodal_chat(orchestrator):
         )
         
         assert result.transcript == "Cái này xây năm nào?"
-        assert result.artifact_id == "1"
+        assert result.artifact_id == "999"
         assert "AI Response to: Cái này xây năm nào?" in result.response_text
 
 @pytest.mark.asyncio
@@ -124,7 +132,10 @@ async def test_context_memory(orchestrator):
     
     # Second turn - check if memory is formatted correctly in the next call
     # We'll use a mock LLM to capture the context
-    with patch.object(MockLLM, 'generate_response', AsyncMock(side_effect=lambda p, c, l: c)) as mock_gen:
+    async def mock_gen_side_effect(p, c, l):
+        return c
+
+    with patch.object(MockLLM, 'generate_response', AsyncMock(side_effect=mock_gen_side_effect)) as mock_gen_call:
         context = await orchestrator.process_chat_request(
             text_query="Tên tôi là gì?",
             session_id=session_id

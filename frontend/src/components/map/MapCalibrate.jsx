@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, ImageOverlay, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polygon, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Save, RefreshCw, ChevronLeft } from 'lucide-react';
@@ -13,15 +13,47 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-// Calibration red marker icon
-const CalibrationIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
+// Helper function to return beautiful custom 2.5D architecture icons
+const getCustomIcon = (artifactId) => {
+  // Mapping each specific monument ID to its real-world structured icon
+  const iconNames = {
+    1: 'cua_hoa_binh.png',  // Cửa Hòa Bình
+    2: 'kien_trung.png',     // Điện Kiến Trung
+    3: 'truong_sanh.png',    // Cung Trường Sanh
+    4: 'dien_tho.png',       // Cung Diên Thọ
+    5: 'chuong_duc.png',     // Cửa Chương Đức
+    6: 'hung_mieu.png',      // Hưng Miếu
+    7: 'the_mieu.png',       // Thế Miếu
+    8: 'thai_hoa.png',       // Điện Thái Hòa
+    9: 'can_chanh.png',      // Nền điện Cần Chánh
+    10: 'theater.png',        // Duyệt Thị Đường
+    11: 'palace.png',         // Phủ Nội Vụ
+    12: 'garden.png',         // Vườn Cơ Hạ
+    13: 'hung_mieu.png',      // Triệu Miếu (giống Hưng Miếu)
+    14: 'the_mieu.png',       // Thái Miếu (giống Thế Miếu)
+    15: 'gate.png',           // Cửa Hiển Nhơn
+    16: 'palace.png',         // Điện Long An
+    17: 'ngo_mon.png'         // Ngọ Môn
+  };
+  
+  const iconName = iconNames[artifactId] || 'palace.png';
+  return new L.Icon({
+    iconUrl: `/assets/icons/${iconName}`,
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+    iconSize: [46, 46],
+    iconAnchor: [23, 45],
+    popupAnchor: [0, -40],
+    shadowSize: [46, 46]
+  });
+};
+
+// Hoàng Thành Huế (Đại Nội) Boundary coordinates for Polygon
+const IMPERIAL_CITY_BOUNDARY = [
+  [16.469447, 107.581697], // Đông Nam
+  [16.465889, 107.576669], // Tây Nam
+  [16.470200, 107.573342], // Tây Bắc
+  [16.473720, 107.578359]  // Đông Bắc
+];
 
 // Helper component to update Map view bounds dynamically
 const MapBoundsUpdater = ({ bounds }) => {
@@ -34,15 +66,31 @@ const MapBoundsUpdater = ({ bounds }) => {
   return null;
 };
 
+const MapCenterer = ({ center }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (center) {
+      const targetZoom = map.getZoom() < 16 ? 16 : map.getZoom();
+      map.setView(center, targetZoom, { animate: true });
+    }
+  }, [center, map]);
+  return null;
+};
+
 const MapCalibrate = ({ onBack, language = 'vi' }) => {
   const isVi = language === 'vi';
   
-  const [mapBounds, setMapBounds] = useState([[16.46369, 107.57258], [16.47554, 107.58376]]);
+  const [mapBounds, setMapBounds] = useState([[16.4625, 107.5706], [16.4765, 107.5854]]);
+  const [mapCenter, setMapCenter] = useState(null);
   const [artifactsList, setArtifactsList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState(null);
   const [statusType, setStatusType] = useState('success');
+
+  const handleGoToNgoMon = () => {
+    setMapCenter([16.467766, 107.579146]);
+  };
 
   // Load coordinates and bounds from DB on mount
   useEffect(() => {
@@ -268,6 +316,19 @@ const MapCalibrate = ({ onBack, language = 'vi' }) => {
 
       {/* ─── Leaflet Map ─── */}
       <div style={{ flex: 1, height: 'calc(100vh - 60px)', marginTop: '60px', position: 'relative' }}>
+        {/* Floating button inside map area */}
+        <div style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 1000 }}>
+          <button onClick={handleGoToNgoMon} title={isVi ? 'Về Ngọ Môn (Cổng chính)' : 'Go to Ngo Mon Gate'} style={{
+            width: '45px', height: '45px', borderRadius: '12px',
+            backgroundColor: '#ff9800', color: '#fff',
+            border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+          }}>
+            <Compass size={22} />
+          </button>
+        </div>
+
         <MapContainer 
           bounds={mapBounds} 
           style={{ height: '100%', width: '100%', zIndex: 1 }} 
@@ -279,15 +340,25 @@ const MapCalibrate = ({ onBack, language = 'vi' }) => {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          <ImageOverlay url="/map.png" bounds={mapBounds} opacity={0.8} />
+          <Polygon 
+            positions={IMPERIAL_CITY_BOUNDARY} 
+            pathOptions={{
+              color: '#DAA520',
+              fillColor: '#FFD700',
+              fillOpacity: 0.08,
+              weight: 3,
+              dashArray: '5, 5'
+            }}
+          />
           <MapBoundsUpdater bounds={mapBounds} />
+          {mapCenter && <MapCenterer center={mapCenter} />}
 
           {/* Draggable Calibration Markers */}
           {artifactsList.map(art => (
             <Marker 
               key={art.id} 
               position={[art.lat, art.lng]} 
-              icon={CalibrationIcon}
+              icon={getCustomIcon(art.id)}
               draggable={true}
               eventHandlers={{
                 dragend: (e) => {

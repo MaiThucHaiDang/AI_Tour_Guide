@@ -1,12 +1,12 @@
 {
   "map_bounds": [
     [
-      16.46369,
-      107.57258
+      16.4625,
+      107.5706
     ],
     [
-      16.47554,
-      107.58376
+      16.4765,
+      107.5854
     ]
   ],
   "artifacts": [
@@ -14,120 +14,120 @@
       "id": 1,
       "name_vi": "Cửa Hòa Bình",
       "name_en": "Hoa Binh Gate (Gate of Peace)",
-      "lat": 16.474136285508507,
-      "lng": 107.57801690969511
+      "lat": 16.4721279,
+      "lng": 107.5762716
     },
     {
       "id": 2,
       "name_vi": "Điện Kiến Trung",
       "name_en": "Kien Trung Palace",
-      "lat": 16.473128047662847,
-      "lng": 107.5776309785139
+      "lat": 16.4710479,
+      "lng": 107.5765559
     },
     {
       "id": 3,
       "name_vi": "Cung Trường Sanh",
       "name_en": "Truong Sanh Palace (Palace of Longevity)",
-      "lat": 16.47288027505416,
-      "lng": 107.57464885711671
+      "lat": 16.469725,
+      "lng": 107.574694
     },
     {
       "id": 4,
       "name_vi": "Cung Diên Thọ",
       "name_en": "Dien Tho Palace (Palace of Longevity)",
-      "lat": 16.47125568731333,
-      "lng": 107.57471351724892
+      "lat": 16.4688556,
+      "lng": 107.5753417
     },
     {
       "id": 5,
       "name_vi": "Cửa Chương Đức",
       "name_en": "Chuong Duc Gate (Gate of Manifest Virtue)",
-      "lat": 16.468621307954393,
-      "lng": 107.57351262025075
+      "lat": 16.4673314,
+      "lng": 107.5757295
     },
     {
       "id": 6,
       "name_vi": "Hưng Miếu (Hưng Tổ Miếu)",
       "name_en": "Hung Mieu (Hung To Temple)",
-      "lat": 16.46822967960127,
-      "lng": 107.57449865341187
+      "lat": 16.4674263,
+      "lng": 107.5764189
     },
     {
       "id": 7,
       "name_vi": "Thế Miếu (Thế Tổ Miếu)",
       "name_en": "The Mieu (The To Temple)",
-      "lat": 16.467118514247357,
-      "lng": 107.57443428039552
+      "lat": 16.4671621,
+      "lng": 107.5767333
     },
     {
       "id": 8,
       "name_vi": "Điện Thái Hòa",
       "name_en": "Thai Hoa Palace (Palace of Supreme Harmony)",
-      "lat": 16.467920762289584,
-      "lng": 107.57765327773252
+      "lat": 16.4686747,
+      "lng": 107.578412
     },
     {
       "id": 9,
       "name_vi": "Nền điện Cần Chánh",
       "name_en": "Can Chanh Palace Foundation",
-      "lat": 16.469505548263896,
-      "lng": 107.57773878170296
+      "lat": 16.4695281,
+      "lng": 107.5777743
     },
     {
       "id": 10,
       "name_vi": "Duyệt Thị Đường",
       "name_en": "Duyet Thi Duong (Royal Theater)",
-      "lat": 16.470184560772015,
-      "lng": 107.57898308907275
+      "lat": 16.470284,
+      "lng": 107.5785163
     },
     {
       "id": 11,
       "name_vi": "Phủ Nội Vụ",
       "name_en": "Phu Noi Vu (Ministry of the Interior)",
-      "lat": 16.469505639631677,
-      "lng": 107.5806358347538
+      "lat": 16.470755,
+      "lng": 107.5796368
     },
     {
       "id": 12,
       "name_vi": "Vườn Cơ Hạ",
       "name_en": "Co Ha Garden (Imperial Garden)",
-      "lat": 16.472016078958035,
-      "lng": 107.58037736253421
+      "lat": 16.4717727,
+      "lng": 107.5788666
     },
     {
       "id": 13,
       "name_vi": "Triệu Miếu (Triệu Tổ Miếu)",
       "name_en": "Trieu Mieu (Trieu To Temple)",
-      "lat": 16.46818772072378,
-      "lng": 107.58087122561157
+      "lat": 16.4701907,
+      "lng": 107.5801058
     },
     {
       "id": 14,
       "name_vi": "Thái Miếu (Thái Tổ Miếu)",
       "name_en": "Thai Mieu (Thai To Temple)",
-      "lat": 16.467098101176745,
-      "lng": 107.58110754712072
+      "lat": 16.4699109,
+      "lng": 107.5803246
     },
     {
       "id": 15,
       "name_vi": "Cửa Hiển Nhơn",
       "name_en": "Hien Nhon Gate (Gate of Manifest Benevolence)",
-      "lat": 16.46861969073735,
-      "lng": 107.58177217062526
+      "lat": 16.4707473,
+      "lng": 107.5805514
     },
     {
       "id": 16,
       "name_vi": "Điện Long An (Bảo tàng Cổ vật Cung đình Huế)",
       "name_en": "Long An Palace (Hue Royal Antiquities Museum)",
-      "lat": 16.466684411988048,
-      "lng": 107.58340287450194
+      "lat": 16.4712819,
+      "lng": 107.5818602
     },
     {
       "id": 17,
       "name_vi": "Ngọ Môn",
       "name_en": "Ngo Mon Gate (Meridian Gate)",
-      "lat": 16.465347687023822,
-      "lng": 107.57765339653912
+      "lat": 16.467766,
+      "lng": 107.579146
     }
   ]
 }

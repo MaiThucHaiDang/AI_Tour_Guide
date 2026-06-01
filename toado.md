@@ -14,4 +14,4 @@ Triệu Miếu (Triệu Tổ Miếu): 16.4701907, 107.5801058 (Xem trên bản �
 Thái Miếu (Thái Tổ Miếu): 16.4699109, 107.5803246 (Xem trên bản đồ)
 Cửa Hiển Nhơn: 16.4707473, 107.5805514 (Xem trên bản đồ)
 Điện Long An (Bảo tàng Cổ vật Cung đình Huế): 16.4712819, 107.5818602 (Xem trên bản đồ)
-Ngọ Môn (Cổng chính/Lối vào): 16.467766, 107.579146 (Xem trên bản đồ)
+     (Cổng chính/Lối vào): 16.467766, 107.579146 (Xem trên bản đồ)

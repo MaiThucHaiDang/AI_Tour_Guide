@@ -1,7 +1,0 @@
-# User Prompts for Map-Based Architecture Shift
-
-## Prompt 1: Initial Pivot Request
-> giờ tôi muốn phát triển theo hướng khác không đơn thuần là chatbot nữa, bây giờ hệ thống sẽ hiện trước các địa điểm đã có trong hệ thống, sau đó người dùng muốn khám phá nó thì bấm vào phần đó, khi này trong đây sẽ có 2 luồng hoạt động chính đó là phần chatbot để hỏi đáp, thuyết minh về từng địa điểm người dùng yêu cầu, 1 cái là phần map hiển thị vị trị hiện tại của người dùng thông qua bản đồ nội bộ do tôi tự thiết kế đưa vào, bạn phải mapping vị trí hiện tại của tôi trên gps để mapping qua cái map nội bộ đó để biết tôi đang ở đâu trong map đó, sau đó trên bản đồ ấy tôi có thể chọn 1 địa điểm bất kì và bạn sẽ phải đọc hướng dẫn chỉ đường đi đến đó sau đó hỏi người dùng có muốn thuyết minh về cái này không các thứ, hiển thị 1 vài đề xuất cho người dùng và tôi muốn nó hoạt động thuyết trình chuyên sâu như 1 hướng dẫn viên thực thụ, hãy lên kế hoạch cho tôi check xem triển khai nó thế nào và phương hướng làm tốt nhất
-d
-## Prompt 2: Refinement - Hybrid Location System
-> tôi muốn làm đơn giản lại là chỉ dùng gps để xác định điểm đầu, còn những điểm sau chỉ cần nhấn vào nó trên bản đồ thì nó sẽ thực hiện hướng dẫn đi và các thao tác sau, và song song cũng có nút set lại vị trí hiện tại để bấm vào đó thì ta có thể chọn vào vị trí hiện tại của ta trên bản đồ hiện tai trong TH gps sai hay ta di chuyển mà không thông báo cho phần mềm, nó có 2 lựa chọn, 1 là tự điều chỉnh lại vị trí hiện tại thông qua gps 2 là tự chọn. hãy bổ sung và sửa chữa kế hoạch đi

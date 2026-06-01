@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, ImageOverlay, Marker, Popup, Polyline, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, Polygon, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { LocateFixed, Navigation, MapPin, Info, CheckCircle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Volume2, Wrench, Save, RefreshCw } from 'lucide-react';
+import { LocateFixed, Navigation, MapPin, Info, CheckCircle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Volume2, Wrench, Save, RefreshCw, Compass, X, Play } from 'lucide-react';
 import { playTTS, getMapConfigAPI, saveMapConfigAPI } from '../../services/apiService';
 
 // Fix Leaflet default icon issue
@@ -23,23 +23,40 @@ const CurrentLocationIcon = new L.Icon({
   shadowSize: [41, 41]
 });
 
-const ArtifactIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
-
-const TargetIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
+// Helper function to return beautiful custom 2.5D architecture icons
+const getCustomIcon = (artifactId, isTarget = false) => {
+  // Mapping each specific monument ID to its real-world structured icon
+  const iconNames = {
+    1: 'cua_hoa_binh.png',  // Cửa Hòa Bình
+    2: 'kien_trung.png',     // Điện Kiến Trung
+    3: 'truong_sanh.png',    // Cung Trường Sanh
+    4: 'dien_tho.png',       // Cung Diên Thọ
+    5: 'chuong_duc.png',     // Cửa Chương Đức
+    6: 'hung_mieu.png',      // Hưng Miếu
+    7: 'the_mieu.png',       // Thế Miếu
+    8: 'thai_hoa.png',       // Điện Thái Hòa
+    9: 'can_chanh.png',      // Nền điện Cần Chánh
+    10: 'theater.png',        // Duyệt Thị Đường
+    11: 'palace.png',         // Phủ Nội Vụ
+    12: 'garden.png',         // Vườn Cơ Hạ
+    13: 'hung_mieu.png',      // Triệu Miếu (giống Hưng Miếu)
+    14: 'the_mieu.png',       // Thái Miếu (giống Thế Miếu)
+    15: 'gate.png',           // Cửa Hiển Nhơn
+    16: 'palace.png',         // Điện Long An
+    17: 'ngo_mon.png'         // Ngọ Môn
+  };
+  
+  const iconName = iconNames[artifactId] || 'palace.png';
+  const size = isTarget ? 58 : 46;
+  return new L.Icon({
+    iconUrl: `/assets/icons/${iconName}`,
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size - 2],
+    popupAnchor: [0, -size + 10],
+    shadowSize: [size, size]
+  });
+};
 
 const MapClickHandler = ({ onMapClick }) => {
   useMapEvents({
@@ -54,11 +71,20 @@ const MapCenterer = ({ center }) => {
   const map = useMap();
   useEffect(() => {
     if (center) {
-      map.setView(center, map.getZoom(), { animate: true });
+      const targetZoom = map.getZoom() < 16 ? 16 : map.getZoom();
+      map.setView(center, targetZoom, { animate: true });
     }
   }, [center, map]);
   return null;
 };
+
+// Hoàng Thành Huế (Đại Nội) Boundary coordinates for Polygon
+const IMPERIAL_CITY_BOUNDARY = [
+  [16.469447, 107.581697], // Đông Nam
+  [16.465889, 107.576669], // Tây Nam
+  [16.470200, 107.573342], // Tây Bắc
+  [16.473720, 107.578359]  // Đông Bắc
+];
 
 // Kinh thành Huế: 17 công trình
 const HUE_ARTIFACTS = [
@@ -78,13 +104,26 @@ const HUE_ARTIFACTS = [
   { id: 14, name_vi: "Thái Miếu",                        name_en: "Thai Mieu Temple",           lat: 16.4699109, lng: 107.5803246 },
   { id: 15, name_vi: "Cửa Hiển Nhơn",                    name_en: "Hien Nhon Gate",             lat: 16.4707473, lng: 107.5805514 },
   { id: 16, name_vi: "Điện Long An (Bảo tàng Cổ vật)",   name_en: "Long An Palace (Museum)",    lat: 16.4712819, lng: 107.5818602 },
-  { id: 17, name_vi: "Ngọ Môn",                          name_en: "Ngo Mon Gate (Meridian Gate)", lat: 16.468083,  lng: 107.578667  },
+  { id: 17, name_vi: "Ngọ Môn",                          name_en: "Ngo Mon Gate (Meridian Gate)", lat: 16.467766,  lng: 107.579146  },
 ];
 
 const MAP_BOUNDS = [
-  [16.46369, 107.57258], // SW
-  [16.47554, 107.58376]  // NE
+  [16.4625, 107.5706], // SW
+  [16.4765, 107.5854]  // NE
 ];
+
+// Helper to calculate distance in meters between two points
+const getDistance = (p1, p2) => {
+  if (!p1 || !p2) return 0;
+  const R = 6371000; // Radius of the Earth in meters
+  const dLat = (p2.lat - p1.lat) * Math.PI / 180;
+  const dLng = (p2.lng - p1.lng) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(p1.lat * Math.PI / 180) * Math.cos(p2.lat * Math.PI / 180) *
+            Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
 
 const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, language, embedded = false }) => {
   const isVi = language === 'vi';
@@ -95,7 +134,10 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
   const [routePath, setRoutePath] = useState([]);
   const [instructions, setInstructions] = useState([]);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isNavigatingStarted, setIsNavigatingStarted] = useState(false);
   const [isManualMode, setIsManualMode] = useState(false);
+  const [useGPS, setUseGPS] = useState(false);
+  const lastRouteStartRef = React.useRef(null);
   const [mapCenter, setMapCenter] = useState(null);
   const [mapBounds, setMapBounds] = useState(MAP_BOUNDS);
   const [artifactsList, setArtifactsList] = useState(HUE_ARTIFACTS);
@@ -123,11 +165,44 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
     fetchConfig();
   }, []);
 
+  // GPS watch tracking effect
+  useEffect(() => {
+    if (!isNavigatingStarted || !useGPS || !targetLocation) return;
+
+    let watchId = null;
+    if ("geolocation" in navigator) {
+      watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          const loc = { lat: position.coords.latitude, lng: position.coords.longitude };
+          setCurrentLocation(loc);
+          setMapCenter([loc.lat, loc.lng]);
+          
+          // Re-calculate route if user moves > 8 meters from last route calculation start point
+          const dist = getDistance(loc, lastRouteStartRef.current);
+          if (dist > 8) {
+            calculateRoute(loc, targetLocation);
+          }
+        },
+        (error) => {
+          console.error("GPS Watch error:", error);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    }
+
+    return () => {
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+    };
+  }, [isNavigatingStarted, useGPS, targetLocation]);
+
   const getArtifactName = (art) => isVi ? art.name_vi : art.name_en;
 
   const handleGetGPS = () => {
     setIsManualMode(false);
     setShowStartModal(false);
+    setUseGPS(true);
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -147,6 +222,7 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
 
   const handleChooseOnMap = () => {
     setIsManualMode(true);
+    setUseGPS(false);
     setShowStartModal(false);
   };
 
@@ -155,14 +231,20 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
       const loc = { lat: latlng.lat, lng: latlng.lng };
       setCurrentLocation(loc);
       setIsManualMode(false);
+      setUseGPS(false);
       if (isNavigating && targetLocation) {
         calculateRoute(loc, targetLocation);
       }
     }
   };
 
+  const handleGoToNgoMon = () => {
+    setMapCenter([16.467766, 107.579146]);
+  };
+
   const handleRelocateGPS = () => {
     setIsManualMode(false);
+    setUseGPS(true);
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -178,11 +260,13 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
 
   const handleRelocateManual = () => {
     setIsManualMode(true);
+    setUseGPS(false);
   };
 
   const startNavigation = async (artifact) => {
     setTargetLocation(artifact);
     setIsNavigating(true);
+    setIsNavigatingStarted(false);
     if (currentLocation) {
       await calculateRoute(currentLocation, artifact);
     }
@@ -202,8 +286,7 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
         setInstructions(data.instructions);
         setActiveStepIndex(0);
         setIsStepsExpanded(false);
-        
-        playTTS(data.instructions[0], language);
+        lastRouteStartRef.current = start;
         
         if (onInstructionUpdate) {
           const name = getArtifactName(end);
@@ -224,7 +307,7 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
       setInstructions([fallbackText]);
       setActiveStepIndex(0);
       setIsStepsExpanded(false);
-      playTTS(fallbackText, language);
+      lastRouteStartRef.current = start;
     }
   };
 
@@ -234,12 +317,30 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
       setMapCenter([targetLocation.lat, targetLocation.lng]);
     }
     setIsNavigating(false);
+    setIsNavigatingStarted(false);
     setRoutePath([]);
     setInstructions([]);
     setActiveStepIndex(0);
     setIsStepsExpanded(false);
     if (onNavigateToStorytelling && targetLocation) {
       onNavigateToStorytelling(targetLocation);
+    }
+  };
+
+  const handleCancelNavigation = () => {
+    setIsNavigating(false);
+    setIsNavigatingStarted(false);
+    setTargetLocation(null);
+    setRoutePath([]);
+    setInstructions([]);
+    setActiveStepIndex(0);
+    setIsStepsExpanded(false);
+  };
+
+  const handleStartNavigation = () => {
+    setIsNavigatingStarted(true);
+    if (instructions.length > 0) {
+      playTTS(instructions[0], language);
     }
   };
 
@@ -402,6 +503,15 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
       {/* Floating Controls */}
       {!showStartModal && (
         <div style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 1000, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <button onClick={handleGoToNgoMon} title={isVi ? 'Về Ngọ Môn (Cổng chính)' : 'Go to Ngo Mon Gate'} style={{
+            width: '45px', height: '45px', borderRadius: '12px',
+            backgroundColor: '#ff9800', color: '#fff',
+            border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+          }}>
+            <Compass size={22} />
+          </button>
           <button onClick={handleRelocateGPS} title={isVi ? 'Định vị GPS' : 'GPS Locate'} style={{
             width: '45px', height: '45px', borderRadius: '12px',
             backgroundColor: '#2196f3', color: '#fff',
@@ -533,7 +643,16 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <ImageOverlay url="/map.png" bounds={mapBounds} opacity={0.7} />
+        <Polygon 
+          positions={IMPERIAL_CITY_BOUNDARY} 
+          pathOptions={{
+            color: '#DAA520',
+            fillColor: '#FFD700',
+            fillOpacity: 0.08,
+            weight: 3,
+            dashArray: '5, 5'
+          }}
+        />
         <MapClickHandler onMapClick={handleMapClick} />
         {mapCenter && <MapCenterer center={mapCenter} />}
 
@@ -549,7 +668,7 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
           <Marker 
             key={art.id} 
             position={[art.lat, art.lng]} 
-            icon={targetLocation?.id === art.id ? TargetIcon : ArtifactIcon}
+            icon={getCustomIcon(art.id, targetLocation?.id === art.id)}
             draggable={isCalibrating}
             eventHandlers={{
               dragend: (e) => {
@@ -588,7 +707,7 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
                     fontSize: '13px', fontWeight: '600'
                   }}>
                     <Info size={14} />
-                    {isVi ? 'Giới thiệu công trình' : 'About this place'}
+                    {isVi ? 'Giới thiệu' : 'Introduce'}
                   </button>
                 </div>
               </div>
@@ -596,9 +715,11 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
           </Marker>
         ))}
 
-        {/* Route polyline */}
-        {isNavigating && routePath.length > 0 && (
-          <Polyline positions={routePath} color="#2196f3" weight={6} opacity={0.9} dashArray="10,6" />
+        {routePath.length > 0 && (
+          <Polyline 
+            positions={routePath} 
+            pathOptions={{ color: '#2196f3', weight: 6, opacity: 0.8 }} 
+          />
         )}
       </MapContainer>
 
@@ -610,157 +731,236 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
           boxShadow: '0 8px 30px rgba(0,0,0,0.18)', zIndex: 1000,
           maxHeight: '380px', display: 'flex', flexDirection: 'column', gap: '12px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{
-                width: '36px', height: '36px', borderRadius: '10px',
-                background: 'linear-gradient(135deg, #2196f3, #1565c0)',
-                display: 'grid', placeItems: 'center', flexShrink: 0
-              }}>
-                <Navigation size={18} color="#fff" />
-              </div>
-              <div>
-                <h4 style={{ margin: 0, color: '#1976d2', fontSize: '15px', fontWeight: '700' }}>
-                  {isVi ? 'Chỉ đường đi bộ đến' : 'Walking to'}
-                </h4>
-                <p style={{ margin: 0, fontSize: '13px', color: '#333', fontWeight: '500' }}>
-                  {getArtifactName(targetLocation)}
-                </p>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button 
-                onClick={() => setIsStepsExpanded(!isStepsExpanded)} 
-                style={{
-                  padding: '6px 12px', borderRadius: '8px', border: '1px solid #ddd',
-                  backgroundColor: isStepsExpanded ? '#f0f4f8' : '#fff', color: '#1976d2',
-                  fontSize: '12px', fontWeight: '600', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', gap: '4px'
-                }}
-              >
-                {isStepsExpanded ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
-                {isVi ? 'Toàn bộ bước' : 'All steps'}
-              </button>
-            </div>
-          </div>
-
-          {isTooFarFromHue && (
-            <div style={{
-              backgroundColor: '#fff3cd', color: '#856404', border: '1px solid #ffeeba',
-              padding: '10px', borderRadius: '8px', fontSize: '11px', lineHeight: '1.4'
-            }}>
-              {isVi 
-                ? '⚠️ Bạn đang ở ngoài khu vực Hoàng thành Huế. Định tuyến đã vẽ đường thẳng để tham khảo. Bạn nên ghim vị trí (nút 📍 ở góc trên phải) ngay trong Đại Nội để thử định tuyến đường đi bộ thực tế.'
-                : '⚠️ You are currently outside Hue Imperial City. Try placing your position manually (📍 button in top-right) inside the Citadel for walking route routing.'}
-            </div>
-          )}
-
-          {instructions.length > 0 && (
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '10px',
-              backgroundColor: '#f8f9fa', padding: '12px', borderRadius: '12px',
-              border: '1px solid #e9ecef'
-            }}>
-              <button 
-                onClick={handlePrevStep} 
-                disabled={activeStepIndex === 0}
-                style={{
-                  padding: '6px', borderRadius: '8px', border: 'none',
-                  backgroundColor: activeStepIndex === 0 ? '#e9ecef' : '#2196f3',
-                  color: activeStepIndex === 0 ? '#999' : '#fff',
-                  cursor: activeStepIndex === 0 ? 'not-allowed' : 'pointer',
-                  display: 'grid', placeItems: 'center'
-                }}
-              >
-                <ChevronLeft size={16} />
-              </button>
-
-              <div style={{ flex: 1, fontSize: '13px', fontWeight: '500', color: '#333' }}>
-                <span style={{ color: '#1976d2', fontWeight: '700', marginRight: '6px' }}>
-                  {isVi ? `Bước ${activeStepIndex + 1}/${instructions.length}:` : `Step ${activeStepIndex + 1}/${instructions.length}:`}
-                </span>
-                {instructions[activeStepIndex]}
-              </div>
-
-              <div style={{ display: 'flex', gap: '6px' }}>
-                <button 
-                  onClick={handleSpeakActiveStep}
-                  title={isVi ? 'Đọc lại' : 'Speak'}
-                  style={{
-                    padding: '6px', borderRadius: '8px', border: '1px solid #ddd',
-                    backgroundColor: '#fff', color: '#333', cursor: 'pointer',
-                    display: 'grid', placeItems: 'center'
-                  }}
-                >
-                  <Volume2 size={16} />
-                </button>
-                
-                <button 
-                  onClick={handleNextStep} 
-                  disabled={activeStepIndex === instructions.length - 1}
-                  style={{
-                    padding: '6px', borderRadius: '8px', border: 'none',
-                    backgroundColor: activeStepIndex === instructions.length - 1 ? '#e9ecef' : '#2196f3',
-                    color: activeStepIndex === instructions.length - 1 ? '#999' : '#fff',
-                    cursor: activeStepIndex === instructions.length - 1 ? 'not-allowed' : 'pointer',
-                    display: 'grid', placeItems: 'center'
-                  }}
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {isStepsExpanded && instructions.length > 0 && (
-            <div style={{
-              flex: 1, overflowY: 'auto', padding: '4px',
-              borderLeft: '2px solid #e9ecef', marginLeft: '12px', paddingLeft: '16px'
-            }}>
-              {instructions.map((instr, idx) => (
-                <div 
-                  key={idx} 
-                  onClick={() => handleSelectStep(idx)}
-                  style={{
-                    position: 'relative', paddingBottom: '12px', cursor: 'pointer',
-                    opacity: idx === activeStepIndex ? 1 : 0.6,
-                    transition: 'opacity 0.2s'
-                  }}
-                >
-                  <div style={{
-                    position: 'absolute', left: '-22px', top: '2px',
-                    width: '10px', height: '10px', borderRadius: '50%',
-                    backgroundColor: idx === activeStepIndex ? '#2196f3' : '#ccc',
-                    border: idx === activeStepIndex ? '2px solid #fff' : 'none',
-                    boxShadow: idx === activeStepIndex ? '0 0 0 2px #2196f3' : 'none'
-                  }} />
-                  
-                  <p style={{
-                    margin: 0, fontSize: '12px', 
-                    fontWeight: idx === activeStepIndex ? '700' : '400',
-                    color: idx === activeStepIndex ? '#1976d2' : '#555'
-                  }}>
-                    {idx + 1}. {instr}
+          {!isNavigatingStarted ? (
+            /* ─── Route Overview (Bước trung gian) ─── */
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '40px', height: '40px', borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #2196f3, #1565c0)',
+                  display: 'grid', placeItems: 'center', flexShrink: 0
+                }}>
+                  <Navigation size={20} color="#fff" />
+                </div>
+                <div>
+                  <h4 style={{ margin: 0, color: '#1976d2', fontSize: '15px', fontWeight: '700' }}>
+                    {isVi ? 'Tổng quan lộ trình đến' : 'Route overview to'}
+                  </h4>
+                  <p style={{ margin: 0, fontSize: '14px', color: '#333', fontWeight: '600' }}>
+                    {getArtifactName(targetLocation)}
                   </p>
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
 
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button onClick={handleArrived} style={{
-              flex: 1, padding: '12px', border: 'none', borderRadius: '10px',
-              fontWeight: '700', cursor: 'pointer', fontSize: '14px',
-              background: 'linear-gradient(135deg, #4caf50, #388e3c)',
-              color: 'white', display: 'flex', alignItems: 'center',
-              justifyContent: 'center', gap: '8px',
-              boxShadow: '0 4px 15px rgba(76,175,80,0.3)'
-            }}>
-              <CheckCircle size={18} />
-              {isVi ? 'ĐÃ ĐẾN NƠI – Giới thiệu địa điểm' : 'ARRIVED – Introduce this place'}
-            </button>
-          </div>
+              {isTooFarFromHue && (
+                <div style={{
+                  backgroundColor: '#fff3cd', color: '#856404', border: '1px solid #ffeeba',
+                  padding: '10px', borderRadius: '8px', fontSize: '11px', lineHeight: '1.4'
+                }}>
+                  {isVi 
+                    ? '⚠️ Bạn đang ở ngoài khu vực Hoàng thành Huế. Lộ trình vẽ đường chim bay để tham khảo. Bạn nên ghim vị trí bắt đầu gần di tích.'
+                    : '⚠️ You are outside Hue Citadel area. A straight line is drawn for reference.'}
+                </div>
+              )}
+
+              <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>
+                {isVi 
+                  ? `Lộ trình bao gồm ${instructions.length} bước chỉ dẫn đi bộ.` 
+                  : `Route contains ${instructions.length} walking steps.`}
+              </p>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button onClick={handleCancelNavigation} style={{
+                  flex: 1, padding: '12px', border: 'none', borderRadius: '10px',
+                  fontWeight: '700', cursor: 'pointer', fontSize: '14px',
+                  background: 'linear-gradient(135deg, #e0e0e0, #bdbdbd)',
+                  color: '#333', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', gap: '8px',
+                  boxShadow: '0 4px 10px rgba(0,0,0,0.08)'
+                }}>
+                  <X size={18} />
+                  {isVi ? 'Hủy' : 'Cancel'}
+                </button>
+                <button onClick={handleStartNavigation} style={{
+                  flex: 2, padding: '12px', border: 'none', borderRadius: '10px',
+                  fontWeight: '700', cursor: 'pointer', fontSize: '14px',
+                  background: 'linear-gradient(135deg, #2196f3, #1976d2)',
+                  color: 'white', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', gap: '8px',
+                  boxShadow: '0 4px 15px rgba(33,150,243,0.3)'
+                }}>
+                  <Play size={18} />
+                  {isVi ? 'Bắt đầu' : 'Start'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* ─── Active Navigation Mode (Đang dẫn đường chi tiết) ─── */
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{
+                    width: '36px', height: '36px', borderRadius: '10px',
+                    background: 'linear-gradient(135deg, #2196f3, #1565c0)',
+                    display: 'grid', placeItems: 'center', flexShrink: 0
+                  }}>
+                    <Navigation size={18} color="#fff" />
+                  </div>
+                  <div>
+                    <h4 style={{ margin: 0, color: '#1976d2', fontSize: '15px', fontWeight: '700' }}>
+                      {isVi ? 'Đang dẫn đường đi bộ đến' : 'Walking to'}
+                    </h4>
+                    <p style={{ margin: 0, fontSize: '13px', color: '#333', fontWeight: '500' }}>
+                      {getArtifactName(targetLocation)}
+                    </p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button 
+                    onClick={() => setIsStepsExpanded(!isStepsExpanded)} 
+                    style={{
+                      padding: '6px 12px', borderRadius: '8px', border: '1px solid #ddd',
+                      backgroundColor: isStepsExpanded ? '#f0f4f8' : '#fff', color: '#1976d2',
+                      fontSize: '12px', fontWeight: '600', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', gap: '4px'
+                    }}
+                  >
+                    {isStepsExpanded ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                    {isVi ? 'Toàn bộ bước' : 'All steps'}
+                  </button>
+                </div>
+              </div>
+
+              {isTooFarFromHue && (
+                <div style={{
+                  backgroundColor: '#fff3cd', color: '#856404', border: '1px solid #ffeeba',
+                  padding: '10px', borderRadius: '8px', fontSize: '11px', lineHeight: '1.4'
+                }}>
+                  {isVi 
+                    ? '⚠️ Bạn đang ở ngoài khu vực Hoàng thành Huế. Định tuyến đã vẽ đường thẳng để tham khảo. Bạn nên ghim vị trí (nút 📍 ở góc trên phải) ngay trong Đại Nội để thử định tuyến đường đi bộ thực tế.'
+                    : '⚠️ You are currently outside Hue Imperial City. Try placing your position manually (📍 button in top-right) inside the Citadel for walking route routing.'}
+                </div>
+              )}
+
+              {instructions.length > 0 && (
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: '10px',
+                  backgroundColor: '#f8f9fa', padding: '12px', borderRadius: '12px',
+                  border: '1px solid #e9ecef'
+                }}>
+                  <button 
+                    onClick={handlePrevStep} 
+                    disabled={activeStepIndex === 0}
+                    style={{
+                      padding: '6px', borderRadius: '8px', border: 'none',
+                      backgroundColor: activeStepIndex === 0 ? '#e9ecef' : '#2196f3',
+                      color: activeStepIndex === 0 ? '#999' : '#fff',
+                      cursor: activeStepIndex === 0 ? 'not-allowed' : 'pointer',
+                      display: 'grid', placeItems: 'center'
+                    }}
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+
+                  <div style={{ flex: 1, fontSize: '13px', fontWeight: '500', color: '#333' }}>
+                    <span style={{ color: '#1976d2', fontWeight: '700', marginRight: '6px' }}>
+                      {isVi ? `Bước ${activeStepIndex + 1}/${instructions.length}:` : `Step ${activeStepIndex + 1}/${instructions.length}:`}
+                    </span>
+                    {instructions[activeStepIndex]}
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button 
+                      onClick={handleSpeakActiveStep}
+                      title={isVi ? 'Đọc lại' : 'Speak'}
+                      style={{
+                        padding: '6px', borderRadius: '8px', border: '1px solid #ddd',
+                        backgroundColor: '#fff', color: '#333', cursor: 'pointer',
+                        display: 'grid', placeItems: 'center'
+                      }}
+                    >
+                      <Volume2 size={16} />
+                    </button>
+                    
+                    <button 
+                      onClick={handleNextStep} 
+                      disabled={activeStepIndex === instructions.length - 1}
+                      style={{
+                        padding: '6px', borderRadius: '8px', border: 'none',
+                        backgroundColor: activeStepIndex === instructions.length - 1 ? '#e9ecef' : '#2196f3',
+                        color: activeStepIndex === instructions.length - 1 ? '#999' : '#fff',
+                        cursor: activeStepIndex === instructions.length - 1 ? 'not-allowed' : 'pointer',
+                        display: 'grid', placeItems: 'center'
+                      }}
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {isStepsExpanded && instructions.length > 0 && (
+                <div style={{
+                  flex: 1, overflowY: 'auto', padding: '4px',
+                  borderLeft: '2px solid #e9ecef', marginLeft: '12px', paddingLeft: '16px'
+                }}>
+                  {instructions.map((instr, idx) => (
+                    <div 
+                      key={idx} 
+                      onClick={() => handleSelectStep(idx)}
+                      style={{
+                        position: 'relative', paddingBottom: '12px', cursor: 'pointer',
+                        opacity: idx === activeStepIndex ? 1 : 0.6,
+                        transition: 'opacity 0.2s'
+                      }}
+                    >
+                      <div style={{
+                        position: 'absolute', left: '-22px', top: '2px',
+                        width: '10px', height: '10px', borderRadius: '50%',
+                        backgroundColor: idx === activeStepIndex ? '#2196f3' : '#ccc',
+                        border: idx === activeStepIndex ? '2px solid #fff' : 'none',
+                        boxShadow: idx === activeStepIndex ? '0 0 0 2px #2196f3' : 'none'
+                      }} />
+                      
+                      <p style={{
+                        margin: 0, fontSize: '12px', 
+                        fontWeight: idx === activeStepIndex ? '700' : '400',
+                        color: idx === activeStepIndex ? '#1976d2' : '#555'
+                      }}>
+                        {idx + 1}. {instr}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button onClick={handleCancelNavigation} style={{
+                  flex: 1, padding: '12px', border: 'none', borderRadius: '10px',
+                  fontWeight: '700', cursor: 'pointer', fontSize: '14px',
+                  background: 'linear-gradient(135deg, #f44336, #d32f2f)',
+                  color: 'white', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', gap: '8px',
+                  boxShadow: '0 4px 15px rgba(244,67,54,0.2)'
+                }}>
+                  <X size={18} />
+                  {isVi ? 'Hủy' : 'Cancel'}
+                </button>
+                <button onClick={handleArrived} style={{
+                  flex: 2, padding: '12px', border: 'none', borderRadius: '10px',
+                  fontWeight: '700', cursor: 'pointer', fontSize: '14px',
+                  background: 'linear-gradient(135deg, #4caf50, #388e3c)',
+                  color: 'white', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', gap: '8px',
+                  boxShadow: '0 4px 15px rgba(76,175,80,0.3)'
+                }}>
+                  <CheckCircle size={18} />
+                  {isVi ? 'Đã đến & Giới thiệu' : 'Arrived & Introduce'}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

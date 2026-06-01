@@ -192,7 +192,15 @@ const HomeScreen = ({ onSelectFeature, language, setLanguage }) => {
     if (isLaunching) return;
     setIsLaunching(true);
     window.setTimeout(() => {
-      onSelectFeature('unified');
+      onSelectFeature('chat');
+    }, 720);
+  };
+
+  const startMapExperience = () => {
+    if (isLaunching) return;
+    setIsLaunching(true);
+    window.setTimeout(() => {
+      onSelectFeature('map');
     }, 720);
   };
 
@@ -275,17 +283,41 @@ const HomeScreen = ({ onSelectFeature, language, setLanguage }) => {
             </span>
             <h2>{copy.title}</h2>
             <p>{copy.desc}</p>
-            <div className="tour-home-actions">
-              <button className="primary" onClick={startExperience}>
-                <span>{copy.primary}</span>
-                <ArrowRight size={18} />
-              </button>
-              <a className="secondary-link" href="#places">
-                <Compass size={17} />
-                <span>{copy.secondary}</span>
-              </a>
+            
+            <div className="location-picker" style={{ marginTop: '40px' }}>
+                <div 
+                    className="location-card-hero" 
+                    onClick={() => onSelectFeature('dashboard', { id: 1, name_vi: "Kinh thành Huế (Đại Nội)" })}
+                    style={{
+                        background: 'rgba(255,255,255,0.12)',
+                        backdropFilter: 'blur(12px)',
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        borderRadius: '24px',
+                        padding: '24px',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '20px',
+                        maxWidth: '480px',
+                        boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
+                    }}
+                >
+                    <div style={{ width: '70px', height: '70px', borderRadius: '16px', background: '#0f5f59', display: 'grid', placeItems: 'center', boxShadow: '0 8px 20px rgba(15,95,89,0.3)' }}>
+                        <Landmark size={36} color="#fff" />
+                    </div>
+                    <div style={{ textAlign: 'left' }}>
+                        <h3 style={{ margin: 0, color: '#fff', fontSize: '20px', fontWeight: '700' }}>{isVi ? 'Kinh thành Huế' : 'Hue Imperial City'}</h3>
+                        <p style={{ margin: '4px 0 0', color: 'rgba(255,255,255,0.8)', fontSize: '13px' }}>{isVi ? 'Đại Nội – Di sản Văn hóa Thế giới UNESCO' : 'The Citadel – UNESCO World Heritage Site'}</p>
+                        <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '6px', color: '#fece14' }}>
+                            <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{isVi ? 'Bắt đầu khám phá' : 'Start exploring'}</span>
+                            <ArrowRight size={16} />
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div className="hero-route" aria-label={copy.heroMeta}>
+            
+            <div className="hero-route" aria-label={copy.heroMeta} style={{ marginTop: '30px' }}>
               <MapPin size={16} />
               <span>{copy.heroMeta}</span>
             </div>
@@ -418,7 +450,7 @@ const HomeScreen = ({ onSelectFeature, language, setLanguage }) => {
             <h2>{copy.finalTitle}</h2>
             <p>{copy.finalText}</p>
           </div>
-          <button className="primary" onClick={startExperience}>
+          <button className="primary" onClick={() => onSelectFeature('dashboard', { id: 1, name_vi: "Kinh thành Huế (Đại Nội)" })}>
             <span>{copy.primary}</span>
             <ArrowRight size={18} />
           </button>

@@ -7,78 +7,111 @@ from __future__ import annotations
 from typing import Optional
 
 # Mapping from AI vision labels (lowercase) to artifact IDs in the DB
+# === KINH THÀNH HUẾ (ĐẠI NỘI) ===
 VISION_LABEL_MAP: dict[str, str] = {
-    # Kinh thành Huế (loc_id = 1)
-    "ngọ môn": "1",
-    "ngo mon": "1",
-    "ngo mon gate": "1",
-    "noon gate": "1",
+    # 1 - Cửa Hòa Bình
+    "cửa hòa bình": "1",
+    "cua hoa binh": "1",
+    "hoa binh gate": "1",
+    "gate of peace": "1",
 
-    "điện thái hòa": "2",
-    "dien thai hoa": "2",
-    "thai hoa palace": "2",
+    # 2 - Điện Kiến Trung
+    "điện kiến trung": "2",
+    "dien kien trung": "2",
+    "kien trung palace": "2",
+    "kiến trung": "2",
 
-    "tử cấm thành": "3",
-    "tu cam thanh": "3",
-    "forbidden purple city": "3",
+    # 3 - Cung Trường Sanh
+    "cung trường sanh": "3",
+    "cung truong sanh": "3",
+    "truong sanh palace": "3",
+    "palace of longevity": "3",
 
-    "cửu đỉnh": "4",
-    "cuu dinh": "4",
-    "the nine dynastic urns": "4",
-    "nine dynastic urns": "4",
+    # 4 - Cung Diên Thọ
+    "cung diên thọ": "4",
+    "cung dien tho": "4",
+    "dien tho palace": "4",
 
-    "thế miếu": "5",
-    "thế tổ miếu": "5",
-    "the mieu": "5",
-    "the mieu temple": "5",
+    # 5 - Cửa Chương Đức
+    "cửa chương đức": "5",
+    "cua chuong duc": "5",
+    "chuong duc gate": "5",
+    "gate of manifest virtue": "5",
 
-    # === DINH ĐỘC LẬP (loc_id = 2) ===
-    "phòng nội các": "6",
-    "phong noi cac": "6",
-    "cabinet room": "6",
+    # 6 - Hưng Miếu
+    "hưng miếu": "6",
+    "hung mieu": "6",
+    "hưng tổ miếu": "6",
+    "hung to temple": "6",
 
-    "hầm chỉ huy": "7",
-    "ham chi huy": "7",
-    "command bunker": "7",
+    # 7 - Thế Miếu
+    "thế miếu": "7",
+    "the mieu": "7",
+    "thế tổ miếu": "7",
+    "the to temple": "7",
 
-    "phòng khánh tiết": "8",
-    "phong khanh tiet": "8",
-    "state banquet hall": "8",
+    # 8 - Điện Thái Hòa
+    "điện thái hòa": "8",
+    "dien thai hoa": "8",
+    "thai hoa palace": "8",
+    "palace of supreme harmony": "8",
 
-    "xe tăng 843": "9",
-    "xe tang 843": "9",
-    "tank 843": "9",
+    # 9 - Nền điện Cần Chánh
+    "nền điện cần chánh": "9",
+    "nen dien can chanh": "9",
+    "can chanh palace": "9",
+    "can chanh palace foundation": "9",
+    "điện cần chánh": "9",
 
-    "sân thượng trực thăng": "10",
-    "san thuong truc thang": "10",
-    "helicopter landing roof": "10",
+    # 10 - Duyệt Thị Đường
+    "duyệt thị đường": "10",
+    "duyet thi duong": "10",
+    "royal theater": "10",
 
-    # === BẢO TÀNG CHỨNG TÍCH CHIẾN TRANH (loc_id = 3) ===
-    "máy bay f-5e tiger": "11",
-    "may bay f5e": "11",
-    "f-5e tiger aircraft": "11",
-    "f5e tiger": "11",
+    # 11 - Phủ Nội Vụ
+    "phủ nội vụ": "11",
+    "phu noi vu": "11",
+    "ministry of the interior": "11",
 
-    "xe tăng m48 patton": "12",
-    "xe tang m48": "12",
-    "m48 patton tank": "12",
-    "m48 patton": "12",
+    # 12 - Vườn Cơ Hạ
+    "vườn cơ hạ": "12",
+    "vuon co ha": "12",
+    "co ha garden": "12",
+    "imperial garden": "12",
 
-    "chuồng cọp côn đảo": "13",
-    "chuong cop con dao": "13",
-    "con dao tiger cages": "13",
-    "tiger cages": "13",
+    # 13 - Triệu Miếu
+    "triệu miếu": "13",
+    "trieu mieu": "13",
+    "triệu tổ miếu": "13",
+    "trieu to temple": "13",
 
-    "bộ sưu tập ảnh chiến tranh": "14",
-    "bo suu tap anh chien tranh": "14",
-    "war photography collection": "14",
-    "war photography": "14",
+    # 14 - Thái Miếu
+    "thái miếu": "14",
+    "thai mieu": "14",
+    "thái tổ miếu": "14",
+    "thai to temple": "14",
 
-    "trực thăng uh-1 huey": "15",
-    "truc thang uh1": "15",
-    "uh-1 huey helicopter": "15",
-    "uh1 huey": "15",
+    # 15 - Cửa Hiển Nhơn
+    "cửa hiển nhơn": "15",
+    "cua hien nhon": "15",
+    "hien nhon gate": "15",
+    "gate of manifest benevolence": "15",
+
+    # 16 - Điện Long An (Bảo tàng Cổ vật)
+    "điện long an": "16",
+    "dien long an": "16",
+    "long an palace": "16",
+    "bảo tàng cổ vật cung đình huế": "16",
+    "bao tang co vat cung dinh hue": "16",
+    "hue royal antiquities museum": "16",
+    
+    # 17 - Ngọ Môn
+    "ngọ môn": "17",
+    "ngo mon": "17",
+    "ngo mon gate": "17",
+    "meridian gate": "17",
 }
+
 
 
 def map_vision_label_to_artifact_id(raw_label: str) -> Optional[str]:

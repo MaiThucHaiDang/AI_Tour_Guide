@@ -56,6 +56,13 @@ async def test_unit_4_language_accuracy(monkeypatch: pytest.MonkeyPatch) -> None
                 return "Đây là câu trả lời ngắn gọn bằng tiếng Việt."
             return "This is a concise English answer."
 
+        async def generate_response_stream(self, prompt: str, context_data: str, lang: str):
+            self.calls.append({"prompt": prompt, "context_data": context_data, "lang": lang})
+            if lang == "vi":
+                yield "Đây là câu trả lời ngắn gọn bằng tiếng Việt."
+            else:
+                yield "This is a concise English answer."
+
     english_cases = [
         {
             "lang_param": "en",
@@ -120,6 +127,13 @@ async def test_unit_5_language_switching() -> None:
             if lang == "vi":
                 return "Đây là câu trả lời tiếng Việt cho lượt đầu."
             return "This is the English answer for the next turn."
+
+        async def generate_response_stream(self, prompt, context_data, lang):
+            self.calls.append((prompt, context_data, lang))
+            if lang == "vi":
+                yield "Đây là câu trả lời tiếng Việt cho lượt đầu."
+            else:
+                yield "This is the English answer for the next turn."
 
     tts = MockTTSProvider()
     llm = SwitchingLLMProvider()
@@ -205,6 +219,9 @@ async def test_voice_llm_failure_returns_fallback_text() -> None:
         async def generate_response(self, prompt: str, context_data: str, lang: str) -> str:
             raise RuntimeError("quota exceeded")
 
+        async def generate_response_stream(self, prompt: str, context_data: str, lang: str):
+            raise RuntimeError("quota exceeded")
+
     orchestrator = VoiceOrchestrator(
         MockSTTProvider(),
         FailingLLMProvider(),
@@ -228,6 +245,9 @@ async def test_voice_tts_failure_keeps_text_response() -> None:
     class MockLLMProvider(BaseLLM):
         async def generate_response(self, prompt: str, context_data: str, lang: str) -> str:
             return "Ngo Mon Gate is the main southern gate of Hue Imperial City."
+
+        async def generate_response_stream(self, prompt: str, context_data: str, lang: str):
+            yield "Ngo Mon Gate is the main southern gate of Hue Imperial City."
 
     orchestrator = VoiceOrchestrator(
         MockSTTProvider(),

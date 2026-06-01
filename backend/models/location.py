@@ -14,5 +14,7 @@ class Location(Base):
     name_en: Mapped[str] = mapped_column(String(255), nullable=False)
     gps_coordinates: Mapped[str | None] = mapped_column(String(100))
     open_hours: Mapped[str | None] = mapped_column(String(100))
+    latitude: Mapped[float | None] = mapped_column(nullable=True)
+    longitude: Mapped[float | None] = mapped_column(nullable=True)
 
     artifacts = relationship("Artifact", back_populates="location")

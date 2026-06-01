@@ -54,14 +54,15 @@ async def graph_augmented_search(query: str, top_k: int = 3) -> List[ArtifactInf
             result = await session.execute(stmt)
             entry_artifact_ids = result.scalars().all()
 
-            if not entry_artifact_ids:
-                # Fallback to fuzzy search if vector finds nothing
-                fuzzy_art = await find_artifact_by_name(query)
-                if fuzzy_art:
-                    entry_artifact_ids = [int(fuzzy_art.art_id)]
-                else:
-                    return []
+        if not entry_artifact_ids:
+            # Fallback to fuzzy search if vector finds nothing
+            fuzzy_art = await find_artifact_by_name(query)
+            if fuzzy_art:
+                entry_artifact_ids = [int(fuzzy_art.art_id)]
+            else:
+                return []
 
+        async with async_session_factory() as session:
             # Step 2: Graph Traversal (Get neighbors of entry points)
             # We want artifacts related by SAME_AUTHOR, SAME_PERIOD, or LOCATED_NEAR
             related_stmt = select(ArtifactRelation.target_artifact_id).where(
@@ -144,12 +145,59 @@ async def find_artifact_by_name(name: str, lat: float = None, lng: float = None)
     
     Now uses PostgreSQL pg_trgm for fuzzy/similarity search.
     If GPS coordinates are provided, it reranks candidates by proximity.
+    Also handles Location queries by returning a synthesized summary of its artifacts.
     """
     if not name:
         return None
 
     try:
         async with async_session_factory() as session:
+            # 0. Check for Location matches first
+            loc_stmt = select(Location).where(
+                or_(
+                    func.word_similarity(Location.name_vi, name) > 0.4,
+                    func.word_similarity(Location.name_en, name) > 0.4,
+                    Location.name_vi.ilike(f"%{name}%"),
+                    Location.name_en.ilike(f"%{name}%")
+                )
+            ).order_by(
+                func.word_similarity(Location.name_vi, name).desc()
+            ).limit(1)
+            
+            loc_result = await session.execute(loc_stmt)
+            best_location = loc_result.scalar_one_or_none()
+            
+            if best_location:
+                # Synthesize virtual ArtifactInfo for Location
+                art_stmt = select(Artifact).where(Artifact.loc_id == best_location.loc_id)
+                art_result = await session.execute(art_stmt)
+                location_artifacts = art_result.scalars().all()
+                
+                if location_artifacts:
+                    summary_vi_parts = [f"Địa điểm {best_location.name_vi}. Các hiện vật nổi bật tại đây bao gồm:"]
+                    summary_en_parts = [f"Location {best_location.name_en}. Prominent artifacts here include:"]
+                    
+                    for a in location_artifacts:
+                        vi_sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", (a.history_text_vi or ""))]
+                        en_sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", (a.history_text_en or ""))]
+                        
+                        vi_short = " ".join(vi_sentences[:2]) if vi_sentences else ""
+                        en_short = " ".join(en_sentences[:2]) if en_sentences else ""
+                        
+                        summary_vi_parts.append(f"- {a.name_vi}: {vi_short}")
+                        summary_en_parts.append(f"- {a.name_en}: {en_short}")
+                    
+                    return ArtifactInfo(
+                        art_id=f"loc_{best_location.loc_id}",
+                        loc_id=str(best_location.loc_id),
+                        name_vi=best_location.name_vi,
+                        name_en=best_location.name_en,
+                        history_text_vi="\n".join(summary_vi_parts),
+                        history_text_en="\n".join(summary_en_parts),
+                        author="Unknown",
+                        year=None,
+                    )
+
             # 1. Fetch potential candidates using word_similarity
             # We take up to 5 candidates to allow for GPS reranking
             stmt = select(Artifact).join(Location).where(
@@ -194,8 +242,9 @@ async def find_artifact_by_name(name: str, lat: float = None, lng: float = None)
                     
                     if location and location.gps_coordinates:
                         try:
-                            # Assume "lat,lng" format
-                            l_lat, l_lng = map(float, location.gps_coordinates.split(','))
+                            # Assume center is before "|" if bounds are present
+                            center_part = location.gps_coordinates.split('|')[0]
+                            l_lat, l_lng = map(float, center_part.split(','))
                             dist = (l_lat - lat)**2 + (l_lng - lng)**2 # Euclidean is fine for local
                             if dist < min_dist:
                                 min_dist = dist
@@ -254,6 +303,29 @@ async def get_artifact_context(query_text: str, db_field: str) -> str:
 
     if not row:
         return "No matching artifact found in database."
+
+    # If the match is a Location, synthesize its artifacts' summaries
+    if isinstance(row, Location):
+        try:
+            async with async_session_factory() as session:
+                art_stmt = select(Artifact).where(Artifact.loc_id == row.loc_id)
+                art_result = await session.execute(art_stmt)
+                location_artifacts = art_result.scalars().all()
+                
+                if location_artifacts:
+                    summary_parts = [f"Địa điểm {row.name_vi} / {row.name_en}. Các hiện vật nổi bật:"]
+                    for a in location_artifacts:
+                        text = a.history_text_vi if db_field == "history_text_vi" else a.history_text_en
+                        sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", (text or ""))]
+                        short_text = " ".join(sentences[:2]) if sentences else ""
+                        name = a.name_vi if db_field == "history_text_vi" else a.name_en
+                        summary_parts.append(f"- {name}: {short_text}")
+                    return "\n".join(summary_parts)
+                else:
+                    return f"Địa điểm {row.name_vi} hiện chưa có hiện vật nào trong cơ sở dữ liệu."
+        except Exception as exc:
+            _LOGGER.warning("Failed to fetch location artifacts for context: %s", exc)
+            return "Database is temporarily unavailable."
 
     history_text = row.history_text_vi if db_field == "history_text_vi" else row.history_text_en
     if not history_text:
@@ -329,9 +401,23 @@ async def canonicalize_transcript_entities(text: str, lang: str = "vi") -> str:
 
 
 async def _direct_match(session: AsyncSession, query: str):
-    """Try matching query text against artifact names using SQL ILIKE."""
+    """Try matching query text against artifact/location names using SQL ILIKE."""
     query_lower = query.lower()
     normalized_query = _normalize_text(query)
+
+    # Step 0: Check Location first
+    loc_stmt = select(Location).where(
+        or_(
+            func.lower(Location.name_vi).contains(query_lower),
+            func.lower(Location.name_en).contains(query_lower),
+        )
+    )
+    loc_result = await session.execute(loc_stmt)
+    locations = loc_result.scalars().all()
+    for loc in locations:
+        names = (loc.name_vi, loc.name_en)
+        if any(name.lower() in query_lower for name in names) or any(query_lower in name.lower() for name in names):
+            return loc
 
     # Step 1: SQL-filtered candidates (push work to database)
     stmt = select(Artifact).where(

@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import HomeScreen from './components/HomeScreen';
-import UnifiedChatPage from './components/voice/UnifiedChatPage';
+import ExploreDashboard from './components/dashboard/ExploreDashboard';
+import MapCalibrate from './components/map/MapCalibrate';
 
 function App() {
   const [appState, setAppState] = useState(() => {
-    return new URLSearchParams(window.location.search).get('view') === 'chat' ? 'chat' : 'home';
+    const view = new URLSearchParams(window.location.search).get('view');
+    if (view === 'calibrate') return 'calibrate';
+    return view === 'dashboard' ? 'dashboard' : 'home';
   });
   const [language, setLanguage] = useState(() => {
     return localStorage.getItem('ai_tour_lang') || 'vi';
   });
+  const [selectedLocation, setSelectedLocation] = useState(null);
 
   useEffect(() => {
     localStorage.setItem('ai_tour_lang', language);
@@ -16,29 +20,43 @@ function App() {
 
   const resetToHome = () => {
     setAppState('home');
+    setSelectedLocation(null);
   };
 
-  const handleSelectFeature = () => {
-    setAppState('chat');
+  const handleSelectLocation = (location) => {
+    setSelectedLocation(location);
+    setAppState('dashboard');
   };
 
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+    <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
 
       {/* Main Views */}
       {appState === 'home' && (
         <HomeScreen
-          onSelectFeature={handleSelectFeature}
+          onSelectFeature={(feature, data) => {
+            if (feature === 'dashboard' || feature === 'chat' || feature === 'map') {
+              handleSelectLocation({ id: 1, name_vi: "Kinh thành Huế (Đại Nội)" });
+            }
+          }}
           language={language}
           setLanguage={setLanguage}
         />
       )}
 
-      {appState === 'chat' && (
-        <UnifiedChatPage
+      {appState === 'dashboard' && (
+        <ExploreDashboard
           onBack={resetToHome}
           language={language}
           setLanguage={setLanguage}
+          initialLocation={selectedLocation}
+        />
+      )}
+
+      {appState === 'calibrate' && (
+        <MapCalibrate
+          onBack={resetToHome}
+          language={language}
         />
       )}
 

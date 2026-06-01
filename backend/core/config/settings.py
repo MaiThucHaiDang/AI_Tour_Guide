@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = ""
     GROQ_API_KEY: str = ""
     HUGGINGFACE_API_KEY: str = ""
+    GOOGLE_MAPS_API_KEY: str = ""
 
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/ai_tour_guide"
     DATABASE_POOL_SIZE: int = 10
@@ -27,14 +28,14 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379/0"
     CACHE_TTL_SECONDS: int = 3600
 
-    LLM_PROVIDER_ORDER: str = "gemini,groq"
-    GEMINI_TEXT_MODEL: str = "gemini-2.0-flash"
+    LLM_PROVIDER_ORDER: str = "gemini, groq"
+    GEMINI_TEXT_MODEL: str = "gemini-2.5-flash"
     GEMINI_EMBEDDING_MODEL: str = "gemini-embedding-2"
-    GEMINI_VISION_MODEL: str = "gemini-flash-latest"
+    GEMINI_VISION_MODEL: str = "gemini-2.5-flash"
     GROQ_LLM_MODEL: str = "llama-3.3-70b-versatile"
     GROQ_STT_MODEL: str = "whisper-large-v3"
     LLM_TEMPERATURE: float = 0.6
-    LLM_MAX_TOKENS: int = 180
+    LLM_MAX_TOKENS: int = 400
     VISION_CONFIDENCE_THRESHOLD: float = 0.6
 
     TEXT_MAX_CHARS: int = 1200

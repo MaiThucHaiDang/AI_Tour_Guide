@@ -42,6 +42,7 @@ async def unified_chat(
     session_id: Optional[str] = Form(None),
     lat: Optional[float] = Form(None),
     lng: Optional[float] = Form(None),
+    artifact_id: Optional[int] = Form(None),
 ) -> UnifiedChatResponse:
     """Process a multimodal chat request."""
     try:
@@ -49,8 +50,10 @@ async def unified_chat(
         validate_text_size(text)
         validate_image_base64_size(image_base64)
 
-        _LOGGER.info("Unified chat request: lang=%s, session_id=%s, has_text=%s, has_image=%s, has_audio=%s", 
-                     lang, session_id, text is not None, image_base64 is not None, audio is not None)
+        _LOGGER.info(
+            "Unified chat request: lang=%s, session_id=%s, has_text=%s, has_image=%s, has_audio=%s, artifact_id=%s", 
+            lang, session_id, text is not None, image_base64 is not None, audio is not None, artifact_id
+        )
         
         stt = None
         tts = None
@@ -95,7 +98,8 @@ async def unified_chat(
             lang=lang,
             session_id=session_id,
             audio_filename=audio_filename,
-            audio_content_type=audio_content_type
+            audio_content_type=audio_content_type,
+            artifact_id=artifact_id
         )
         
         audio_b64 = None
@@ -108,7 +112,7 @@ async def unified_chat(
             audio_base64=audio_b64,
             audio_mime="audio/mpeg",
             transcript=result.transcript,
-            artifact_id=result.artifact_id,
+            artifact_id=str(result.artifact_id) if result.artifact_id is not None else None,
             artifact_name=result.artifact_name,
             detected_lang=result.detected_lang,
             answer_source=result.answer_source,

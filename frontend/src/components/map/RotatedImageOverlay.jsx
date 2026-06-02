@@ -29,7 +29,7 @@ const RotatedImageOverlay = ({ url, topleft, topright, bottomleft, opacity = 1 }
         map.removeLayer(overlayRef.current);
       }
     };
-  }, [map, url]);
+  }, [bottomleft, map, opacity, topleft, topright, url]);
 
   useEffect(() => {
     if (overlayRef.current && topleft && topright && bottomleft && topleft[0]) {

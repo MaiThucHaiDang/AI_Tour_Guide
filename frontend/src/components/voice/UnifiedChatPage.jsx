@@ -29,27 +29,27 @@ import CameraScanner from '../CameraScanner';
 const COPY = {
   vi: {
     title: 'AITourGuide',
-    subtitle: 'Hướng dẫn viên số cho hành trình văn hóa',
+    subtitle: 'Hướng dẫn viên số cho Đại Nội Huế',
     status: 'Sẵn sàng',
     back: 'Trang chủ',
     upload: 'Tải ảnh',
     camera: 'Chụp ảnh',
-    askPlaceholder: 'Hỏi về hiện vật, lịch sử hoặc địa điểm...',
-    greeting: 'Xin chào! Hãy tải ảnh hiện vật, dùng webcam hoặc hỏi trực tiếp về một địa điểm lịch sử.',
+    askPlaceholder: 'Hỏi về Ngọ Môn, Điện Thái Hòa, Thế Miếu...',
+    greeting: 'Xin chào! Bạn có thể hỏi về một điểm dừng trong Đại Nội, tải ảnh hiện vật hoặc dùng giọng nói để nghe thuyết minh.',
     processing: 'Đang chuẩn bị câu trả lời',
-    artifactPanel: 'Thông tin hiện vật',
-    noArtifact: 'Tải ảnh, chụp hiện vật hoặc đặt câu hỏi để nhận thông tin phù hợp.',
+    artifactPanel: 'Thông tin điểm dừng',
+    noArtifact: 'Chọn một marker trên bản đồ, tải ảnh hoặc đặt câu hỏi để nhận thông tin phù hợp.',
     confidence: 'Độ tin cậy',
     year: 'Năm',
     author: 'Tác giả/triều đại',
     summary: 'Tóm tắt',
     suggestions: 'Gợi ý hỏi nhanh',
-    locations: 'Địa điểm nổi bật',
+    locations: 'Nhóm điểm trong Đại Nội',
     explore: 'Câu hỏi gợi ý',
     recording: 'Đang ghi âm...',
     transcribing: 'Đang chuyển giọng nói thành văn bản...',
     pendingImage: 'Ảnh chờ gửi',
-    detailEmpty: 'Thông tin chi tiết sẽ xuất hiện sau khi tìm thấy hiện vật liên quan.',
+    detailEmpty: 'Thông tin chi tiết sẽ xuất hiện sau khi tìm thấy điểm dừng liên quan.',
     assistantEyebrow: 'Hướng dẫn tham quan',
     reset: 'Bắt đầu lại',
     listen: 'Nghe câu trả lời',
@@ -75,27 +75,27 @@ const COPY = {
   },
   en: {
     title: 'AITourGuide',
-    subtitle: 'A digital guide for cultural journeys',
+    subtitle: 'A digital guide for Hue Imperial City',
     status: 'Ready',
     back: 'Home',
     upload: 'Upload',
     camera: 'Capture',
-    askPlaceholder: 'Ask about an artifact, history, or destination...',
-    greeting: 'Hello! Upload an artifact photo, use the webcam, or ask about a historical site.',
+    askPlaceholder: 'Ask about Ngo Mon Gate, Thai Hoa Palace, The Mieu...',
+    greeting: 'Hello! Ask about a Hue Imperial City stop, upload an artifact photo, or use voice to hear the guide.',
     processing: 'Preparing your answer',
-    artifactPanel: 'Artifact detail',
-    noArtifact: 'Upload a photo, capture an artifact, or ask a question to get relevant guidance.',
+    artifactPanel: 'Stop detail',
+    noArtifact: 'Choose a map marker, upload a photo, or ask a question to get relevant guidance.',
     confidence: 'Confidence',
     year: 'Year',
     author: 'Author/dynasty',
     summary: 'Summary',
     suggestions: 'Suggested questions',
-    locations: 'Featured destinations',
+    locations: 'Citadel stop groups',
     explore: 'Suggested questions',
     recording: 'Recording...',
     transcribing: 'Transcribing voice...',
     pendingImage: 'Pending image',
-    detailEmpty: 'Artifact details will appear after a related item is found.',
+    detailEmpty: 'Details will appear after a related stop is found.',
     assistantEyebrow: 'Tour guidance',
     reset: 'Start over',
     listen: 'Listen to answer',
@@ -130,7 +130,15 @@ const createWelcomeMessage = (greeting) => ({
   source: 'template'
 });
 
-const UnifiedChatPage = ({ onBack, language, setLanguage, initialArtifact, externalPrompt, embedded = false }) => {
+const UnifiedChatPage = ({
+  onBack,
+  language,
+  setLanguage,
+  initialArtifact,
+  externalPrompt,
+  onArtifactUpdate,
+  embedded = false
+}) => {
   const copy = COPY[language] || COPY.vi;
   const [messages, setMessages] = useState(() => [createWelcomeMessage(copy.greeting)]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -161,6 +169,10 @@ const UnifiedChatPage = ({ onBack, language, setLanguage, initialArtifact, exter
     resetRecording,
     getFilename
   } = useAudioRecorder();
+
+  useEffect(() => {
+    onArtifactUpdate?.(currentArtifact);
+  }, [currentArtifact, onArtifactUpdate]);
 
   useEffect(() => {
     if (externalPrompt) {
@@ -961,7 +973,7 @@ const UnifiedChatPage = ({ onBack, language, setLanguage, initialArtifact, exter
 
         /* Embedded Mode Styles */
         .tour-workspace.embedded-mode {
-            background: #fff;
+            background: transparent;
             border: none;
             height: 100%;
         }
@@ -979,7 +991,20 @@ const UnifiedChatPage = ({ onBack, language, setLanguage, initialArtifact, exter
             border: none;
             border-radius: 0;
             box-shadow: none;
-            background: #fff;
+            background: transparent;
+        }
+        .tour-workspace.embedded-mode .conversation-header {
+            background: rgba(255, 250, 240, 0.92);
+            border-bottom-color: rgba(24, 32, 35, 0.1);
+        }
+        .tour-workspace.embedded-mode .messages-scroll {
+            background:
+              linear-gradient(180deg, rgba(255, 250, 240, 0.96), rgba(246, 240, 223, 0.86));
+        }
+        .tour-workspace.embedded-mode .composer {
+            background: rgba(255, 250, 240, 0.94);
+            border-top-color: rgba(24, 32, 35, 0.12);
+            backdrop-filter: blur(16px);
         }
 
         .tour-topbar {

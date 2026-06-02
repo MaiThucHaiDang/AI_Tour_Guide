@@ -308,6 +308,28 @@ export const getMapConfigAPI = async () => {
   }
 };
 
+export const getRouteAPI = async ({ start, end, lang = 'vi' }) => {
+  const params = new URLSearchParams({
+    start_lat: start.lat,
+    start_lng: start.lng,
+    end_lat: end.lat,
+    end_lng: end.lng,
+    lang
+  });
+
+  try {
+    const response = await fetch(`/api/v1/map/route?${params.toString()}`);
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to calculate route');
+    }
+    return data;
+  } catch (error) {
+    console.error('Error calculating route:', error);
+    throw error;
+  }
+};
+
 export const saveMapConfigAPI = async (mapBounds, artifacts) => {
   try {
     const response = await fetch('/api/v1/map/config', {

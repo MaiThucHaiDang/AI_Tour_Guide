@@ -46,9 +46,36 @@ async def unified_chat(
 ) -> UnifiedChatResponse:
     """Process a multimodal chat request."""
     try:
+        # Validate inputs
         lang = normalize_lang(lang)
         validate_text_size(text)
         validate_image_base64_size(image_base64)
+        
+        # Validate session_id if provided
+        if session_id and len(session_id) > 255:
+            raise HTTPException(
+                status_code=400,
+                detail="session_id quá dài (max 255 ký tự)"
+            )
+        
+        # Validate GPS coordinates
+        if lat is not None and not (-90 <= lat <= 90):
+            raise HTTPException(
+                status_code=400,
+                detail="Latitude phải nằm trong khoảng [-90, 90]"
+            )
+        if lng is not None and not (-180 <= lng <= 180):
+            raise HTTPException(
+                status_code=400,
+                detail="Longitude phải nằm trong khoảng [-180, 180]"
+            )
+        
+        # Ensure artifact_id is positive if provided
+        if artifact_id is not None and artifact_id <= 0:
+            raise HTTPException(
+                status_code=400,
+                detail="artifact_id phải là số dương"
+            )
 
         _LOGGER.info(
             "Unified chat request: lang=%s, session_id=%s, has_text=%s, has_image=%s, has_audio=%s, artifact_id=%s", 

@@ -7,11 +7,18 @@ import binascii
 
 from fastapi import HTTPException
 
+import logging
 from core.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 def normalize_lang(lang: str | None) -> str:
-    return "en" if lang == "en" else "vi"
+    """Validate and normalize language parameter."""
+    if lang not in ("vi", "en"):
+        logger.warning("Invalid language code: %s, defaulting to 'vi'", lang)
+        return "vi"
+    return lang if lang == "en" else "vi"
 
 
 def validate_text_size(text: str | None) -> None:

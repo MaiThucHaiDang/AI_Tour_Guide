@@ -32,8 +32,13 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("AI Tour Guide Backend starting...")
-    setup_cache()
-    logger.info(f"Environment: {settings.ENVIRONMENT}")
+    try:
+        setup_cache()
+        logger.info("Cache initialized successfully")
+    except Exception as e:
+        logger.error("Cache initialization failed: %s", e, exc_info=True)
+        # Continue startup even if cache fails
+    logger.info("Environment: %s", settings.ENVIRONMENT)
     logger.info("Routers: vision (/api/v1/recognize), voice (/api/v1/voice/chat)")
     yield
     logger.info("Backend shutting down.")

@@ -35,50 +35,78 @@ async def recognize_artifact(
     lang = normalize_lang(body.lang)
     validate_image_base64_size(body.image_base64)
     session_id = body.session_id
+    
+    # Validate GPS coordinates if provided
+    if body.lat is not None and not (-90 <= body.lat <= 90):
+        raise HTTPException(
+            status_code=400,
+            detail="Latitude phải nằm trong khoảng [-90, 90]"
+        )
+    if body.lng is not None and not (-180 <= body.lng <= 180):
+        raise HTTPException(
+            status_code=400,
+            detail="Longitude phải nằm trong khoảng [-180, 180]"
+        )
 
     # 1. Image recognition (Gemini Vision)
-    logger.info(f"Recognize request received, lang={lang}, session_id={session_id}")
+    logger.info("Recognize request: lang=%s, session_id=%s, gps=(%s, %s)", 
+                lang, session_id, body.lat, body.lng)
+    
     vision_result = await recognize_image(
         body.image_base64, 
         lang=lang,
         lat=body.lat,
         lng=body.lng
     )
+    
+    logger.debug("Vision result: recognized=%s, error=%s, confidence=%.2f", 
+                vision_result.recognized, vision_result.error, vision_result.confidence_score)
 
     if not vision_result.recognized:
         error_code = vision_result.error or "UNRECOGNIZED"
         messages = {
             "LOW_CONFIDENCE": {
-                "vi": "Ảnh chưa rõ nét. Vui lòng chụp lại ở góc chính diện, đủ sáng.",
-                "en": "Image is unclear. Please retake with better lighting and a straight angle.",
+                "vi": "Ảnh chưa rõ nét hoặc góc chụp không tốt. Vui lòng chụp lại ở góc chính diện, đủ sáng.",
+                "en": "Image is unclear or angle is poor. Please retake with better lighting and a straight angle.",
+            },
+            "NOT_AN_ARTIFACT": {
+                "vi": "Đây không phải là di tích hoặc công trình lịch sử. Hãy chụp một công trình trong Hoàng thành Huế.",
+                "en": "This is not a historical artifact. Please capture a structure in the Hue Imperial Citadel.",
             },
             "UNRECOGNIZED": {
-                "vi": "Không nhận diện được hiện vật. Hãy thử chụp toàn bộ công trình.",
-                "en": "Could not identify the artifact. Try capturing the full structure.",
+                "vi": "Không nhận diện được công trình này. Hãy thử chụp toàn bộ, ở góc khác hoặc với ánh sáng tốt hơn.",
+                "en": "Could not identify this structure. Try capturing the full view or from a different angle with better lighting.",
+            },
+            "INVALID_IMAGE": {
+                "vi": "Ảnh không hợp lệ hoặc bị lỗi. Vui lòng chọn ảnh JPG, PNG hoặc định dạng khác.",
+                "en": "Invalid image format. Please select a JPG, PNG or other valid format.",
+            },
+            "VISION_EMPTY_RESPONSE": {
+                "vi": "AI không thể xử lý ảnh này (bị lọc bởi cơ chế an toàn). Vui lòng thử ảnh khác.",
+                "en": "AI could not process this image (safety filter). Please try another image.",
+            },
+            "API_ERROR": {
+                "vi": "Lỗi kỹ thuật từ AI. Vui lòng thử lại sau ít phút.",
+                "en": "Technical error from AI. Please retry in a moment.",
             },
             "429": {
                 "vi": "AI đang bận (Hết lượt dùng thử). Vui lòng thử lại sau 1 phút.",
-                "en": "AI is busy (Quota exceeded). Please retry in 1 minute.",
+                "en": "AI is busy (Rate limit exceeded). Please retry in 1 minute.",
             },
             "401": {
-                "vi": "Lỗi xác thực (API Key không hợp lệ). Vui lòng kiểm tra file .env.",
-                "en": "Authentication error (Invalid API Key). Please check your .env file.",
+                "vi": "Lỗi xác thực API. Vui lòng kiểm tra cấu hình .env.",
+                "en": "API authentication error. Please check .env configuration.",
             },
         }
 
-        final_error = "UNRECOGNIZED"
-        if "429" in error_code:
-            final_error = "429"
-        elif "401" in error_code:
-            final_error = "401"
-        elif error_code in messages:
-            final_error = error_code
-
+        final_error = error_code if error_code in messages else "UNRECOGNIZED"
         msg_map = messages.get(final_error, messages["UNRECOGNIZED"])
+
+        logger.info("Vision recognition failed: error=%s, confidence=%.2f", final_error, vision_result.confidence_score)
 
         return RecognizeResponse(
             success=False,
-            error_code=error_code,
+            error_code=final_error,
             confidence_score=vision_result.confidence_score,
             message=msg_map.get(lang, msg_map["vi"]),
         )
@@ -89,7 +117,7 @@ async def recognize_artifact(
     artifact_data = await get_artifact_by_id(artifact_id)
 
     if not artifact_data:
-        logger.warning(f"artifact_id '{artifact_id}' not found in DB")
+        logger.warning("artifact_id '%s' not found in DB", artifact_id)
         return RecognizeResponse(
             success=False,
             artifact_id=artifact_id,
@@ -105,19 +133,19 @@ async def recognize_artifact(
     try:
         llm_response = await generate_response(artifact_data=artifact_data, lang=lang)
     except Exception as e:
-        logger.error("LLM error: %s", e)
+        logger.error("LLM error: %s", e, exc_info=True)
         raise HTTPException(
             status_code=502, detail="LLM service tạm thời không khả dụng"
         )
 
     # 4. Return result
     artifact_name = artifact_data.name_vi if lang == "vi" else artifact_data.name_en
-    logger.info(f"Success: {artifact_id}, lang={lang}")
+    logger.info("Success: %s, lang=%s", artifact_id, lang)
 
     # 5. Save to memory if session_id exists to maintain context
     if session_id:
-        memory.add_turn(session_id, "user", f"[User sent an image of {artifact_name}]")
-        memory.add_turn(session_id, "assistant", llm_response.response_text)
+        await memory.add_turn(session_id, "user", f"[User sent an image of {artifact_name}]")
+        await memory.add_turn(session_id, "assistant", llm_response.response_text)
 
     return RecognizeResponse(
         success=True,

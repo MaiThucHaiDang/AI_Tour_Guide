@@ -169,7 +169,8 @@ async def find_artifact_by_name(name: str, lat: float = None, lng: float = None)
             
             if best_location:
                 # Synthesize virtual ArtifactInfo for Location
-                art_stmt = select(Artifact).where(Artifact.loc_id == best_location.loc_id)
+                # Only fetch top 3 artifacts to avoid N+1 issue
+                art_stmt = select(Artifact).where(Artifact.loc_id == best_location.loc_id).limit(3)
                 art_result = await session.execute(art_stmt)
                 location_artifacts = art_result.scalars().all()
                 

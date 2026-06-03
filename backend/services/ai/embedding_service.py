@@ -60,9 +60,24 @@ class EmbeddingService:
 
     @classmethod
     async def get_embeddings(cls, texts: List[str]) -> List[List[float]]:
-        """Generate vector embeddings for a list of text strings (batch)."""
+        """Generate vector embeddings for a list of text strings (batch).
+        
+        Args:
+            texts: List of text strings to embed
+            
+        Returns:
+            List of embedding vectors. Returns empty list on error.
+            
+        Raises:
+            ValueError: If batch size exceeds maximum allowed.
+        """
         if not texts:
             return []
+        
+        # Validate batch size to prevent API overload
+        max_batch_size = 100
+        if len(texts) > max_batch_size:
+            raise ValueError(f"Batch size {len(texts)} exceeds maximum {max_batch_size}")
 
         try:
             client = cls._get_client()

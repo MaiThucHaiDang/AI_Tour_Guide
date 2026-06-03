@@ -21,6 +21,7 @@ const updateViewQuery = (view) => {
 };
 
 function App() {
+  const isPhoneFrame = new URLSearchParams(window.location.search).get('frame') === 'phone';
   const [appState, setAppState] = useState(() => {
     const view = new URLSearchParams(window.location.search).get('view');
     if (view === 'calibrate') return 'calibrate';
@@ -66,6 +67,10 @@ function App() {
         <HomeScreen
           onSelectFeature={(feature, data) => {
             if (feature === 'phone') {
+              if (isPhoneFrame) {
+                handleSelectLocation({ ...DEFAULT_TOUR_LOCATION, ...(data || {}), initialTab: 'map' });
+                return;
+              }
               handleOpenPhonePreview(data);
               return;
             }
@@ -80,6 +85,7 @@ function App() {
           }}
           language={language}
           setLanguage={setLanguage}
+          isPhoneFrame={isPhoneFrame}
         />
       )}
 
@@ -103,8 +109,6 @@ function App() {
         <PhonePreview
           onBack={resetToHome}
           language={language}
-          setLanguage={setLanguage}
-          initialLocation={selectedLocation || { ...DEFAULT_TOUR_LOCATION, initialTab: 'map' }}
         />
       )}
 

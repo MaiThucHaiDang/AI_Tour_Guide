@@ -2729,7 +2729,7 @@ body {
 
 .artifact-fact-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -2764,6 +2764,34 @@ body {
 
 .artifact-summary-block {
   padding: 14px;
+}
+
+.artifact-step-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.artifact-step-list li {
+  position: relative;
+  padding-left: 22px;
+  color: #34433f;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.artifact-step-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.45em;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--tour-jade);
+  box-shadow: 0 0 0 4px rgba(7, 94, 85, 0.1);
 }
 
 .artifact-action-row {
@@ -3034,11 +3062,11 @@ body {
   width: 100vw;
   min-height: 100dvh;
   display: grid;
-  grid-template-columns: minmax(280px, 0.9fr) minmax(300px, 0.78fr);
+  grid-template-columns: minmax(280px, 0.8fr) minmax(320px, 0.72fr);
   align-items: center;
-  gap: clamp(22px, 5vw, 70px);
-  overflow: hidden;
-  padding: clamp(18px, 4vw, 52px);
+  gap: clamp(22px, 4vw, 58px);
+  overflow: auto;
+  padding: clamp(16px, 3.5vw, 44px);
   color: var(--preview-paper);
   background:
     linear-gradient(90deg, rgba(255, 212, 71, 0.08) 1px, transparent 1px),
@@ -3065,7 +3093,7 @@ body {
 
 .phone-preview-back {
   min-height: 44px;
-  margin-bottom: clamp(28px, 7vh, 82px);
+  margin-bottom: clamp(24px, 5vh, 56px);
   padding: 0 14px;
   color: var(--preview-paper);
   border: 1px solid rgba(255, 250, 240, 0.2);
@@ -3087,11 +3115,11 @@ body {
 }
 
 .phone-preview-copy h1 {
-  max-width: 760px;
+  max-width: 680px;
   margin: 18px 0 0;
   color: var(--preview-paper);
   font-family: Cambria, 'Times New Roman', serif;
-  font-size: clamp(44px, 6.4vw, 94px);
+  font-size: clamp(40px, 5.4vw, 78px);
   font-weight: 800;
   line-height: 0.94;
   letter-spacing: 0;
@@ -3099,7 +3127,7 @@ body {
 }
 
 .phone-preview-copy p {
-  max-width: 620px;
+  max-width: 580px;
   margin: 22px 0 0;
   color: rgba(255, 250, 240, 0.78);
   font-size: clamp(16px, 1.3vw, 20px);
@@ -3148,7 +3176,7 @@ body {
 
 .phone-device {
   position: relative;
-  width: min(390px, 44dvh, calc(100vw - 36px));
+  width: min(430px, 45dvh, calc(100vw - 36px));
   aspect-ratio: 390 / 844;
   border: 1px solid rgba(255, 250, 240, 0.18);
   border-radius: 34px;
@@ -3163,7 +3191,7 @@ body {
 
 .phone-device-screen {
   position: absolute;
-  inset: 12px;
+  inset: 18px 12px 12px;
   overflow: hidden;
   border: 1px solid rgba(255, 250, 240, 0.12);
   border-radius: 25px;
@@ -3174,14 +3202,22 @@ body {
 .phone-device-speaker {
   position: absolute;
   z-index: 4;
-  top: 22px;
+  top: 7px;
   left: 50%;
-  width: 82px;
-  height: 7px;
+  width: 72px;
+  height: 6px;
   border-radius: 999px;
   background: rgba(255, 250, 240, 0.22);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12);
   transform: translateX(-50%);
+}
+
+.phone-device-app-frame {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border: 0;
+  background: #fffaf0;
 }
 
 .phone-device-side {

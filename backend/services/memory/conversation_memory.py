@@ -46,12 +46,11 @@ class ConversationMemory:
                 result = await session.execute(
                     select(ChatTurn)
                     .where(ChatTurn.session_id == session_id)
-                    .order_by(ChatTurn.created_at.desc())
+                    .order_by(ChatTurn.created_at.asc())  # Ascending order for efficiency
                     .limit(self._max_turns * 2)
                 )
                 turns = result.scalars().all()
-                # Reverse to get chronological order
-                turns = list(turns)[::-1]
+                turns = list(turns)
                 
                 if not turns:
                     return ""

@@ -11,30 +11,40 @@ from schemas.vision import ArtifactInfo
 # ─── Vision Pipeline Prompts ────────────────────────────────────────────────
 
 def build_vision_recognition_prompt(lang: str) -> str:
-    """Build a language-aware prompt for Gemini Vision."""
+    """Build a language-aware prompt for Gemini Vision with enhanced accuracy."""
     if lang == "en":
         return """You are an expert in Hue Imperial City (Dai Noi) heritage sites and artifacts.
-Analyze the image and return a JSON object:
+CRITICAL: Return ONLY a valid JSON object with NO other text.
+
 {
-  "artifact_name": "Specific name of the recognized monument or site (e.g., Thai Hoa Palace, Kien Trung Palace, Dien Tho Palace, Co Ha Garden, Hoa Binh Gate...)",
-  "confidence": 0.0 to 1.0,
-  "is_historical_artifact": true/false
+  "artifact_name": "Specific name (e.g., Thai Hoa Palace, Kien Trung Palace, Dien Tho Palace, Co Ha Garden, Hoa Binh Gate, Ngan Gate, Meridian Gate, Purple Forbidden City)",
+  "confidence": 0.7 to 1.0 (only if highly confident),
+  "is_historical_artifact": true/false,
+  "visual_features": "Brief description of distinctive features"
 }
-IMPORTANT: Be as specific as possible. Focus on identifying specific monuments within the Hue Imperial Citadel.
-If you are unsure or it is not a historical artifact, return {"artifact_name": "UNKNOWN", "confidence": 0.0, "is_historical_artifact": false}.
-Return ONLY the JSON object.
+
+GUIDELINES:
+1. Only identify if confidence >= 0.7
+2. Focus on specific structures in Hue Imperial Citadel
+3. If uncertain or not Hue Citadel: return {"artifact_name": "UNKNOWN", "confidence": 0.0, "is_historical_artifact": false, "visual_features": ""}
+4. Return ONLY valid JSON. No markdown, no extra text.
 """
     
     return """Bạn là chuyên gia nhận diện các công trình kiến trúc trong Kinh thành Huế (Đại Nội).
-Hãy phân tích ảnh và trả về một đối tượng JSON:
+QUAN TRỌNG: Chỉ trả về đối tượng JSON hợp lệ, KHÔNG có text khác.
+
 {
-  "artifact_name": "Tên cụ thể của công trình được nhận diện (ví dụ: Điện Thái Hòa, Điện Kiến Trung, Cung Diên Thọ, Vườn Cơ Hạ, Cửa Hòa Bình...)",
-  "confidence": 0.0 đến 1.0,
-  "is_historical_artifact": true/false
+  "artifact_name": "Tên cụ thể (ví dụ: Điện Thái Hòa, Điện Kiến Trung, Cung Diên Thọ, Vườn Cơ Hạ, Cửa Hòa Bình, Cửa Ngàn, Cửa Ngọ, Tử Cấm Thành)",
+  "confidence": 0.7 đến 1.0 (chỉ nếu rất chắc chắn),
+  "is_historical_artifact": true/false,
+  "visual_features": "Mô tả ngắn các đặc điểm nổi bật"
 }
-QUAN TRỌNG: Hãy nhận diện chi tiết nhất có thể. Tập trung vào các công trình kiến trúc cụ thể trong Hoàng thành Huế.
-Nếu không chắc chắn hoặc không phải di tích lịch sử, trả về {"artifact_name": "UNKNOWN", "confidence": 0.0, "is_historical_artifact": false}.
-CHỈ trả về đối tượng JSON.
+
+QUY TẮC:
+1. Chỉ nhận diện nếu confidence >= 0.7
+2. Tập trung vào các công trình cụ thể trong Hoàng thành Huế
+3. Nếu không chắc chắn hoặc không phải Huế: return {"artifact_name": "UNKNOWN", "confidence": 0.0, "is_historical_artifact": false, "visual_features": ""}
+4. Chỉ trả về JSON hợp lệ. Không markdown, không text thêm.
 """
 
 

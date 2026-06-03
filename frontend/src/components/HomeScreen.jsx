@@ -20,7 +20,7 @@ const REAL_IMAGES = {
   kienTrung: '/assets/icons/kien_trung.png'
 };
 
-const HomeScreen = ({ onSelectFeature, language, setLanguage }) => {
+const HomeScreen = ({ onSelectFeature, language, setLanguage, isPhoneFrame = false }) => {
   const isVi = language === 'vi';
   const [activeScene, setActiveScene] = useState('hue');
   const [visibleIds, setVisibleIds] = useState(() => new Set(['hero']));
@@ -323,12 +323,14 @@ const HomeScreen = ({ onSelectFeature, language, setLanguage }) => {
                 </div>
             </div>
 
-            <div className="tour-home-actions phone-preview-actions">
-              <button className="secondary-link phone-preview-trigger" onClick={openPhonePreview}>
-                <Smartphone size={18} />
-                <span>{copy.secondary}</span>
-              </button>
-            </div>
+            {!isPhoneFrame && (
+              <div className="tour-home-actions phone-preview-actions">
+                <button className="secondary-link phone-preview-trigger" onClick={openPhonePreview}>
+                  <Smartphone size={18} />
+                  <span>{copy.secondary}</span>
+                </button>
+              </div>
+            )}
             
             <div className="hero-route" aria-label={copy.heroMeta} style={{ marginTop: '30px' }}>
               <MapPin size={16} />
@@ -468,10 +470,12 @@ const HomeScreen = ({ onSelectFeature, language, setLanguage }) => {
               <span>{copy.primary}</span>
               <ArrowRight size={18} />
             </button>
-            <button className="secondary-link phone-preview-trigger" onClick={openPhonePreview}>
-              <Smartphone size={18} />
-              <span>{copy.secondary}</span>
-            </button>
+            {!isPhoneFrame && (
+              <button className="secondary-link phone-preview-trigger" onClick={openPhonePreview}>
+                <Smartphone size={18} />
+                <span>{copy.secondary}</span>
+              </button>
+            )}
           </div>
         </section>
 

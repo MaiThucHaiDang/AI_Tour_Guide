@@ -1,6 +1,6 @@
 """Pydantic schemas for the vision (image recognition) pipeline."""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 
 
@@ -8,9 +8,16 @@ class RecognizeRequest(BaseModel):
     """Payload from the frontend for image recognition."""
     image_base64: str = Field(..., description="Base64 encoded image")
     lang: str = Field(default="vi", description="Response language: 'vi' or 'en'")
-    session_id: Optional[str] = Field(default=None, description="Optional session ID for chat memory")
-    lat: Optional[float] = Field(default=None, description="Latitude")
-    lng: Optional[float] = Field(default=None, description="Longitude")
+    session_id: Optional[str] = Field(default=None, description="Optional session ID for chat memory", max_length=255)
+    lat: Optional[float] = Field(default=None, description="Latitude (-90 to 90)", ge=-90, le=90)
+    lng: Optional[float] = Field(default=None, description="Longitude (-180 to 180)", ge=-180, le=180)
+    
+    @field_validator('lang')
+    @classmethod
+    def validate_lang(cls, v):
+        if v not in ('vi', 'en'):
+            raise ValueError("lang must be 'vi' or 'en'")
+        return v
 
 
 class ArtifactInfo(BaseModel):

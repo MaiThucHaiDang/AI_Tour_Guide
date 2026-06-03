@@ -37,6 +37,7 @@ const normalizeArtifact = (artifact, language) => {
     author: artifact.author || artifact.artifactAuthor || null,
     summary: artifact.summary || artifact.artifactSummary || '',
     source: artifact.source || artifact.answerSource || '',
+    confidence: artifact.confidence_score || artifact.confidenceScore || null,
     lat: artifact.lat,
     lng: artifact.lng,
     raw: artifact
@@ -47,7 +48,9 @@ const ArtifactDetailPanel = ({
   artifact,
   language,
   onAsk,
-  onShowMap
+  onShowMap,
+  assistantSteps = [],
+  routeStatus = null
 }) => {
   const isVi = language === 'vi';
 
@@ -101,6 +104,12 @@ const ArtifactDetailPanel = ({
           <span>ID</span>
           <strong>{artifact.id || '-'}</strong>
         </div>
+        {artifact.confidence !== null && (
+          <div>
+            <span>{isVi ? 'Độ tin cậy' : 'Confidence'}</span>
+            <strong>{Math.round(Number(artifact.confidence) * 100)}%</strong>
+          </div>
+        )}
       </div>
 
       <section className="artifact-summary-block">
@@ -111,6 +120,36 @@ const ArtifactDetailPanel = ({
             : 'Details will appear after you ask the AI guide to introduce this stop or ask a related question.')}
         </p>
       </section>
+
+      {artifact.source && (
+        <section className="artifact-summary-block">
+          <span>{isVi ? 'Nguồn trả lời' : 'Answer source'}</span>
+          <p>{artifact.source}</p>
+        </section>
+      )}
+
+      {assistantSteps.length > 0 && (
+        <section className="artifact-summary-block">
+          <span>{isVi ? 'Trạng thái AI' : 'AI status'}</span>
+          <ol className="artifact-step-list">
+            {assistantSteps.map((step, index) => (
+              <li key={`${step}-${index}`}>{step}</li>
+            ))}
+          </ol>
+        </section>
+      )}
+
+      {routeStatus?.isNavigating && (
+        <section className="artifact-summary-block">
+          <span>{isVi ? 'Điều hướng' : 'Navigation'}</span>
+          <p>
+            {isVi ? 'Đang đi tới' : 'Walking to'} {routeStatus.targetName || artifact.name}
+            {routeStatus.totalSteps > 0
+              ? ` · ${isVi ? 'Bước' : 'Step'} ${routeStatus.activeStep + 1}/${routeStatus.totalSteps}`
+              : ''}
+          </p>
+        </section>
+      )}
 
       <div className="artifact-action-row">
         <button className="tour-primary-action" onClick={() => onAsk(artifact.raw)}>
@@ -134,6 +173,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
   const [currentArtifact, setCurrentArtifact] = useState(null);
   const [systemPrompt, setSystemPrompt] = useState(null);
   const [routeStatus, setRouteStatus] = useState(null);
+  const [assistantSteps, setAssistantSteps] = useState([]);
   const [isOnline, setIsOnline] = useState(() => (
     typeof navigator === 'undefined' ? true : navigator.onLine
   ));
@@ -255,6 +295,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
             initialArtifact={targetArtifact}
             externalPrompt={systemPrompt}
             onArtifactUpdate={handleArtifactFocus}
+            onProcessingStepsUpdate={setAssistantSteps}
             embedded
           />
         </section>
@@ -265,6 +306,8 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
             language={language}
             onAsk={handleAskArtifact}
             onShowMap={() => setActiveTab('map')}
+            assistantSteps={assistantSteps}
+            routeStatus={routeStatus}
           />
         </section>
       </main>

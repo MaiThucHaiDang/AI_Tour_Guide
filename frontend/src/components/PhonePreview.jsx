@@ -1,9 +1,9 @@
 import React from 'react';
 import { ArrowLeft, MapPin, Smartphone } from 'lucide-react';
-import ExploreDashboard from './dashboard/ExploreDashboard';
 
-const PhonePreview = ({ onBack, language, setLanguage, initialLocation }) => {
+const PhonePreview = ({ onBack, language }) => {
   const isVi = language === 'vi';
+  const phoneAppSrc = '/?frame=phone';
 
   return (
     <div className="phone-preview-stage phone-preview-mode">
@@ -18,25 +18,25 @@ const PhonePreview = ({ onBack, language, setLanguage, initialLocation }) => {
           {isVi ? 'Khung trình bày mobile' : 'Mobile presentation frame'}
         </span>
 
-        <h1>{isVi ? 'Đại Nội Huế trong một màn hình điện thoại.' : 'Hue Imperial City in a phone-sized tour.'}</h1>
+        <h1>{isVi ? 'Toàn bộ website trong một màn hình điện thoại.' : 'The full website in a phone-sized flow.'}</h1>
         <p>
           {isVi
-            ? 'Dùng màn hình này khi thuyết trình trên laptop: người xem thấy trực tiếp app mobile với bản đồ, điểm dừng, hỏi AI và điều hướng dưới.'
-            : 'Use this view on a laptop presentation: viewers see the mobile app directly with map, stops, AI guide, and bottom navigation.'}
+            ? 'Khung này bắt đầu từ landing page, rồi đi tiếp tới bản đồ, hỏi AI, nhận diện ảnh và chi tiết điểm dừng như một người dùng mobile thật.'
+            : 'This frame starts from the landing page, then continues into map, AI guide, image recognition, and stop details like a real mobile user.'}
         </p>
 
         <div className="phone-preview-facts" aria-label={isVi ? 'Thông tin demo' : 'Demo facts'}>
           <span>
-            <strong>17</strong>
-            {isVi ? 'điểm dừng' : 'stops'}
+            <strong>{isVi ? 'Landing' : 'Landing'}</strong>
+            {isVi ? 'mở đầu' : 'entry'}
           </span>
           <span>
             <strong>{isVi ? 'Bản đồ' : 'Map'}</strong>
-            {isVi ? 'dẫn đường' : 'routing'}
+            {isVi ? '17 điểm' : '17 stops'}
           </span>
           <span>
             <strong>{isVi ? 'AI' : 'AI'}</strong>
-            {isVi ? 'hỏi đáp' : 'guide'}
+            {isVi ? 'ảnh, giọng nói' : 'photo, voice'}
           </span>
         </div>
 
@@ -52,11 +52,10 @@ const PhonePreview = ({ onBack, language, setLanguage, initialLocation }) => {
           <div className="phone-device-side phone-device-side-right" />
           <div className="phone-device-speaker" />
           <div className="phone-device-screen">
-            <ExploreDashboard
-              onBack={onBack}
-              language={language}
-              setLanguage={setLanguage}
-              initialLocation={initialLocation}
+            <iframe
+              className="phone-device-app-frame"
+              src={phoneAppSrc}
+              title={isVi ? 'AITourGuide mobile app' : 'AITourGuide mobile app'}
             />
           </div>
         </div>

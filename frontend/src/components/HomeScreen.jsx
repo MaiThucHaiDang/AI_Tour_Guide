@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   ArrowRight,
   BookOpen,
-  Compass,
   Landmark,
   MapPin,
   MessageCircle,
@@ -10,16 +9,18 @@ import {
   ScanSearch,
   ShieldCheck,
   Sparkles,
-  Volume2
+  Smartphone
 } from 'lucide-react';
 
 const REAL_IMAGES = {
   hue: 'https://commons.wikimedia.org/wiki/Special:FilePath/Meridian%20Gate%2C%20Hue%20%28I%29.jpg',
-  palace: 'https://images.pexels.com/photos/20051245/pexels-photo-20051245.jpeg?auto=compress&cs=tinysrgb&w=1800',
-  museum: 'https://commons.wikimedia.org/wiki/Special:FilePath/Ho%20Chi%20Minh%20City%2C%20Vietnam%2C%20War%20Remnants%20Museum.jpg'
+  map: '/map.jpg',
+  ngoMon: '/assets/icons/ngo_mon.png',
+  thaiHoa: '/assets/icons/thai_hoa.png',
+  kienTrung: '/assets/icons/kien_trung.png'
 };
 
-const HomeScreen = ({ onSelectFeature, language, setLanguage }) => {
+const HomeScreen = ({ onSelectFeature, language, setLanguage, isPhoneFrame = false }) => {
   const isVi = language === 'vi';
   const [activeScene, setActiveScene] = useState('hue');
   const [visibleIds, setVisibleIds] = useState(() => new Set(['hero']));
@@ -30,117 +31,117 @@ const HomeScreen = ({ onSelectFeature, language, setLanguage }) => {
   const sectionRefs = useRef({});
 
   const copy = {
-    eyebrow: isVi ? 'AI Tour Guide cho di sản Việt Nam' : 'AI Tour Guide for Vietnamese heritage',
+    eyebrow: isVi ? 'AI Tour Guide cho Đại Nội Huế' : 'AI Tour Guide for Hue Imperial City',
     title: isVi
-      ? 'Biến mỗi điểm dừng thành một câu chuyện sống động.'
-      : 'Turn every stop into a living story.',
+      ? 'Một hướng dẫn viên bỏ túi cho 17 điểm tham quan trong Đại Nội.'
+      : 'A pocket guide for 17 stops inside Hue Imperial City.',
     desc: isVi
-      ? 'Khách tham quan chỉ cần đưa ảnh, nói một câu hỏi hoặc chọn địa điểm. AI Tour Guide trả lời ngắn, đúng ngữ cảnh và có thể đọc thành lời.'
-      : 'Visitors can share a photo, ask by voice, or choose a place. AI Tour Guide answers concisely, in context, and can speak the guide back.',
-    primary: isVi ? 'Bắt đầu trải nghiệm' : 'Start the experience',
-    secondary: isVi ? 'Xem hành trình' : 'See the journey',
-    navPlaces: isVi ? 'Địa danh' : 'Places',
+      ? 'Mở bản đồ Đại Nội, chọn một công trình, hỏi AI bằng giọng nói hoặc văn bản, rồi nghe phần thuyết minh ngay trên điện thoại.'
+      : 'Open the Citadel map, choose a monument, ask by voice or text, and hear the guide directly on your phone.',
+    primary: isVi ? 'Bắt đầu tham quan' : 'Start touring',
+    secondary: isVi ? 'Mở khung điện thoại' : 'Open phone frame',
+    navPlaces: isVi ? 'Điểm dừng' : 'Stops',
     navFeatures: isVi ? 'Tính năng' : 'Features',
-    heroMeta: isVi ? 'Huế - Dinh Độc Lập - Chứng tích Chiến tranh' : 'Hue - Independence Palace - War Remnants',
-    storyKicker: isVi ? 'Kéo xuống để đi qua hành trình' : 'Scroll through the journey',
+    heroMeta: isVi ? 'Đại Nội Huế - 17 điểm tham quan - bản đồ & hỏi đáp AI' : 'Hue Imperial City - 17 stops - map & AI guide',
+    storyKicker: isVi ? 'Một luồng tham quan rõ ràng' : 'A focused tour flow',
     storyTitle: isVi
-      ? 'Không phải một chatbot trong hộp thoại. Đây là lớp thuyết minh đi cùng không gian.'
-      : 'Not a chatbot trapped in a box. A guide layer that follows the space.',
-    featureKicker: isVi ? 'Chức năng xuất hiện đúng lúc' : 'Features that appear at the right moment',
+      ? 'Từ bản đồ, đến câu hỏi, đến phần thuyết minh: mọi thứ xoay quanh chuyến đi trong Đại Nội.'
+      : 'From map, to question, to narration: everything follows the visitor through the Citadel.',
+    featureKicker: isVi ? 'Tính năng cho chuyến tham quan thật' : 'Features for a real visit',
     featureTitle: isVi
-      ? 'Người tham quan không cần học cách dùng app.'
-      : 'Visitors do not need to learn the app.',
-    outcomeKicker: isVi ? 'Thiết kế cho chuyến tham quan thật' : 'Designed for real visits',
+      ? 'Người dùng chỉ cần chọn điểm dừng hoặc đặt câu hỏi.'
+      : 'Visitors only need to choose a stop or ask a question.',
+    outcomeKicker: isVi ? 'Phiên bản hiện tại' : 'Current version',
     outcomeTitle: isVi
-      ? 'Mượt, dễ nhìn và tập trung vào câu hỏi của người dùng.'
-      : 'Smooth, clear, and focused on the visitor question.',
-    finalTitle: isVi ? 'Sẵn sàng bước vào không gian demo.' : 'Ready to enter the demo space.',
+      ? 'Tập trung vào Đại Nội Huế, bản đồ mobile và trợ lý thuyết minh AI.'
+      : 'Focused on Hue Imperial City, mobile mapping, and AI narration.',
+    finalTitle: isVi ? 'Mở không gian tham quan Đại Nội.' : 'Open the Hue Imperial City tour.',
     finalText: isVi
-      ? 'Bắt đầu với một câu hỏi, một bức ảnh hoặc giọng nói. Phần còn lại để AI Tour Guide dẫn mạch.'
-      : 'Start with a question, photo, or voice note. Let AI Tour Guide carry the thread from there.',
-    contactTitle: isVi ? 'Liên hệ và nội dung tùy chỉnh' : 'Contact and editable content',
+      ? 'Bắt đầu bằng bản đồ, chọn vị trí hiện tại, rồi chạm vào một công trình để hỏi đường hoặc nghe giới thiệu.'
+      : 'Start with the map, set your position, then tap a monument for directions or narration.',
+    contactTitle: isVi ? 'Đang hỗ trợ' : 'Now supported',
     contactText: isVi
-      ? 'Thay các dòng này bằng email, hotline, đơn vị triển khai, tài liệu hướng dẫn hoặc thông tin demo của bạn.'
-      : 'Replace these lines with email, hotline, deployment owner, docs, or demo information.',
+      ? 'Phiên bản này tập trung vào Kinh thành Huế / Đại Nội với bản đồ Leaflet, chỉ đường đi bộ, hỏi đáp AI, nhận diện ảnh và đọc thuyết minh.'
+      : 'This version focuses on Hue Imperial City with Leaflet mapping, walking directions, AI Q&A, image recognition, and spoken narration.',
     footerNote: isVi
-      ? 'Ghi chú: ảnh địa danh đang dùng nguồn công khai, bạn có thể thay bằng ảnh tự chụp trong thư mục assets.'
-      : 'Note: landmark images use public sources; you can replace them with your own photos in assets.',
-    launchText: isVi ? 'Đang mở không gian thuyết minh' : 'Opening the guide space',
+      ? 'Hiện app đang chạy như một hướng dẫn viên mobile-first cho Đại Nội Huế.'
+      : 'The app currently runs as a mobile-first guide for Hue Imperial City.',
+    launchText: isVi ? 'Đang mở bản đồ Đại Nội' : 'Opening the Citadel map',
     scenes: [
       {
-        id: 'hue',
-        image: REAL_IMAGES.hue,
-        place: isVi ? 'Kinh thành Huế' : 'Hue Imperial City',
+        id: 'map',
+        image: REAL_IMAGES.map,
+        place: isVi ? 'Bản đồ Đại Nội' : 'Citadel map',
         eyebrow: isVi ? 'Điểm dừng 01' : 'Stop 01',
-        title: isVi ? 'Chụp một chi tiết, nghe cả bối cảnh.' : 'Capture one detail, hear the full context.',
+        title: isVi ? 'Xem 17 công trình trên một bản đồ tham quan.' : 'See 17 monuments on one tour map.',
         text: isVi
-          ? 'Từ Ngọ Môn, Điện Thái Hòa đến Cửu Đỉnh, hệ thống gom dữ liệu hiện vật và trả lời theo mạch tham quan.'
-          : 'From Ngo Mon Gate and Thai Hoa Palace to the Nine Dynastic Urns, the system keeps artifact context tied to the visit.',
-        prompt: isVi ? 'Kể ngắn về Cửu Đỉnh trong 30 giây' : 'Summarize the Nine Dynastic Urns in 30 seconds',
-        chips: isVi ? ['Ảnh hiện vật', 'Bối cảnh lịch sử', 'Song ngữ'] : ['Artifact photo', 'Historical context', 'Bilingual']
+          ? 'Marker công trình, vị trí hiện tại và lộ trình đi bộ được gom trong cùng một màn hình mobile.'
+          : 'Monument markers, current position, and walking routes stay together in one mobile screen.',
+        prompt: isVi ? 'Chỉ đường tới Ngọ Môn' : 'Navigate to Ngo Mon Gate',
+        chips: isVi ? ['Bản đồ', '17 điểm', 'Chỉ đường'] : ['Map', '17 stops', 'Directions']
       },
       {
-        id: 'palace',
-        image: REAL_IMAGES.palace,
-        place: isVi ? 'Dinh Độc Lập' : 'Independence Palace',
+        id: 'ngo-mon',
+        image: REAL_IMAGES.ngoMon,
+        place: isVi ? 'Ngọ Môn' : 'Ngo Mon Gate',
         eyebrow: isVi ? 'Điểm dừng 02' : 'Stop 02',
-        title: isVi ? 'Hỏi tự nhiên khi đang di chuyển.' : 'Ask naturally while moving.',
+        title: isVi ? 'Chạm một điểm dừng, nghe phần giới thiệu.' : 'Tap a stop and hear the introduction.',
         text: isVi
-          ? 'Người dùng có thể hỏi bằng giọng nói về Phòng Nội các, Hầm chỉ huy hoặc Xe tăng 843 mà không phải dừng lại đọc dài.'
-          : 'Visitors can ask by voice about the Cabinet Room, Command Bunker, or Tank 843 without stopping to read long labels.',
-        prompt: isVi ? 'Ý nghĩa lịch sử của Dinh Độc Lập là gì?' : 'What is the historical meaning of Independence Palace?',
-        chips: isVi ? ['Giọng nói', 'Hỏi đáp nhanh', 'TTS'] : ['Voice', 'Quick Q&A', 'TTS']
+          ? 'Người dùng có thể nghe giới thiệu ngắn, hỏi tiếp bằng văn bản hoặc dùng giọng nói khi đang di chuyển.'
+          : 'Visitors can hear a short intro, follow up by text, or use voice while moving.',
+        prompt: isVi ? 'Ngọ Môn có vai trò gì trong triều Nguyễn?' : 'What role did Ngo Mon Gate play?',
+        chips: isVi ? ['Nghe giới thiệu', 'Hỏi tiếp', 'Giọng nói'] : ['Narration', 'Follow-up', 'Voice']
       },
       {
-        id: 'museum',
-        image: REAL_IMAGES.museum,
-        place: isVi ? 'Bảo tàng Chứng tích Chiến tranh' : 'War Remnants Museum',
+        id: 'thai-hoa',
+        image: REAL_IMAGES.thaiHoa,
+        place: isVi ? 'Điện Thái Hòa' : 'Thai Hoa Palace',
         eyebrow: isVi ? 'Điểm dừng 03' : 'Stop 03',
-        title: isVi ? 'Giữ câu trả lời nhạy cảm, ngắn gọn và đúng trọng tâm.' : 'Keep sensitive answers concise and focused.',
+        title: isVi ? 'Chụp hoặc tải ảnh để giữ đúng ngữ cảnh.' : 'Upload or capture a photo to keep context.',
         text: isVi
-          ? 'Với các chủ đề lịch sử nặng, giao diện ưu tiên giọng văn rõ ràng, có kiểm soát và cho phép phản hồi nếu câu trả lời chưa phù hợp.'
-          : 'For heavier historical topics, the interface prioritizes careful wording and lets visitors give feedback when an answer misses the mark.',
-        prompt: isVi ? 'Giải thích ngắn về F-5E Tiger' : 'Give a short explanation of the F-5E Tiger',
-        chips: isVi ? ['Phản hồi', 'Giọng văn rõ', 'Lưu mạch chat'] : ['Feedback', 'Clear tone', 'Conversation memory']
+          ? 'Khi nhận diện được công trình hoặc hiện vật liên quan, phần hỏi đáp chuyển sang đúng điểm đang xem.'
+          : 'When a related monument or artifact is recognized, the guide keeps the conversation tied to that stop.',
+        prompt: isVi ? 'Điện Thái Hòa được xây dựng năm nào?' : 'When was Thai Hoa Palace built?',
+        chips: isVi ? ['Ảnh', 'Ngữ cảnh', 'Tóm tắt'] : ['Photo', 'Context', 'Summary']
       }
     ],
     features: [
       {
-        icon: ScanSearch,
-        title: isVi ? 'Nhìn hiện vật' : 'See the artifact',
-        text: isVi ? 'Upload hoặc webcam khởi tạo phần thuyết minh theo ảnh.' : 'Upload or webcam starts the guide from the image.'
+        icon: MapPin,
+        title: isVi ? 'Bản đồ Đại Nội' : 'Citadel map',
+        text: isVi ? '17 marker công trình với vị trí, popup và hành động rõ ràng trên mobile.' : '17 monument markers with clear mobile actions.'
+      },
+      {
+        icon: Landmark,
+        title: isVi ? 'Điểm dừng tham quan' : 'Tour stops',
+        text: isVi ? 'Ngọ Môn, Điện Thái Hòa, Điện Kiến Trung, Thế Miếu và các công trình chính.' : 'Ngo Mon Gate, Thai Hoa Palace, Kien Trung Palace, The Mieu, and more.'
       },
       {
         icon: Mic,
-        title: isVi ? 'Hỏi bằng lời' : 'Ask by voice',
-        text: isVi ? 'Câu hỏi tự nhiên phù hợp lúc đang đi trong không gian trưng bày.' : 'Natural questions for people walking through an exhibit.'
+        title: isVi ? 'Hỏi AI khi đang đi' : 'Ask while walking',
+        text: isVi ? 'Đặt câu hỏi bằng văn bản hoặc giọng nói, rồi nghe câu trả lời ngắn gọn.' : 'Ask by text or voice, then hear a concise answer.'
       },
       {
-        icon: MessageCircle,
-        title: isVi ? 'Đào sâu ngữ cảnh' : 'Go deeper',
-        text: isVi ? 'Hỏi tiếp về niên đại, nhân vật, địa điểm hoặc ý nghĩa lịch sử.' : 'Follow up on period, people, place, or historical meaning.'
-      },
-      {
-        icon: Volume2,
-        title: isVi ? 'Nghe thuyết minh' : 'Hear narration',
-        text: isVi ? 'Câu trả lời có thể phát thành âm thanh khi người dùng không muốn đọc.' : 'Answers can play as audio when reading is inconvenient.'
+        icon: ScanSearch,
+        title: isVi ? 'Chụp ảnh hiện vật' : 'Capture artifacts',
+        text: isVi ? 'Upload hoặc camera giúp AI giữ ngữ cảnh đúng với điểm đang xem.' : 'Upload or camera input helps the AI keep the right context.'
       }
     ],
     outcomes: [
       {
         icon: Landmark,
-        title: isVi ? 'Cho bảo tàng và di tích' : 'For museums and heritage sites',
-        text: isVi ? 'Giảm cảm giác lạc hướng, tăng khả năng tự khám phá.' : 'Reduce friction and make self-guided visits feel supported.'
+        title: isVi ? 'Cho khách tự tham quan' : 'For self-guided visitors',
+        text: isVi ? 'Không cần đọc bản đồ giấy hay tìm bảng thông tin quá lâu.' : 'No need to rely on paper maps or hunt for long information boards.'
       },
       {
         icon: BookOpen,
-        title: isVi ? 'Cho học tập lịch sử' : 'For history learning',
-        text: isVi ? 'Chuyển dữ liệu hiện vật thành câu chuyện ngắn, dễ nhớ.' : 'Turn artifact data into short, memorable explanations.'
+        title: isVi ? 'Cho học tập lịch sử Huế' : 'For Hue history learning',
+        text: isVi ? 'Câu trả lời ưu tiên ngắn, đúng trọng tâm và gắn với từng công trình.' : 'Answers stay short, focused, and tied to each monument.'
       },
       {
         icon: ShieldCheck,
-        title: isVi ? 'Cho demo AI có kiểm soát' : 'For controlled AI demos',
-        text: isVi ? 'Một luồng thể hiện đủ ảnh, giọng nói, hội thoại và phản hồi.' : 'One flow shows image, voice, chat, and feedback together.'
+        title: isVi ? 'Cho trình bày mobile' : 'For mobile presentation',
+        text: isVi ? 'Có thể trình bày bằng giả lập điện thoại trên localhost với bản đồ, chat và tab điểm dừng.' : 'Can be presented in a phone-sized localhost viewport with map, chat, and stop detail tabs.'
       }
     ]
   };
@@ -192,16 +193,13 @@ const HomeScreen = ({ onSelectFeature, language, setLanguage }) => {
     if (isLaunching) return;
     setIsLaunching(true);
     window.setTimeout(() => {
-      onSelectFeature('chat');
+      onSelectFeature('dashboard', { id: 1, name_vi: "Kinh thành Huế (Đại Nội)" });
     }, 720);
   };
 
-  const startMapExperience = () => {
+  const openPhonePreview = () => {
     if (isLaunching) return;
-    setIsLaunching(true);
-    window.setTimeout(() => {
-      onSelectFeature('map');
-    }, 720);
+    onSelectFeature('phone', { id: 1, name_vi: "Kinh thành Huế (Đại Nội)", initialTab: 'map' });
   };
 
   const handlePointerMove = (event) => {
@@ -287,12 +285,20 @@ const HomeScreen = ({ onSelectFeature, language, setLanguage }) => {
             <div className="location-picker" style={{ marginTop: '40px' }}>
                 <div 
                     className="location-card-hero" 
-                    onClick={() => onSelectFeature('dashboard', { id: 1, name_vi: "Kinh thành Huế (Đại Nội)" })}
+                    role="button"
+                    tabIndex={0}
+                    onClick={startExperience}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        startExperience();
+                      }
+                    }}
                     style={{
                         background: 'rgba(255,255,255,0.12)',
                         backdropFilter: 'blur(12px)',
                         border: '1px solid rgba(255,255,255,0.2)',
-                        borderRadius: '24px',
+                        borderRadius: '8px',
                         padding: '24px',
                         cursor: 'pointer',
                         transition: 'all 0.3s ease',
@@ -303,19 +309,28 @@ const HomeScreen = ({ onSelectFeature, language, setLanguage }) => {
                         boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
                     }}
                 >
-                    <div style={{ width: '70px', height: '70px', borderRadius: '16px', background: '#0f5f59', display: 'grid', placeItems: 'center', boxShadow: '0 8px 20px rgba(15,95,89,0.3)' }}>
+                    <div style={{ width: '70px', height: '70px', borderRadius: '8px', background: '#0f5f59', display: 'grid', placeItems: 'center', boxShadow: '0 8px 20px rgba(15,95,89,0.3)' }}>
                         <Landmark size={36} color="#fff" />
                     </div>
                     <div style={{ textAlign: 'left' }}>
-                        <h3 style={{ margin: 0, color: '#fff', fontSize: '20px', fontWeight: '700' }}>{isVi ? 'Kinh thành Huế' : 'Hue Imperial City'}</h3>
-                        <p style={{ margin: '4px 0 0', color: 'rgba(255,255,255,0.8)', fontSize: '13px' }}>{isVi ? 'Đại Nội – Di sản Văn hóa Thế giới UNESCO' : 'The Citadel – UNESCO World Heritage Site'}</p>
+                        <h3 style={{ margin: 0, color: '#fff', fontSize: '20px', fontWeight: '700' }}>{isVi ? 'Đại Nội Huế' : 'Hue Imperial City'}</h3>
+                        <p style={{ margin: '4px 0 0', color: 'rgba(255,255,255,0.8)', fontSize: '13px' }}>{isVi ? '17 điểm tham quan · bản đồ · hỏi AI' : '17 tour stops · map · AI guide'}</p>
                         <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '6px', color: '#fece14' }}>
-                            <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{isVi ? 'Bắt đầu khám phá' : 'Start exploring'}</span>
+                            <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{isVi ? 'Mở bản đồ mobile' : 'Open mobile map'}</span>
                             <ArrowRight size={16} />
                         </div>
                     </div>
                 </div>
             </div>
+
+            {!isPhoneFrame && (
+              <div className="tour-home-actions phone-preview-actions">
+                <button className="secondary-link phone-preview-trigger" onClick={openPhonePreview}>
+                  <Smartphone size={18} />
+                  <span>{copy.secondary}</span>
+                </button>
+              </div>
+            )}
             
             <div className="hero-route" aria-label={copy.heroMeta} style={{ marginTop: '30px' }}>
               <MapPin size={16} />
@@ -446,14 +461,22 @@ const HomeScreen = ({ onSelectFeature, language, setLanguage }) => {
 
         <section className={revealClass('final-cta', 'landing-final-cta')} ref={setSectionRef('final-cta')} data-reveal="final-cta">
           <div>
-            <span className="section-label">{isVi ? 'Không gian demo' : 'Demo workspace'}</span>
+            <span className="section-label">{isVi ? 'Không gian tham quan' : 'Tour workspace'}</span>
             <h2>{copy.finalTitle}</h2>
             <p>{copy.finalText}</p>
           </div>
-          <button className="primary" onClick={() => onSelectFeature('dashboard', { id: 1, name_vi: "Kinh thành Huế (Đại Nội)" })}>
-            <span>{copy.primary}</span>
-            <ArrowRight size={18} />
-          </button>
+          <div className="landing-final-actions">
+            <button className="primary" onClick={startExperience}>
+              <span>{copy.primary}</span>
+              <ArrowRight size={18} />
+            </button>
+            {!isPhoneFrame && (
+              <button className="secondary-link phone-preview-trigger" onClick={openPhonePreview}>
+                <Smartphone size={18} />
+                <span>{copy.secondary}</span>
+              </button>
+            )}
+          </div>
         </section>
 
         <footer className="landing-footer">
@@ -467,14 +490,13 @@ const HomeScreen = ({ onSelectFeature, language, setLanguage }) => {
           <div className="footer-contact">
             <strong>{copy.contactTitle}</strong>
             <p>{copy.contactText}</p>
-            <span>Email: hello@example.com</span>
-            <span>Hotline: +84 000 000 000</span>
+            <span>{isVi ? 'Dữ liệu: 17 công trình Đại Nội Huế' : 'Data: 17 Hue Imperial City stops'}</span>
+            <span>{isVi ? 'Luồng chính: bản đồ, hỏi AI, ảnh, giọng nói' : 'Main flow: map, AI chat, image, voice'}</span>
           </div>
           <div className="footer-sources">
             <strong>{isVi ? 'Nguồn ảnh' : 'Image sources'}</strong>
             <a href="https://commons.wikimedia.org/wiki/File:Meridian_Gate,_Hue_(I).jpg" target="_blank" rel="noreferrer">Hue Imperial City / Wikimedia Commons</a>
-            <a href="https://www.pexels.com/photo/independence-palace-in-ho-chi-minh-20051245/" target="_blank" rel="noreferrer">Independence Palace / Pexels</a>
-            <a href="https://commons.wikimedia.org/wiki/File:Ho_Chi_Minh_City,_Vietnam,_War_Remnants_Museum.jpg" target="_blank" rel="noreferrer">War Remnants Museum / Wikimedia Commons</a>
+            <span>{isVi ? 'Bản đồ và icon công trình: assets local của project' : 'Map and monument icons: local project assets'}</span>
           </div>
         </footer>
       </main>

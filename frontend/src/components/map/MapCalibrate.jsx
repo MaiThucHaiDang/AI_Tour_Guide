@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polygon, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { Save, RefreshCw, ChevronLeft } from 'lucide-react';
+import { Save, RefreshCw, ChevronLeft, Compass } from 'lucide-react';
 import { getMapConfigAPI, saveMapConfigAPI } from '../../services/apiService';
 
 // Fix Leaflet default icon issue
@@ -92,6 +92,14 @@ const MapCalibrate = ({ onBack, language = 'vi' }) => {
     setMapCenter([16.467766, 107.579146]);
   };
 
+  const showStatus = useCallback((msg, type = 'success') => {
+    setStatusMessage(msg);
+    setStatusType(type);
+    setTimeout(() => {
+      setStatusMessage(null);
+    }, 4000);
+  }, []);
+
   // Load coordinates and bounds from DB on mount
   useEffect(() => {
     const fetchConfig = async () => {
@@ -110,15 +118,7 @@ const MapCalibrate = ({ onBack, language = 'vi' }) => {
       }
     };
     fetchConfig();
-  }, []);
-
-  const showStatus = (msg, type = 'success') => {
-    setStatusMessage(msg);
-    setStatusType(type);
-    setTimeout(() => {
-      setStatusMessage(null);
-    }, 4000);
-  };
+  }, [isVi, showStatus]);
 
   const handleBoundsChange = (corner, field, val) => {
     const numVal = parseFloat(val);

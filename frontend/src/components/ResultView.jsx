@@ -45,11 +45,11 @@ const ResultView = ({ data, onBack }) => {
         <button onClick={onBack} style={{ padding: '10px', borderRadius: '50%', backgroundColor: 'var(--card-bg)' }}>
           <ArrowLeft size={24} />
         </button>
-        <h1 style={{ marginLeft: 15, fontSize: 18, fontWeight: 600 }}>Thông tin hiện vật</h1>
+        <h1 style={{ marginLeft: 15, fontSize: 18, fontWeight: 600 }}>Thông tin nhận diện</h1>
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 120px' }}>
-        {/* Thumbnail Placeholder (in a real app, backend could return marked image or we use original) */}
+        {/* Ảnh minh họa cho kết quả nhận diện */}
         <div style={{
           width: '100%', height: 220, borderRadius: 16,
           backgroundColor: '#2a2a2a', marginBottom: 20,
@@ -67,7 +67,7 @@ const ResultView = ({ data, onBack }) => {
         <div className="glass-panel" style={{ padding: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 15 }}>
             <div>
-              {/* Nhận kết quả từ backend: hiển thị tên hiện vật */}
+              {/* Nhận kết quả từ backend: hiển thị tên điểm/hiện vật */}
               <h2 style={{ fontSize: 24, fontWeight: 'bold', color: 'var(--primary-color)' }}>{data.artifact_name}</h2>
               <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Mã: {data.artifact_id} • Độ chính xác: {Math.round(data.confidence_score * 100)}%</span>
             </div>

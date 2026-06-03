@@ -29,27 +29,27 @@ import CameraScanner from '../CameraScanner';
 const COPY = {
   vi: {
     title: 'AITourGuide',
-    subtitle: 'Hướng dẫn viên số cho hành trình văn hóa',
+    subtitle: 'Hướng dẫn viên số cho Đại Nội Huế',
     status: 'Sẵn sàng',
     back: 'Trang chủ',
     upload: 'Tải ảnh',
     camera: 'Chụp ảnh',
-    askPlaceholder: 'Hỏi về hiện vật, lịch sử hoặc địa điểm...',
-    greeting: 'Xin chào! Hãy tải ảnh hiện vật, dùng webcam hoặc hỏi trực tiếp về một địa điểm lịch sử.',
+    askPlaceholder: 'Hỏi về Ngọ Môn, Điện Thái Hòa, Thế Miếu...',
+    greeting: 'Xin chào! Bạn có thể hỏi về một điểm dừng trong Đại Nội, tải ảnh hiện vật hoặc dùng giọng nói để nghe thuyết minh.',
     processing: 'Đang chuẩn bị câu trả lời',
-    artifactPanel: 'Thông tin hiện vật',
-    noArtifact: 'Tải ảnh, chụp hiện vật hoặc đặt câu hỏi để nhận thông tin phù hợp.',
+    artifactPanel: 'Thông tin điểm dừng',
+    noArtifact: 'Chọn một marker trên bản đồ, tải ảnh hoặc đặt câu hỏi để nhận thông tin phù hợp.',
     confidence: 'Độ tin cậy',
     year: 'Năm',
     author: 'Tác giả/triều đại',
     summary: 'Tóm tắt',
     suggestions: 'Gợi ý hỏi nhanh',
-    locations: 'Địa điểm nổi bật',
+    locations: 'Nhóm điểm trong Đại Nội',
     explore: 'Câu hỏi gợi ý',
     recording: 'Đang ghi âm...',
     transcribing: 'Đang chuyển giọng nói thành văn bản...',
     pendingImage: 'Ảnh chờ gửi',
-    detailEmpty: 'Thông tin chi tiết sẽ xuất hiện sau khi tìm thấy hiện vật liên quan.',
+    detailEmpty: 'Thông tin chi tiết sẽ xuất hiện sau khi tìm thấy điểm dừng liên quan.',
     assistantEyebrow: 'Hướng dẫn tham quan',
     reset: 'Bắt đầu lại',
     listen: 'Nghe câu trả lời',
@@ -75,27 +75,27 @@ const COPY = {
   },
   en: {
     title: 'AITourGuide',
-    subtitle: 'A digital guide for cultural journeys',
+    subtitle: 'A digital guide for Hue Imperial City',
     status: 'Ready',
     back: 'Home',
     upload: 'Upload',
     camera: 'Capture',
-    askPlaceholder: 'Ask about an artifact, history, or destination...',
-    greeting: 'Hello! Upload an artifact photo, use the webcam, or ask about a historical site.',
+    askPlaceholder: 'Ask about Ngo Mon Gate, Thai Hoa Palace, The Mieu...',
+    greeting: 'Hello! Ask about a Hue Imperial City stop, upload an artifact photo, or use voice to hear the guide.',
     processing: 'Preparing your answer',
-    artifactPanel: 'Artifact detail',
-    noArtifact: 'Upload a photo, capture an artifact, or ask a question to get relevant guidance.',
+    artifactPanel: 'Stop detail',
+    noArtifact: 'Choose a map marker, upload a photo, or ask a question to get relevant guidance.',
     confidence: 'Confidence',
     year: 'Year',
     author: 'Author/dynasty',
     summary: 'Summary',
     suggestions: 'Suggested questions',
-    locations: 'Featured destinations',
+    locations: 'Citadel stop groups',
     explore: 'Suggested questions',
     recording: 'Recording...',
     transcribing: 'Transcribing voice...',
     pendingImage: 'Pending image',
-    detailEmpty: 'Artifact details will appear after a related item is found.',
+    detailEmpty: 'Details will appear after a related stop is found.',
     assistantEyebrow: 'Tour guidance',
     reset: 'Start over',
     listen: 'Listen to answer',
@@ -130,7 +130,16 @@ const createWelcomeMessage = (greeting) => ({
   source: 'template'
 });
 
-const UnifiedChatPage = ({ onBack, language, setLanguage, initialArtifact, externalPrompt, embedded = false }) => {
+const UnifiedChatPage = ({
+  onBack,
+  language,
+  setLanguage,
+  initialArtifact,
+  externalPrompt,
+  onArtifactUpdate,
+  onProcessingStepsUpdate,
+  embedded = false
+}) => {
   const copy = COPY[language] || COPY.vi;
   const [messages, setMessages] = useState(() => [createWelcomeMessage(copy.greeting)]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -141,6 +150,7 @@ const UnifiedChatPage = ({ onBack, language, setLanguage, initialArtifact, exter
   const [currentArtifact, setCurrentArtifact] = useState(null);
   const [processingSteps, setProcessingSteps] = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(0);
+  const [mobileGuidePanel, setMobileGuidePanel] = useState('prompts');
   const [showJumpToLatest, setShowJumpToLatest] = useState(false);
 
   const messagesEndRef = useRef(null);
@@ -161,6 +171,14 @@ const UnifiedChatPage = ({ onBack, language, setLanguage, initialArtifact, exter
     resetRecording,
     getFilename
   } = useAudioRecorder();
+
+  useEffect(() => {
+    onArtifactUpdate?.(currentArtifact);
+  }, [currentArtifact, onArtifactUpdate]);
+
+  useEffect(() => {
+    onProcessingStepsUpdate?.(processingSteps);
+  }, [onProcessingStepsUpdate, processingSteps]);
 
   useEffect(() => {
     if (externalPrompt) {
@@ -609,6 +627,13 @@ const UnifiedChatPage = ({ onBack, language, setLanguage, initialArtifact, exter
     root.style.setProperty('--chat-move-y', `${(y - 0.5) * 12}px`);
   };
 
+  const mobileGuideTabs = [
+    { key: 'prompts', label: language === 'vi' ? 'Gợi ý' : 'Prompts', icon: Sparkles },
+    { key: 'places', label: language === 'vi' ? 'Nhóm điểm' : 'Stops', icon: MapPin },
+    { key: 'detail', label: language === 'vi' ? 'Chi tiết' : 'Detail', icon: FileText },
+    { key: 'status', label: language === 'vi' ? 'Xử lý' : 'Status', icon: CheckCircle2 }
+  ];
+
   return (
     <div className={`tour-workspace ${embedded ? 'embedded-mode' : ''}`} ref={workspaceRef} onPointerMove={handleWorkspacePointerMove}>
       <div className="chat-cursor-light" aria-hidden="true" />
@@ -695,13 +720,32 @@ const UnifiedChatPage = ({ onBack, language, setLanguage, initialArtifact, exter
               <h2>{copy.title}</h2>
             </div>
             <div className="conversation-tools">
+              {embedded && (
+                <>
+                  <button onClick={handleResetConversation} aria-label={copy.reset} title={copy.reset}>
+                    <RotateCcw size={18} />
+                  </button>
+                  <button
+                    className={autoSpeak ? 'is-active' : ''}
+                    onClick={() => setAutoSpeak(!autoSpeak)}
+                    aria-label={autoSpeak
+                      ? (language === 'vi' ? 'Tắt đọc tự động' : 'Disable auto speak')
+                      : (language === 'vi' ? 'Bật đọc tự động' : 'Enable auto speak')}
+                    title={autoSpeak
+                      ? (language === 'vi' ? 'Tắt đọc tự động' : 'Disable auto speak')
+                      : (language === 'vi' ? 'Bật đọc tự động' : 'Enable auto speak')}
+                  >
+                    {autoSpeak ? <Volume2 size={18} /> : <VolumeX size={18} />}
+                  </button>
+                </>
+              )}
               <button onClick={() => setShowCamera(true)} aria-label={copy.camera}>
                 <Camera size={18} />
-                {copy.camera}
+                {!embedded && copy.camera}
               </button>
               <button onClick={() => fileInputRef.current?.click()} aria-label={copy.upload}>
                 <Upload size={18} />
-                {copy.upload}
+                {!embedded && copy.upload}
               </button>
               <input
                 ref={fileInputRef}
@@ -712,6 +756,103 @@ const UnifiedChatPage = ({ onBack, language, setLanguage, initialArtifact, exter
               />
             </div>
           </div>
+
+          {embedded && (
+            <section className="mobile-guide-panel" aria-label={language === 'vi' ? 'Công cụ hướng dẫn' : 'Guide tools'}>
+              <div className="mobile-guide-tabs">
+                {mobileGuideTabs.map(({ key, label, icon: Icon }) => (
+                  <button
+                    key={key}
+                    className={mobileGuidePanel === key ? 'active' : ''}
+                    onClick={() => setMobileGuidePanel(key)}
+                    aria-current={mobileGuidePanel === key ? 'true' : undefined}
+                  >
+                    <Icon size={16} />
+                    <span>{label}</span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="mobile-guide-content">
+                {mobileGuidePanel === 'prompts' && (
+                  <div className="mobile-prompt-row">
+                    {copy.quickPrompts.map((prompt) => (
+                      <button key={prompt} onClick={() => handleSendText(prompt)}>
+                        {prompt}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {mobileGuidePanel === 'places' && (
+                  <div className="mobile-location-list">
+                    {copy.locationsList.map((location, index) => (
+                      <button
+                        key={location.name}
+                        className={selectedLocation === index ? 'selected' : ''}
+                        onClick={() => setSelectedLocation(index)}
+                      >
+                        <strong>{location.name}</strong>
+                        <span>{location.detail}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {mobileGuidePanel === 'detail' && (
+                  currentArtifact ? (
+                    <div className="mobile-artifact-summary">
+                      <div className="artifact-mini-head">
+                        <Landmark size={22} />
+                        <div>
+                          <span>{copy.artifactPanel}</span>
+                          <strong>{currentArtifact.name || copy.artifactPanel}</strong>
+                        </div>
+                      </div>
+                      <div className="artifact-mini-grid">
+                        <div>
+                          <span>{copy.year}</span>
+                          <strong>{currentArtifact.year || '-'}</strong>
+                        </div>
+                        <div>
+                          <span>{copy.author}</span>
+                          <strong>{currentArtifact.author || '-'}</strong>
+                        </div>
+                        <div>
+                          <span>ID</span>
+                          <strong>{currentArtifact.id || '-'}</strong>
+                        </div>
+                      </div>
+                      <p>{currentArtifact.summary || copy.detailEmpty}</p>
+                      {currentArtifact.source && (
+                        <small>{currentArtifact.source}</small>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="mobile-empty-note">
+                      <Landmark size={24} />
+                      <p>{copy.noArtifact}</p>
+                    </div>
+                  )
+                )}
+
+                {mobileGuidePanel === 'status' && (
+                  processingSteps.length > 0 ? (
+                    <ol className="mobile-processing-steps">
+                      {processingSteps.map((step, index) => (
+                        <li key={`${step}-${index}`}>{step}</li>
+                      ))}
+                    </ol>
+                  ) : (
+                    <div className="mobile-empty-note">
+                      <CheckCircle2 size={24} />
+                      <p>{copy.detailEmpty}</p>
+                    </div>
+                  )
+                )}
+              </div>
+            </section>
+          )}
 
           <div
             ref={messageListRef}
@@ -961,7 +1102,7 @@ const UnifiedChatPage = ({ onBack, language, setLanguage, initialArtifact, exter
 
         /* Embedded Mode Styles */
         .tour-workspace.embedded-mode {
-            background: #fff;
+            background: transparent;
             border: none;
             height: 100%;
         }
@@ -979,7 +1120,20 @@ const UnifiedChatPage = ({ onBack, language, setLanguage, initialArtifact, exter
             border: none;
             border-radius: 0;
             box-shadow: none;
-            background: #fff;
+            background: transparent;
+        }
+        .tour-workspace.embedded-mode .conversation-header {
+            background: rgba(255, 250, 240, 0.92);
+            border-bottom-color: rgba(24, 32, 35, 0.1);
+        }
+        .tour-workspace.embedded-mode .messages-scroll {
+            background:
+              linear-gradient(180deg, rgba(255, 250, 240, 0.96), rgba(246, 240, 223, 0.86));
+        }
+        .tour-workspace.embedded-mode .composer {
+            background: rgba(255, 250, 240, 0.94);
+            border-top-color: rgba(24, 32, 35, 0.12);
+            backdrop-filter: blur(16px);
         }
 
         .tour-topbar {
@@ -1889,6 +2043,282 @@ const UnifiedChatPage = ({ onBack, language, setLanguage, initialArtifact, exter
             flex: 1 1 100%;
             order: -1;
           }
+        }
+
+        .tour-workspace.embedded-mode .conversation-tools {
+          display: grid;
+          grid-template-columns: repeat(4, 38px);
+          gap: 7px;
+          justify-content: end;
+        }
+
+        .tour-workspace.embedded-mode .conversation-tools button {
+          width: 38px;
+          min-width: 38px;
+          min-height: 38px;
+          justify-content: center;
+          padding: 0;
+        }
+
+        .tour-workspace.embedded-mode .conversation-tools button.is-active {
+          color: #fffdf6;
+          background: var(--ui-teal);
+          border-color: var(--ui-teal);
+        }
+
+        .mobile-guide-panel {
+          flex: 0 0 auto;
+          display: flex;
+          flex-direction: column;
+          gap: 9px;
+          padding: 10px 12px 11px;
+          border-bottom: 1px solid rgba(24, 32, 35, 0.1);
+          background:
+            linear-gradient(180deg, rgba(255, 253, 246, 0.94), rgba(247, 250, 248, 0.94));
+        }
+
+        .mobile-guide-tabs {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 6px;
+        }
+
+        .mobile-guide-tabs button {
+          min-width: 0;
+          min-height: 42px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex-direction: column;
+          gap: 3px;
+          border: 1px solid rgba(24, 32, 35, 0.11);
+          border-radius: 8px;
+          color: var(--ui-muted);
+          background: #ffffff;
+          padding: 6px 4px;
+          font-size: 10.5px;
+          font-weight: 900;
+          line-height: 1.12;
+        }
+
+        .mobile-guide-tabs button span {
+          width: 100%;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .mobile-guide-tabs button.active {
+          color: #fffdf6;
+          background: var(--ui-teal);
+          border-color: var(--ui-teal);
+          box-shadow: 0 10px 20px rgba(15, 95, 89, 0.16);
+        }
+
+        .mobile-guide-content {
+          max-height: 190px;
+          overflow-y: auto;
+          overscroll-behavior: contain;
+          padding-bottom: 1px;
+        }
+
+        .mobile-guide-content::-webkit-scrollbar,
+        .mobile-prompt-row::-webkit-scrollbar {
+          height: 8px;
+          width: 8px;
+        }
+
+        .mobile-guide-content::-webkit-scrollbar-thumb,
+        .mobile-prompt-row::-webkit-scrollbar-thumb {
+          background: rgba(15, 95, 89, 0.24);
+          border-radius: 999px;
+        }
+
+        .mobile-prompt-row {
+          display: flex;
+          gap: 8px;
+          overflow-x: auto;
+          padding-bottom: 2px;
+        }
+
+        .mobile-prompt-row button,
+        .mobile-location-list button {
+          min-height: 50px;
+          border: 1px solid rgba(24, 32, 35, 0.11);
+          border-radius: 8px;
+          color: var(--ui-text);
+          background: #ffffff;
+          padding: 10px 11px;
+          text-align: left;
+          font-size: 12.5px;
+          font-weight: 850;
+          line-height: 1.32;
+          box-shadow: 0 5px 14px rgba(24, 32, 35, 0.05);
+        }
+
+        .mobile-prompt-row button {
+          flex: 0 0 min(260px, 82%);
+        }
+
+        .mobile-location-list {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 8px;
+        }
+
+        .mobile-location-list button.selected {
+          border-color: var(--ui-teal);
+          background: #f3fbf8;
+          box-shadow: inset 4px 0 0 var(--ui-teal), 0 8px 18px rgba(15, 95, 89, 0.08);
+        }
+
+        .mobile-location-list strong {
+          display: block;
+          margin-bottom: 3px;
+          color: var(--ui-text);
+          font-size: 13px;
+        }
+
+        .mobile-location-list span {
+          display: block;
+          color: var(--ui-muted);
+          font-size: 11.5px;
+          line-height: 1.38;
+        }
+
+        .mobile-artifact-summary,
+        .mobile-empty-note {
+          border: 1px solid rgba(24, 32, 35, 0.11);
+          border-radius: 8px;
+          background: #ffffff;
+          padding: 12px;
+          box-shadow: 0 5px 14px rgba(24, 32, 35, 0.05);
+        }
+
+        .artifact-mini-head {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 10px;
+        }
+
+        .artifact-mini-head svg {
+          flex: 0 0 auto;
+          width: 38px;
+          height: 38px;
+          padding: 8px;
+          color: #fffdf6;
+          background: var(--ui-red);
+          border-radius: 8px;
+        }
+
+        .artifact-mini-head span {
+          display: block;
+          color: var(--ui-muted);
+          font-size: 10.5px;
+          font-weight: 900;
+          text-transform: uppercase;
+        }
+
+        .artifact-mini-head strong {
+          display: block;
+          margin-top: 2px;
+          color: var(--ui-text);
+          font-size: 15px;
+          line-height: 1.15;
+        }
+
+        .artifact-mini-grid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 7px;
+          margin-bottom: 10px;
+        }
+
+        .artifact-mini-grid div {
+          min-width: 0;
+          border: 1px solid rgba(24, 32, 35, 0.09);
+          border-radius: 8px;
+          background: #f7faf8;
+          padding: 8px;
+        }
+
+        .artifact-mini-grid span {
+          display: block;
+          margin-bottom: 3px;
+          color: var(--ui-muted);
+          font-size: 10px;
+          font-weight: 900;
+          text-transform: uppercase;
+        }
+
+        .artifact-mini-grid strong {
+          display: block;
+          overflow-wrap: anywhere;
+          color: var(--ui-text);
+          font-size: 12px;
+          line-height: 1.24;
+        }
+
+        .mobile-artifact-summary p,
+        .mobile-empty-note p {
+          margin: 0;
+          color: var(--ui-text);
+          font-size: 12.5px;
+          line-height: 1.5;
+        }
+
+        .mobile-artifact-summary small {
+          display: block;
+          margin-top: 8px;
+          color: var(--ui-muted);
+          font-size: 11px;
+          line-height: 1.35;
+        }
+
+        .mobile-empty-note {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          color: var(--ui-teal);
+        }
+
+        .mobile-empty-note svg {
+          flex: 0 0 auto;
+          margin-top: 2px;
+        }
+
+        .mobile-processing-steps {
+          display: grid;
+          gap: 8px;
+          margin: 0;
+          padding: 0;
+          list-style: none;
+        }
+
+        .mobile-processing-steps li {
+          position: relative;
+          min-height: 42px;
+          border: 1px solid rgba(24, 32, 35, 0.11);
+          border-radius: 8px;
+          background: #ffffff;
+          padding: 10px 10px 10px 34px;
+          color: var(--ui-text);
+          font-size: 12.5px;
+          line-height: 1.42;
+          box-shadow: 0 5px 14px rgba(24, 32, 35, 0.05);
+        }
+
+        .mobile-processing-steps li::before {
+          content: '';
+          position: absolute;
+          left: 12px;
+          top: 14px;
+          width: 10px;
+          height: 10px;
+          border-radius: 999px;
+          background: var(--ui-teal);
+          box-shadow: 0 0 0 4px rgba(15, 95, 89, 0.1);
         }
 
         @media (prefers-reduced-motion: reduce) {

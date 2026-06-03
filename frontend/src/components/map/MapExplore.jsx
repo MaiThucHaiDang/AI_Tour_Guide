@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, Polygon, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { LocateFixed, Navigation, MapPin, Info, CheckCircle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Volume2, Wrench, Save, RefreshCw, Compass, X, Play } from 'lucide-react';
-import { playTTS, getMapConfigAPI, saveMapConfigAPI } from '../../services/apiService';
+import { playTTS, getMapConfigAPI, getRouteAPI, saveMapConfigAPI } from '../../services/apiService';
 
 // Fix Leaflet default icon issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -125,7 +125,16 @@ const getDistance = (p1, p2) => {
   return R * c;
 };
 
-const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, language, embedded = false }) => {
+const MapExplore = ({
+  onNavigateToStorytelling,
+  onInstructionUpdate,
+  onArtifactFocus,
+  onRouteStatusChange,
+  language,
+  embedded = false,
+  visitorMode = false,
+  active = true
+}) => {
   const isVi = language === 'vi';
   
   const [showStartModal, setShowStartModal] = useState(true);
@@ -165,6 +174,47 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
     fetchConfig();
   }, []);
 
+  const getArtifactName = useCallback((art) => (
+    isVi ? art.name_vi : art.name_en
+  ), [isVi]);
+
+  const calculateRoute = useCallback(async (start, end) => {
+    try {
+      const distToHue = Math.sqrt(Math.pow(start.lat - 16.4695, 2) + Math.pow(start.lng - 107.5780, 2));
+      setIsTooFarFromHue(distToHue > 0.05);
+
+      const data = await getRouteAPI({ start, end, lang: language });
+
+      if (data.success && data.instructions.length > 0) {
+        setRoutePath(data.coordinates);
+        setInstructions(data.instructions);
+        setActiveStepIndex(0);
+        setIsStepsExpanded(false);
+        lastRouteStartRef.current = start;
+
+        if (onInstructionUpdate) {
+          const name = getArtifactName(end);
+          const fullGuide = isVi
+            ? `Lộ trình đi bộ từ vị trí của bạn đến ${name}: ${data.instructions.join(' ')}`
+            : `Walking directions from your location to ${name}: ${data.instructions.join(' ')}`;
+          onInstructionUpdate(fullGuide);
+        }
+      } else {
+        throw new Error(data.message || "Failed to find walking route");
+      }
+    } catch (error) {
+      console.error("Failed to calculate route:", error);
+      setRoutePath([[start.lat, start.lng], [end.lat, end.lng]]);
+      const fallbackText = isVi
+        ? `Đi thẳng đến ${getArtifactName(end)}`
+        : `Walk straight to ${getArtifactName(end)}`;
+      setInstructions([fallbackText]);
+      setActiveStepIndex(0);
+      setIsStepsExpanded(false);
+      lastRouteStartRef.current = start;
+    }
+  }, [getArtifactName, isVi, language, onInstructionUpdate]);
+
   // GPS watch tracking effect
   useEffect(() => {
     if (!isNavigatingStarted || !useGPS || !targetLocation) return;
@@ -176,8 +226,7 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
           const loc = { lat: position.coords.latitude, lng: position.coords.longitude };
           setCurrentLocation(loc);
           setMapCenter([loc.lat, loc.lng]);
-          
-          // Re-calculate route if user moves > 8 meters from last route calculation start point
+
           const dist = getDistance(loc, lastRouteStartRef.current);
           if (dist > 8) {
             calculateRoute(loc, targetLocation);
@@ -195,9 +244,38 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
         navigator.geolocation.clearWatch(watchId);
       }
     };
-  }, [isNavigatingStarted, useGPS, targetLocation]);
+  }, [calculateRoute, isNavigatingStarted, targetLocation, useGPS]);
 
-  const getArtifactName = (art) => isVi ? art.name_vi : art.name_en;
+  useEffect(() => {
+    if (!onRouteStatusChange) return;
+    onRouteStatusChange({
+      isNavigating,
+      isStarted: isNavigatingStarted,
+      targetId: targetLocation?.id || null,
+      targetName: targetLocation ? (isVi ? targetLocation.name_vi : targetLocation.name_en) : '',
+      activeStep: activeStepIndex,
+      totalSteps: instructions.length,
+      currentInstruction: instructions[activeStepIndex] || '',
+      isTooFarFromHue
+    });
+  }, [
+    activeStepIndex,
+    instructions,
+    isNavigating,
+    isNavigatingStarted,
+    isTooFarFromHue,
+    isVi,
+    onRouteStatusChange,
+    targetLocation
+  ]);
+
+  useEffect(() => {
+    if (!active) return;
+    const timeoutId = window.setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 80);
+    return () => window.clearTimeout(timeoutId);
+  }, [active]);
 
   const handleGetGPS = () => {
     setIsManualMode(false);
@@ -264,50 +342,12 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
   };
 
   const startNavigation = async (artifact) => {
+    onArtifactFocus?.(artifact);
     setTargetLocation(artifact);
     setIsNavigating(true);
     setIsNavigatingStarted(false);
     if (currentLocation) {
       await calculateRoute(currentLocation, artifact);
-    }
-  };
-
-  const calculateRoute = async (start, end) => {
-    try {
-      const distToHue = Math.sqrt(Math.pow(start.lat - 16.4695, 2) + Math.pow(start.lng - 107.5780, 2));
-      setIsTooFarFromHue(distToHue > 0.05);
-
-      const url = `/api/v1/map/route?start_lat=${start.lat}&start_lng=${start.lng}&end_lat=${end.lat}&end_lng=${end.lng}&lang=${language}`;
-      const response = await fetch(url);
-      const data = await response.json();
-      
-      if (data.success && data.instructions.length > 0) {
-        setRoutePath(data.coordinates);
-        setInstructions(data.instructions);
-        setActiveStepIndex(0);
-        setIsStepsExpanded(false);
-        lastRouteStartRef.current = start;
-        
-        if (onInstructionUpdate) {
-          const name = getArtifactName(end);
-          const fullGuide = isVi 
-            ? `Lộ trình đi bộ từ vị trí của bạn đến ${name}: ${data.instructions.join(' ')}`
-            : `Walking directions from your location to ${name}: ${data.instructions.join(' ')}`;
-          onInstructionUpdate(fullGuide);
-        }
-      } else {
-        throw new Error(data.message || "Failed to find walking route");
-      }
-    } catch (error) {
-      console.error("Failed to calculate route:", error);
-      setRoutePath([[start.lat, start.lng], [end.lat, end.lng]]);
-      const fallbackText = isVi 
-        ? `Đi thẳng đến ${getArtifactName(end)}` 
-        : `Walk straight to ${getArtifactName(end)}`;
-      setInstructions([fallbackText]);
-      setActiveStepIndex(0);
-      setIsStepsExpanded(false);
-      lastRouteStartRef.current = start;
     }
   };
 
@@ -323,6 +363,7 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
     setActiveStepIndex(0);
     setIsStepsExpanded(false);
     if (onNavigateToStorytelling && targetLocation) {
+      onArtifactFocus?.(targetLocation);
       onNavigateToStorytelling(targetLocation);
     }
   };
@@ -345,6 +386,7 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
   };
 
   const handleIntroduce = (artifact) => {
+    onArtifactFocus?.(artifact);
     if (onNavigateToStorytelling) {
       onNavigateToStorytelling(artifact);
     }
@@ -431,7 +473,7 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
   };
 
   return (
-    <div style={{ height: '100%', width: '100%', position: 'relative' }}>
+    <div className={`map-explore-surface ${embedded ? 'embedded-map' : ''}`} style={{ height: '100%', width: '100%', position: 'relative' }}>
       {/* Status Notification Toast */}
       {statusMessage && (
         <div style={{
@@ -448,50 +490,25 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
       
       {/* Start Modal */}
       {showStartModal && (
-        <div style={{
-          position: 'absolute', inset: 0, zIndex: 2000,
-          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }}>
-          <div style={{
-            background: '#fff', borderRadius: '20px', padding: '32px 28px',
-            maxWidth: '380px', width: '90%', textAlign: 'center',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
-          }}>
-            <div style={{
-              width: '60px', height: '60px', borderRadius: '16px',
-              background: 'linear-gradient(135deg, #0f5f59, #1a8a7e)',
-              display: 'grid', placeItems: 'center', margin: '0 auto 16px'
-            }}>
-              <MapPin size={30} color="#fff" />
+        <div className="map-start-overlay">
+          <div className="map-start-sheet" role="dialog" aria-modal="true">
+            <div className="map-start-icon" aria-hidden="true">
+              <MapPin size={30} />
             </div>
-            <h3 style={{ margin: '0 0 8px', fontSize: '20px', fontWeight: '700', color: '#1a1a1a' }}>
+            <h3>
               {isVi ? 'Xác định vị trí của bạn' : 'Set your location'}
             </h3>
-            <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#666', lineHeight: '1.5' }}>
+            <p>
               {isVi 
                 ? 'Chọn cách xác định vị trí hiện tại để bắt đầu khám phá Kinh thành Huế'
                 : 'Choose how to set your current position to start exploring the Hue Imperial City'}
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <button onClick={handleGetGPS} style={{
-                padding: '14px 20px', borderRadius: '12px', border: 'none',
-                background: 'linear-gradient(135deg, #2196f3, #1976d2)',
-                color: '#fff', fontWeight: '600', fontSize: '15px',
-                cursor: 'pointer', display: 'flex', alignItems: 'center',
-                justifyContent: 'center', gap: '10px',
-                boxShadow: '0 4px 15px rgba(33,150,243,0.3)'
-              }}>
+            <div className="map-start-actions">
+              <button className="map-action-primary" onClick={handleGetGPS}>
                 <LocateFixed size={20} />
                 {isVi ? 'Định vị GPS tự động' : 'Auto GPS Location'}
               </button>
-              <button onClick={handleChooseOnMap} style={{
-                padding: '14px 20px', borderRadius: '12px',
-                border: '2px solid #e0e0e0', background: '#fff',
-                color: '#333', fontWeight: '600', fontSize: '15px',
-                cursor: 'pointer', display: 'flex', alignItems: 'center',
-                justifyContent: 'center', gap: '10px'
-              }}>
+              <button className="map-action-secondary" onClick={handleChooseOnMap}>
                 <MapPin size={20} />
                 {isVi ? 'Chọn vị trí trên bản đồ' : 'Pick on map'}
               </button>
@@ -502,57 +519,48 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
 
       {/* Floating Controls */}
       {!showStartModal && (
-        <div style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 1000, display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <button onClick={handleGoToNgoMon} title={isVi ? 'Về Ngọ Môn (Cổng chính)' : 'Go to Ngo Mon Gate'} style={{
-            width: '45px', height: '45px', borderRadius: '12px',
-            backgroundColor: '#ff9800', color: '#fff',
-            border: 'none', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-          }}>
+        <div className="map-floating-controls">
+          <button
+            className="map-icon-button is-gold"
+            onClick={handleGoToNgoMon}
+            title={isVi ? 'Về Ngọ Môn (Cổng chính)' : 'Go to Ngo Mon Gate'}
+            aria-label={isVi ? 'Về Ngọ Môn' : 'Go to Ngo Mon Gate'}
+          >
             <Compass size={22} />
           </button>
-          <button onClick={handleRelocateGPS} title={isVi ? 'Định vị GPS' : 'GPS Locate'} style={{
-            width: '45px', height: '45px', borderRadius: '12px',
-            backgroundColor: '#2196f3', color: '#fff',
-            border: 'none', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-          }}>
+          <button
+            className="map-icon-button is-jade"
+            onClick={handleRelocateGPS}
+            title={isVi ? 'Định vị GPS' : 'GPS Locate'}
+            aria-label={isVi ? 'Định vị GPS' : 'GPS Locate'}
+          >
             <LocateFixed size={22} />
           </button>
-          <button onClick={handleRelocateManual} title={isVi ? 'Chọn vị trí trên bản đồ' : 'Pick on map'} style={{
-            width: '45px', height: '45px', borderRadius: '12px',
-            backgroundColor: isManualMode ? '#f44336' : '#fff',
-            color: isManualMode ? '#fff' : '#666',
-            border: '1px solid #ddd', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-          }}>
+          <button
+            className={`map-icon-button ${isManualMode ? 'is-danger' : 'is-paper'}`}
+            onClick={handleRelocateManual}
+            title={isVi ? 'Chọn vị trí trên bản đồ' : 'Pick on map'}
+            aria-label={isVi ? 'Chọn vị trí trên bản đồ' : 'Pick location on map'}
+          >
             <MapPin size={22} />
           </button>
-          <button onClick={() => setIsCalibrating(!isCalibrating)} title={isVi ? 'Mở chế độ căn chỉnh' : 'Calibration Mode'} style={{
-            width: '45px', height: '45px', borderRadius: '12px',
-            backgroundColor: isCalibrating ? '#0f5f59' : '#fff',
-            color: isCalibrating ? '#fff' : '#0f5f59',
-            border: '1px solid #0f5f59', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-          }}>
-            <Wrench size={22} />
-          </button>
+          {!visitorMode && (
+            <button
+              className={`map-icon-button ${isCalibrating ? 'is-jade' : 'is-paper'}`}
+              onClick={() => setIsCalibrating(!isCalibrating)}
+              title={isVi ? 'Mở chế độ căn chỉnh' : 'Calibration Mode'}
+              aria-label={isVi ? 'Mở chế độ căn chỉnh' : 'Open calibration mode'}
+            >
+              <Wrench size={22} />
+            </button>
+          )}
         </div>
       )}
 
       {/* Manual mode hint */}
       {isManualMode && !showStartModal && (
-        <div style={{
-          position: 'absolute', top: '20px', left: '50%', transform: 'translateX(-50%)',
-          zIndex: 1000, backgroundColor: 'rgba(244,67,54,0.9)', color: '#fff',
-          padding: '10px 20px', borderRadius: '12px', fontSize: '13px', fontWeight: '600',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.2)', pointerEvents: 'none'
-        }}>
-          {isVi ? '👆 Chạm vào bản đồ để chọn vị trí của bạn' : '👆 Tap the map to set your location'}
+        <div className="map-manual-hint">
+          {isVi ? 'Chạm vào bản đồ để chọn vị trí của bạn' : 'Tap the map to set your location'}
         </div>
       )}
 
@@ -671,6 +679,7 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
             icon={getCustomIcon(art.id, targetLocation?.id === art.id)}
             draggable={isCalibrating}
             eventHandlers={{
+              click: () => onArtifactFocus?.(art),
               dragend: (e) => {
                 const marker = e.target;
                 const position = marker.getLatLng();
@@ -683,31 +692,21 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
             }}
           >
             <Popup>
-              <div style={{ textAlign: 'center', minWidth: '200px' }}>
-                <h3 style={{ margin: '0 0 4px', fontSize: '15px', fontWeight: '700', color: '#1a1a1a' }}>
+              <div className="artifact-popup">
+                <h3>
                   {getArtifactName(art)}
                 </h3>
-                <p style={{ margin: '0 0 12px', fontSize: '11px', color: '#888' }}>
+                <p>
                   {isVi ? art.name_en : art.name_vi}
                 </p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <button onClick={() => startNavigation(art)} style={{
-                    padding: '8px 14px', backgroundColor: '#2196f3', color: 'white',
-                    border: 'none', borderRadius: '8px', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                    fontSize: '13px', fontWeight: '600'
-                  }}>
+                <div className="artifact-popup-actions">
+                  <button className="artifact-popup-primary" onClick={() => startNavigation(art)}>
                     <Navigation size={14} />
                     {isVi ? 'Chỉ đường đến đây' : 'Navigate here'}
                   </button>
-                  <button onClick={() => handleIntroduce(art)} style={{
-                    padding: '8px 14px', backgroundColor: '#0f5f59', color: 'white',
-                    border: 'none', borderRadius: '8px', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                    fontSize: '13px', fontWeight: '600'
-                  }}>
+                  <button className="artifact-popup-secondary" onClick={() => handleIntroduce(art)}>
                     <Info size={14} />
-                    {isVi ? 'Giới thiệu' : 'Introduce'}
+                    {isVi ? 'Nghe giới thiệu' : 'Hear intro'}
                   </button>
                 </div>
               </div>
@@ -718,32 +717,27 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
         {routePath.length > 0 && (
           <Polyline 
             positions={routePath} 
-            pathOptions={{ color: '#2196f3', weight: 6, opacity: 0.8 }} 
+            pathOptions={{ color: '#0f5f59', weight: 6, opacity: 0.86 }} 
           />
         )}
       </MapContainer>
 
       {/* Navigation Panel */}
       {isNavigating && targetLocation && (
-        <div style={{
-          position: 'absolute', bottom: '20px', left: '20px', right: '20px',
-          backgroundColor: 'white', padding: '16px', borderRadius: '16px',
-          boxShadow: '0 8px 30px rgba(0,0,0,0.18)', zIndex: 1000,
-          maxHeight: '380px', display: 'flex', flexDirection: 'column', gap: '12px'
-        }}>
+        <div className="map-route-sheet">
           {!isNavigatingStarted ? (
             /* ─── Route Overview (Bước trung gian) ─── */
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{
                   width: '40px', height: '40px', borderRadius: '12px',
-                  background: 'linear-gradient(135deg, #2196f3, #1565c0)',
+                  background: 'linear-gradient(135deg, #0f5f59, #164c5e)',
                   display: 'grid', placeItems: 'center', flexShrink: 0
                 }}>
                   <Navigation size={20} color="#fff" />
                 </div>
                 <div>
-                  <h4 style={{ margin: 0, color: '#1976d2', fontSize: '15px', fontWeight: '700' }}>
+                  <h4 style={{ margin: 0, color: '#0f5f59', fontSize: '15px', fontWeight: '700' }}>
                     {isVi ? 'Tổng quan lộ trình đến' : 'Route overview to'}
                   </h4>
                   <p style={{ margin: 0, fontSize: '14px', color: '#333', fontWeight: '600' }}>
@@ -758,8 +752,8 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
                   padding: '10px', borderRadius: '8px', fontSize: '11px', lineHeight: '1.4'
                 }}>
                   {isVi 
-                    ? '⚠️ Bạn đang ở ngoài khu vực Hoàng thành Huế. Lộ trình vẽ đường chim bay để tham khảo. Bạn nên ghim vị trí bắt đầu gần di tích.'
-                    : '⚠️ You are outside Hue Citadel area. A straight line is drawn for reference.'}
+                    ? 'Bạn đang ở ngoài khu vực Hoàng thành Huế. Hãy ghim vị trí bắt đầu gần di tích để chỉ dẫn đi bộ chính xác hơn.'
+                    : 'You are outside Hue Imperial City. Place your start point near the site for a more useful walking route.'}
                 </div>
               )}
 
@@ -784,7 +778,7 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
                 <button onClick={handleStartNavigation} style={{
                   flex: 2, padding: '12px', border: 'none', borderRadius: '10px',
                   fontWeight: '700', cursor: 'pointer', fontSize: '14px',
-                  background: 'linear-gradient(135deg, #2196f3, #1976d2)',
+                  background: 'linear-gradient(135deg, #0f5f59, #164c5e)',
                   color: 'white', display: 'flex', alignItems: 'center',
                   justifyContent: 'center', gap: '8px',
                   boxShadow: '0 4px 15px rgba(33,150,243,0.3)'
@@ -801,13 +795,13 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div style={{
                     width: '36px', height: '36px', borderRadius: '10px',
-                    background: 'linear-gradient(135deg, #2196f3, #1565c0)',
+                    background: 'linear-gradient(135deg, #0f5f59, #164c5e)',
                     display: 'grid', placeItems: 'center', flexShrink: 0
                   }}>
                     <Navigation size={18} color="#fff" />
                   </div>
                   <div>
-                    <h4 style={{ margin: 0, color: '#1976d2', fontSize: '15px', fontWeight: '700' }}>
+                    <h4 style={{ margin: 0, color: '#0f5f59', fontSize: '15px', fontWeight: '700' }}>
                       {isVi ? 'Đang dẫn đường đi bộ đến' : 'Walking to'}
                     </h4>
                     <p style={{ margin: 0, fontSize: '13px', color: '#333', fontWeight: '500' }}>
@@ -821,7 +815,7 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
                     onClick={() => setIsStepsExpanded(!isStepsExpanded)} 
                     style={{
                       padding: '6px 12px', borderRadius: '8px', border: '1px solid #ddd',
-                      backgroundColor: isStepsExpanded ? '#f0f4f8' : '#fff', color: '#1976d2',
+                      backgroundColor: isStepsExpanded ? '#edf5ef' : '#fff', color: '#0f5f59',
                       fontSize: '12px', fontWeight: '600', cursor: 'pointer',
                       display: 'flex', alignItems: 'center', gap: '4px'
                     }}
@@ -838,8 +832,8 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
                   padding: '10px', borderRadius: '8px', fontSize: '11px', lineHeight: '1.4'
                 }}>
                   {isVi 
-                    ? '⚠️ Bạn đang ở ngoài khu vực Hoàng thành Huế. Định tuyến đã vẽ đường thẳng để tham khảo. Bạn nên ghim vị trí (nút 📍 ở góc trên phải) ngay trong Đại Nội để thử định tuyến đường đi bộ thực tế.'
-                    : '⚠️ You are currently outside Hue Imperial City. Try placing your position manually (📍 button in top-right) inside the Citadel for walking route routing.'}
+                    ? 'Bạn đang ở ngoài khu vực Hoàng thành Huế. Chọn lại vị trí trong Đại Nội để nhận chỉ dẫn đi bộ sát thực tế hơn.'
+                    : 'You are outside Hue Imperial City. Pick a start point inside the Citadel for a more realistic walking route.'}
                 </div>
               )}
 
@@ -854,7 +848,7 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
                     disabled={activeStepIndex === 0}
                     style={{
                       padding: '6px', borderRadius: '8px', border: 'none',
-                      backgroundColor: activeStepIndex === 0 ? '#e9ecef' : '#2196f3',
+                      backgroundColor: activeStepIndex === 0 ? '#e9ecef' : '#0f5f59',
                       color: activeStepIndex === 0 ? '#999' : '#fff',
                       cursor: activeStepIndex === 0 ? 'not-allowed' : 'pointer',
                       display: 'grid', placeItems: 'center'
@@ -864,7 +858,7 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
                   </button>
 
                   <div style={{ flex: 1, fontSize: '13px', fontWeight: '500', color: '#333' }}>
-                    <span style={{ color: '#1976d2', fontWeight: '700', marginRight: '6px' }}>
+                    <span style={{ color: '#0f5f59', fontWeight: '700', marginRight: '6px' }}>
                       {isVi ? `Bước ${activeStepIndex + 1}/${instructions.length}:` : `Step ${activeStepIndex + 1}/${instructions.length}:`}
                     </span>
                     {instructions[activeStepIndex]}
@@ -888,7 +882,7 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
                       disabled={activeStepIndex === instructions.length - 1}
                       style={{
                         padding: '6px', borderRadius: '8px', border: 'none',
-                        backgroundColor: activeStepIndex === instructions.length - 1 ? '#e9ecef' : '#2196f3',
+                        backgroundColor: activeStepIndex === instructions.length - 1 ? '#e9ecef' : '#0f5f59',
                         color: activeStepIndex === instructions.length - 1 ? '#999' : '#fff',
                         cursor: activeStepIndex === instructions.length - 1 ? 'not-allowed' : 'pointer',
                         display: 'grid', placeItems: 'center'
@@ -918,15 +912,15 @@ const MapExplore = ({ onBack, onNavigateToStorytelling, onInstructionUpdate, lan
                       <div style={{
                         position: 'absolute', left: '-22px', top: '2px',
                         width: '10px', height: '10px', borderRadius: '50%',
-                        backgroundColor: idx === activeStepIndex ? '#2196f3' : '#ccc',
+                        backgroundColor: idx === activeStepIndex ? '#0f5f59' : '#ccc',
                         border: idx === activeStepIndex ? '2px solid #fff' : 'none',
-                        boxShadow: idx === activeStepIndex ? '0 0 0 2px #2196f3' : 'none'
+                        boxShadow: idx === activeStepIndex ? '0 0 0 2px #0f5f59' : 'none'
                       }} />
                       
                       <p style={{
                         margin: 0, fontSize: '12px', 
                         fontWeight: idx === activeStepIndex ? '700' : '400',
-                        color: idx === activeStepIndex ? '#1976d2' : '#555'
+                        color: idx === activeStepIndex ? '#0f5f59' : '#555'
                       }}>
                         {idx + 1}. {instr}
                       </p>

@@ -23,7 +23,7 @@ from core.dependencies import (
 from core.security import limiter
 from repositories.artifact_repository import get_artifact_context, get_artifact_context_by_id
 from schemas.voice import VoiceChatResponse
-from utils.language_manager import LanguageManager
+from utils.language_manager import LanguageManager, get_language_manager
 from orchestrators.voice_orchestrator import MIN_AUDIO_BYTES, VoiceOrchestrator
 from utils.request_validation import normalize_lang, validate_audio_size
 
@@ -77,12 +77,13 @@ async def voice_chat(
             prefetched_context = None
             if artifact_id:
                 try:
-                    context = LanguageManager().setup_context(lang)
+                    lang_manager = get_language_manager()
+                    context = lang_manager.setup_context(lang)
                     prefetched_context = await get_artifact_context_by_id(
                         artifact_id, context["db_field"],
                     )
                 except Exception as exc:
-                    _LOGGER.warning("Artifact prefetch failed: %s", exc)
+                    _LOGGER.warning("Artifact prefetch failed: %s", exc, exc_info=True)
 
             result = await orchestrator.process_voice_request(
                 audio_bytes, lang, audio.filename, audio.content_type,
@@ -152,8 +153,12 @@ async def voice_chat_stream(
             try:
                 prefetched_context = None
                 if artifact_id:
-                    context_setup = LanguageManager().setup_context(lang)
-                    prefetched_context = await get_artifact_context_by_id(artifact_id, context_setup["db_field"])
+                    try:
+                        lang_manager = get_language_manager()
+                        context_setup = lang_manager.setup_context(lang)
+                        prefetched_context = await get_artifact_context_by_id(artifact_id, context_setup["db_field"])
+                    except Exception as exc:
+                        _LOGGER.warning("Artifact prefetch failed: %s", exc, exc_info=True)
 
                 async for chunk in orchestrator.process_voice_request_stream(
                     audio_bytes, lang, audio.filename, audio.content_type,

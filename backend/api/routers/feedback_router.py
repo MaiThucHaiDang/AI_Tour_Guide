@@ -61,4 +61,5 @@ async def submit_feedback(
         body.rating,
         event.feedback_id,
     )
-    return FeedbackResponse(feedback_id=event.feedback_id)
+    # Explicitly return success=True to be clear about response status
+    return FeedbackResponse(success=True, feedback_id=event.feedback_id)

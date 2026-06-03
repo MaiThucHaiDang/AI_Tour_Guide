@@ -127,17 +127,51 @@ class UnifiedOrchestrator:
                 recognize_image(image_base64, lang=lang_code)
             )
 
-        # 2. Await STT
-        if stt_task:
-            try:
-                processing_steps.append(self._step_label("stt", lang_code))
-                stt_text, det_lang = await asyncio.wait_for(stt_task, timeout=STT_TIMEOUT)
-                if stt_text.strip():
-                    final_query = await canonicalize_transcript_entities(stt_text, lang_code)
-                    detected_lang = det_lang
-            except Exception as e:
-                _LOGGER.error(f"STT failed or timed out: {e}")
+        # 2. Await STT and Vision concurrently with proper error handling
+        try:
+            if stt_task:
+                try:
+                    processing_steps.append(self._step_label("stt", lang_code))
+                    stt_text, det_lang = await asyncio.wait_for(stt_task, timeout=STT_TIMEOUT)
+                    if stt_text.strip():
+                        final_query = await canonicalize_transcript_entities(stt_text, lang_code)
+                        detected_lang = det_lang
+                except asyncio.TimeoutError:
+                    _LOGGER.error("STT timed out after %s seconds", STT_TIMEOUT)
+                    stt_task = None
+                except Exception as e:
+                    _LOGGER.error("STT failed: %s", e)
+                    stt_task = None
+        finally:
+            # Ensure task is cancelled if not awaited
+            if stt_task and not stt_task.done():
+                stt_task.cancel()
+                try:
+                    await stt_task
+                except asyncio.CancelledError:
+                    pass
 
+        # Handle vision task - ensure it's properly cleaned up
+        vision_result = None
+        if vision_task:
+            try:
+                processing_steps.append(self._step_label("vision", lang_code))
+                vision_result = await asyncio.wait_for(vision_task, timeout=VISION_TIMEOUT)
+            except asyncio.TimeoutError:
+                _LOGGER.error("Vision timed out after %s seconds", VISION_TIMEOUT)
+                vision_task = None
+            except Exception as e:
+                _LOGGER.error("Vision processing failed: %s", e)
+                vision_task = None
+            finally:
+                # Ensure task is cancelled if not completed
+                if vision_task and not vision_task.done():
+                    vision_task.cancel()
+                    try:
+                        await vision_task
+                    except asyncio.CancelledError:
+                        pass
+        
         if audio_bytes and not final_query.strip() and not image_base64:
             return await self._finalize_without_tts(
                 self._not_heard_message(lang_code),
@@ -193,7 +227,7 @@ class UnifiedOrchestrator:
                     else:
                         final_query = f"[User sent an unrecognized image. User asks: {final_query}]"
             except Exception as e:
-                _LOGGER.error(f"Vision failed or timed out: {e}")
+                _LOGGER.error("Vision failed or timed out: %s", e, exc_info=True)
 
         # 3. If no image but query exists, try searching DB for artifact context (RAG)
         if not db_context and final_query:
@@ -207,7 +241,7 @@ class UnifiedOrchestrator:
                 else:
                     db_context = await get_artifact_context(final_query, context["db_field"])
             except Exception as e:
-                _LOGGER.error(f"DB context lookup failed: {e}")
+                _LOGGER.error("DB context lookup failed: %s", e, exc_info=True)
 
         # 4. Prefer cheap answers before LLM.
         if artifact_info:
@@ -263,7 +297,7 @@ class UnifiedOrchestrator:
         llm_full_context = "\n\n".join(llm_context_parts)
         
         # Log the full context sent to the LLM for debugging RAG data
-        _LOGGER.info(f"--- RAG CONTEXT SENT TO LLM ---\n{llm_full_context}\n-------------------------------")
+        _LOGGER.debug("--- RAG CONTEXT SENT TO LLM ---\n%s\n-------------------------------", llm_full_context)
 
         # 6. Generate LLM Response
         try:
@@ -276,7 +310,7 @@ class UnifiedOrchestrator:
                 timeout=LLM_TIMEOUT
             )
         except Exception as e:
-            _LOGGER.error(f"LLM generation failed or timed out: {e}")
+            _LOGGER.error("LLM generation failed or timed out: %s", e, exc_info=True)
             increment("chat.llm_fallback")
             response_text = self._build_resilient_fallback_answer(
                 final_query, lang_code, has_database_context
@@ -303,7 +337,7 @@ class UnifiedOrchestrator:
                     timeout=TTS_TIMEOUT
                 )
         except Exception as e:
-            _LOGGER.error(f"TTS failed or timed out: {e}")
+            _LOGGER.error("TTS failed or timed out: %s", e, exc_info=True)
 
         return UnifiedChatResult(
             response_text=response_text,

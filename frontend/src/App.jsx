@@ -3,6 +3,7 @@ import HomeScreen from './components/HomeScreen';
 import ExploreDashboard from './components/dashboard/ExploreDashboard';
 import MapCalibrate from './components/map/MapCalibrate';
 import PhonePreview from './components/PhonePreview';
+import GamePlayer from './components/game/GamePlayer';
 
 const DEFAULT_TOUR_LOCATION = {
   id: 1,
@@ -26,6 +27,7 @@ function App() {
     const view = new URLSearchParams(window.location.search).get('view');
     if (view === 'calibrate') return 'calibrate';
     if (view === 'phone') return 'phone';
+    if (view === 'join') return 'join';
     return view === 'dashboard' ? 'dashboard' : 'home';
   });
   const [language, setLanguage] = useState(() => {
@@ -109,6 +111,14 @@ function App() {
         <PhonePreview
           onBack={resetToHome}
           language={language}
+        />
+      )}
+
+      {appState === 'join' && (
+        <GamePlayer
+          roomCode={new URLSearchParams(window.location.search).get('code') || ''}
+          language={language}
+          onBack={resetToHome}
         />
       )}
 

@@ -7,11 +7,16 @@ import {
   MessageSquare,
   Navigation,
   Volume2,
-  WifiOff
+  WifiOff,
+  X,
+  Gamepad2,
+  Loader2
 } from 'lucide-react';
 import MapExplore from '../map/MapExplore';
 import UnifiedChatPage from '../voice/UnifiedChatPage';
 import LanguageToggle from '../shared/LanguageToggle';
+import GameHost from '../game/GameHost';
+import { getNextSuggestionAPI, createGameRoomAPI } from '../../services/apiService';
 
 const DEFAULT_LOCATION = {
   id: 1,
@@ -177,6 +182,62 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
   const [isOnline, setIsOnline] = useState(() => (
     typeof navigator === 'undefined' ? true : navigator.onLine
   ));
+  
+  // Next stop recommendation and navigation states
+  const [nextSuggestion, setNextSuggestion] = useState(null);
+  const [visitedIds, setVisitedIds] = useState([]);
+  const [externalNavigationTarget, setExternalNavigationTarget] = useState(null);
+  
+  // Game states
+  const [activeRoomCode, setActiveRoomCode] = useState(null);
+  const [loadingGame, setLoadingGame] = useState(false);
+  const [gameMinimized, setGameMinimized] = useState(false);
+
+  const handleCreateGame = async () => {
+    if (visitedIds.length < 2) return;
+    try {
+      setLoadingGame(true);
+      const res = await createGameRoomAPI(visitedIds, language);
+      if (res.success && res.room_code) {
+        setActiveRoomCode(res.room_code);
+      }
+    } catch (err) {
+      console.error("Failed to create quiz room:", err);
+      alert(isVi 
+        ? "Có lỗi xảy ra khi tạo phòng đấu trí nhóm. Vui lòng thử lại!" 
+        : "Failed to create group quiz room. Please try again!");
+    } finally {
+      setLoadingGame(false);
+    }
+  };
+
+  const handleNarrationFinished = useCallback(async (artifact) => {
+    if (!artifact || !artifact.id) return;
+    
+    // Add current artifact to visited list
+    setVisitedIds(prev => {
+      if (prev.includes(artifact.id)) return prev;
+      return [...prev, artifact.id];
+    });
+
+    try {
+      const currentVisited = visitedIds.includes(artifact.id) ? visitedIds : [...visitedIds, artifact.id];
+      const res = await getNextSuggestionAPI({
+        currentArtifactId: artifact.id,
+        visitedIds: currentVisited,
+        lang: language
+      });
+      
+      if (res.success && res.suggestions && res.suggestions.length > 0) {
+        setNextSuggestion(res.suggestions[0]);
+      } else {
+        setNextSuggestion(null);
+      }
+    } catch (err) {
+      console.error("Failed to load next suggestion:", err);
+      setNextSuggestion(null);
+    }
+  }, [visitedIds, language]);
 
   useEffect(() => {
     const updateOnline = () => setIsOnline(true);
@@ -247,6 +308,8 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
     ? `${routeStatus.activeStep + 1}/${routeStatus.totalSteps}`
     : '';
 
+
+
   return (
     <div className="mobile-tour-shell">
       <header className="tour-shell-header">
@@ -259,7 +322,30 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           <h1>{locationName}</h1>
         </div>
 
-        <LanguageToggle language={language} setLanguage={setLanguage} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            onClick={handleCreateGame}
+            disabled={visitedIds.length < 2 || loadingGame}
+            title={visitedIds.length < 2 
+              ? (isVi ? 'Hãy tham quan ít nhất 2 điểm để đấu trí!' : 'Visit at least 2 places to play!') 
+              : (isVi ? 'Đấu trí nhóm' : 'Group quiz')}
+            style={{
+              backgroundColor: visitedIds.length >= 2 ? '#b2820a' : '#ddd',
+              color: 'white', border: 'none', borderRadius: '8px',
+              padding: '6px 12px', fontSize: '11px', fontWeight: '700',
+              cursor: visitedIds.length >= 2 ? 'pointer' : 'not-allowed',
+              display: 'flex', alignItems: 'center', gap: '4px',
+              boxShadow: visitedIds.length >= 2 ? '0 2px 6px rgba(178,130,10,0.2)' : 'none',
+              transition: 'all 0.2s',
+              height: '32px'
+            }}
+          >
+            {loadingGame ? <Loader2 className="spin" size={12} /> : <Gamepad2 size={12} />}
+            {isVi ? 'Đấu Trí Nhóm' : 'Group Quiz'}
+          </button>
+          
+          <LanguageToggle language={language} setLanguage={setLanguage} />
+        </div>
       </header>
 
       {!isOnline && (
@@ -284,6 +370,8 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
             embedded
             visitorMode
             active={activeTab === 'map'}
+            externalNavigationTarget={externalNavigationTarget}
+            onExternalNavigationConsumed={() => setExternalNavigationTarget(null)}
           />
         </section>
 
@@ -297,6 +385,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
             onArtifactUpdate={handleArtifactFocus}
             onProcessingStepsUpdate={setAssistantSteps}
             embedded
+            onNarrationFinished={handleNarrationFinished}
           />
         </section>
 
@@ -311,6 +400,83 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           />
         </section>
       </main>
+
+      {/* Floating recommendation card after narration completes */}
+      {nextSuggestion && (
+        <div style={{
+          position: 'absolute',
+          bottom: '80px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 'calc(100% - 32px)',
+          maxWidth: '380px',
+          backgroundColor: 'rgba(255, 255, 255, 0.85)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '16px',
+          padding: '12px 16px',
+          boxShadow: '0 8px 32px rgba(15, 95, 89, 0.15)',
+          border: '1px solid rgba(15, 95, 89, 0.2)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px',
+          zIndex: 2000,
+          animation: 'slideUp 0.3s ease-out'
+        }}>
+          <div style={{ flex: 1, textAlign: 'left' }}>
+            <span style={{ fontSize: '10px', color: '#b2820a', fontWeight: '700', textTransform: 'uppercase', display: 'block', letterSpacing: '0.5px' }}>
+              {isVi ? 'GỢI Ý ĐIỂM TIẾP THEO' : 'RECOMMENDED NEXT STOP'}
+            </span>
+            <strong style={{ fontSize: '14px', color: '#0f5f59', display: 'block', margin: '2px 0' }}>
+              {isVi ? nextSuggestion.name_vi : nextSuggestion.name_en}
+            </strong>
+            <span style={{ fontSize: '11px', color: '#666', display: 'block' }}>
+              {nextSuggestion.reason} ({nextSuggestion.distance}m · {Math.ceil(nextSuggestion.walk_duration_min)} {isVi ? 'phút đi bộ' : 'min walk'})
+            </span>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button 
+              onClick={() => {
+                const target = nextSuggestion;
+                setNextSuggestion(null);
+                setExternalNavigationTarget(target);
+                setActiveTab('map');
+              }}
+              style={{
+                backgroundColor: '#0f5f59',
+                color: '#fff',
+                border: 'none',
+                padding: '8px 14px',
+                borderRadius: '8px',
+                fontSize: '12px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                boxShadow: '0 3px 8px rgba(15, 95, 89, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <Navigation size={12} />
+              {isVi ? 'Khám phá' : 'Explore'}
+            </button>
+            <button 
+              onClick={() => setNextSuggestion(null)}
+              style={{
+                backgroundColor: 'transparent',
+                border: 'none',
+                color: '#999',
+                cursor: 'pointer',
+                padding: '4px'
+              }}
+              aria-label={isVi ? 'Đóng' : 'Close'}
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {routeStatus?.isNavigating && activeTab !== 'map' && (
         <button className="route-mini-bar" onClick={() => setActiveTab('map')}>
@@ -335,6 +501,75 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           </button>
         ))}
       </nav>
+
+      {/* Floating banner when game is minimized */}
+      {activeRoomCode && gameMinimized && (
+        <div style={{
+          position: 'absolute',
+          top: '60px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 'calc(100% - 32px)',
+          maxWidth: '380px',
+          backgroundColor: '#0f5f59',
+          color: '#fff',
+          borderRadius: '12px',
+          padding: '10px 16px',
+          boxShadow: '0 4px 15px rgba(15,95,89,0.3)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          zIndex: 4000,
+          animation: 'slideDown 0.3s ease-out'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '18px' }}>🎮</span>
+            <span style={{ fontSize: '13px', fontWeight: '700' }}>
+              {isVi ? `Trò chơi đang diễn ra (${activeRoomCode})` : `Active Quiz Room (${activeRoomCode})`}
+            </span>
+          </div>
+          <button
+            onClick={() => setGameMinimized(false)}
+            style={{
+              backgroundColor: '#fff',
+              color: '#0f5f59',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '6px 12px',
+              fontSize: '11px',
+              fontWeight: '800',
+              cursor: 'pointer'
+            }}
+          >
+            {isVi ? 'Quay lại game' : 'Resume Game'}
+          </button>
+        </div>
+      )}
+
+      {/* Game Host Overlay keep-alive */}
+      {activeRoomCode && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          zIndex: 5000,
+          backgroundColor: '#fff',
+          display: gameMinimized ? 'none' : 'flex',
+          flexDirection: 'column'
+        }}>
+          <GameHost 
+            roomCode={activeRoomCode} 
+            language={language} 
+            onBack={() => {
+              setActiveRoomCode(null);
+              setGameMinimized(false);
+            }} 
+            onMinimize={() => setGameMinimized(true)}
+          />
+        </div>
+      )}
     </div>
   );
 };

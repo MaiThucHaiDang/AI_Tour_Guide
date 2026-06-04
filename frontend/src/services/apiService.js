@@ -356,3 +356,207 @@ export const saveMapConfigAPI = async (mapBounds, artifacts) => {
     throw error;
   }
 };
+
+export const planTourAPI = async ({ start, maxDuration = 60, maxPlaces = 5, lang = 'vi' }) => {
+  const params = new URLSearchParams({
+    start_lat: start.lat,
+    start_lng: start.lng,
+    max_duration: maxDuration,
+    max_places: maxPlaces,
+    lang
+  });
+
+  try {
+    const response = await fetch(`/api/v1/map/plan-tour?${params.toString()}`);
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to plan tour');
+    }
+    return data;
+  } catch (error) {
+    console.error('Error planning tour:', error);
+    throw error;
+  }
+};
+
+export const getNextSuggestionAPI = async ({ currentArtifactId, visitedIds = [], lang = 'vi' }) => {
+  const params = new URLSearchParams({
+    current_artifact_id: currentArtifactId,
+    visited_ids: visitedIds.join(','),
+    lang
+  });
+
+  try {
+    const response = await fetch(`/api/v1/map/next-suggestion?${params.toString()}`);
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to get next suggestions');
+    }
+    return data;
+  } catch (error) {
+    console.error('Error getting next suggestions:', error);
+    throw error;
+  }
+};
+
+export const createGameRoomAPI = async (visitedIds, lang = 'vi') => {
+  try {
+    const response = await fetch('/api/v1/game/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        visited_ids: visitedIds,
+        lang
+      })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to create game room');
+    return data;
+  } catch (error) {
+    console.error('Error creating game room:', error);
+    throw error;
+  }
+};
+
+export const joinGameRoomAPI = async (roomCode, nickname) => {
+  try {
+    const response = await fetch('/api/v1/game/join', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        room_code: roomCode,
+        nickname
+      })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to join game room');
+    return data;
+  } catch (error) {
+    console.error('Error joining game room:', error);
+    throw error;
+  }
+};
+
+export const startGameAPI = async (roomCode) => {
+  try {
+    const response = await fetch('/api/v1/game/start', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        room_code: roomCode
+      })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to start game');
+    return data;
+  } catch (error) {
+    console.error('Error starting game:', error);
+    throw error;
+  }
+};
+
+export const submitAnswerAPI = async (roomCode, nickname, questionIndex, selectedOption) => {
+  try {
+    const response = await fetch('/api/v1/game/answer', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        room_code: roomCode,
+        nickname,
+        question_index: questionIndex,
+        selected_option: selectedOption
+      })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to submit answer');
+    return data;
+  } catch (error) {
+    console.error('Error submitting answer:', error);
+    throw error;
+  }
+};
+
+export const nextQuestionAPI = async (roomCode) => {
+  try {
+    const response = await fetch('/api/v1/game/next', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        room_code: roomCode
+      })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to advance game');
+    return data;
+  } catch (error) {
+    console.error('Error advancing game:', error);
+    throw error;
+  }
+};
+
+export const endGameAPI = async (roomCode) => {
+  try {
+    const response = await fetch('/api/v1/game/end', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        room_code: roomCode
+      })
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to end game');
+    return data;
+  } catch (error) {
+    console.error('Error ending game:', error);
+    throw error;
+  }
+};
+
+export const getGameRoomStatusAPI = async (roomCode) => {
+  try {
+    const response = await fetch(`/api/v1/game/room/${roomCode}/status`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to get room status');
+    return data;
+  } catch (error) {
+    console.error('Error getting room status:', error);
+    throw error;
+  }
+};
+
+export const getGameRoomPraiseAPI = async (roomCode) => {
+  try {
+    const response = await fetch(`/api/v1/game/room/${roomCode}/praise`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to get AI praise');
+    return data;
+  } catch (error) {
+    console.error('Error getting AI praise:', error);
+    throw error;
+  }
+};
+
+export const getLocalIpAPI = async () => {
+  try {
+    const response = await fetch('/api/v1/game/local-ip');
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Failed to get local IP');
+    return data;
+  } catch (error) {
+    console.error('Error getting local IP:', error);
+    throw error;
+  }
+};
+

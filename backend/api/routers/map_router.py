@@ -158,3 +158,58 @@ async def save_map_config(data: MapConfigData):
         import logging
         logging.getLogger(__name__).exception("Failed to save map config")
         raise HTTPException(status_code=500, detail=f"Failed to save configuration: {str(e)}")
+
+@router.get("/plan-tour")
+async def plan_tour(
+    start_lat: float = Query(..., description="Latitude of starting point"),
+    start_lng: float = Query(..., description="Longitude of starting point"),
+    max_duration: int = Query(60, description="Maximum duration in minutes"),
+    max_places: int = Query(5, description="Maximum number of places"),
+    lang: str = Query("vi", description="Language code")
+):
+    """Generate a tour itinerary limited by time and number of locations."""
+    try:
+        from services.map.tour_service import tour_service
+        result = await tour_service.plan_tour(
+            start_lat=start_lat,
+            start_lng=start_lng,
+            max_duration=max_duration,
+            max_places=max_places,
+            lang=lang
+        )
+        return result
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).exception("Failed to plan tour")
+        raise HTTPException(status_code=500, detail=f"Failed to generate tour plan: {str(e)}")
+
+@router.get("/next-suggestion")
+async def get_next_suggestion(
+    current_artifact_id: int = Query(..., description="ID of the current artifact"),
+    visited_ids: str = Query("", description="Comma-separated list of visited artifact IDs"),
+    lang: str = Query("vi", description="Language code")
+):
+    """Retrieve recommended next destinations."""
+    try:
+        from services.map.tour_service import tour_service
+        # Parse visited_ids string to List[int]
+        parsed_visited_ids = []
+        if visited_ids:
+            try:
+                parsed_visited_ids = [int(x.strip()) for x in visited_ids.split(",") if x.strip()]
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid visited_ids format. Must be comma-separated integers.")
+                
+        result = await tour_service.get_next_suggestion(
+            current_artifact_id=current_artifact_id,
+            visited_ids=parsed_visited_ids,
+            lang=lang
+        )
+        return {"success": True, "suggestions": result}
+    except HTTPException:
+        raise
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).exception("Failed to get next suggestion")
+        raise HTTPException(status_code=500, detail=f"Failed to get next suggestions: {str(e)}")
+

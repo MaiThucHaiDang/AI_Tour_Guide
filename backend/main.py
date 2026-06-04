@@ -118,6 +118,7 @@ from api.routers.voice_router import router as voice_router
 from api.routers.chat_router import router as chat_router
 from api.routers.feedback_router import router as feedback_router
 from api.routers.map_router import router as map_router
+from api.routers.game_router import router as game_router
 
 app.include_router(health_router)
 app.include_router(vision_router)
@@ -125,6 +126,7 @@ app.include_router(voice_router)
 app.include_router(chat_router)
 app.include_router(feedback_router)
 app.include_router(map_router)
+app.include_router(game_router)
 
 
 @app.get("/api/v1/metrics")

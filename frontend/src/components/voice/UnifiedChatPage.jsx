@@ -138,7 +138,8 @@ const UnifiedChatPage = ({
   externalPrompt,
   onArtifactUpdate,
   onProcessingStepsUpdate,
-  embedded = false
+  embedded = false,
+  onNarrationFinished = null
 }) => {
   const copy = COPY[language] || COPY.vi;
   const [messages, setMessages] = useState(() => [createWelcomeMessage(copy.greeting)]);
@@ -160,6 +161,11 @@ const UnifiedChatPage = ({
   const audioRef = useRef(null);
   const fileInputRef = useRef(null);
   const workspaceRef = useRef(null);
+  const currentArtifactRef = useRef(null);
+
+  useEffect(() => {
+    currentArtifactRef.current = currentArtifact;
+  }, [currentArtifact]);
 
   const {
     isRecording,
@@ -441,6 +447,10 @@ const UnifiedChatPage = ({
 
     if (autoSpeak) {
       handleSpeakMessage(message);
+    } else {
+      if (onNarrationFinished && currentArtifactRef.current) {
+        onNarrationFinished(currentArtifactRef.current);
+      }
     }
   };
 
@@ -529,7 +539,12 @@ const UnifiedChatPage = ({
     audioRef.current = audio;
     try {
       await audio.play();
-      audio.onended = () => URL.revokeObjectURL(url);
+      audio.onended = () => {
+        URL.revokeObjectURL(url);
+        if (onNarrationFinished && currentArtifactRef.current) {
+          onNarrationFinished(currentArtifactRef.current);
+        }
+      };
       return true;
     } catch (err) {
       console.error('Playback failed:', err);
@@ -544,7 +559,11 @@ const UnifiedChatPage = ({
       played = await playAudioBlob(message.audioBlob);
     }
     if (!played && message.content) {
-      playTTS(message.content, language);
+      playTTS(message.content, language, () => {
+        if (onNarrationFinished && currentArtifactRef.current) {
+          onNarrationFinished(currentArtifactRef.current);
+        }
+      });
     }
   };
 

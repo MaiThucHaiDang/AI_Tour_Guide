@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, Polygon, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { LocateFixed, Navigation, MapPin, Info, CheckCircle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Volume2, Wrench, Save, RefreshCw, Compass, X, Play } from 'lucide-react';
-import { playTTS, getMapConfigAPI, getRouteAPI, saveMapConfigAPI } from '../../services/apiService';
+import { LocateFixed, Navigation, MapPin, Info, CheckCircle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Volume2, Wrench, Save, RefreshCw, Compass, X, Play, Route } from 'lucide-react';
+import { playTTS, getMapConfigAPI, getRouteAPI, saveMapConfigAPI, planTourAPI } from '../../services/apiService';
 
 // Fix Leaflet default icon issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -58,12 +58,37 @@ const getCustomIcon = (artifactId, isTarget = false) => {
   });
 };
 
+const getNumberedIcon = (number, isActive = false) => {
+  const bgColor = isActive ? '#0f5f59' : '#DAA520';
+  const border = isActive ? '3px solid #fff' : '2px solid #fff';
+  const scale = isActive ? 'scale(1.1)' : 'scale(1.0)';
+  const shadow = 'box-shadow: 0 4px 10px rgba(0,0,0,0.35);';
+  
+  return new L.DivIcon({
+    html: `<div style="background-color: ${bgColor}; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; border: ${border}; ${shadow} transform: ${scale}; transition: all 0.2s;">${number}</div>`,
+    className: 'custom-numbered-marker',
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
+    popupAnchor: [0, -15]
+  });
+};
+
 const MapClickHandler = ({ onMapClick }) => {
   useMapEvents({
     click(e) {
       onMapClick(e.latlng);
     },
   });
+  return null;
+};
+
+const MapInstanceCapture = ({ setMapInstance }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (map) {
+      setMapInstance(map);
+    }
+  }, [map, setMapInstance]);
   return null;
 };
 
@@ -133,7 +158,9 @@ const MapExplore = ({
   language,
   embedded = false,
   visitorMode = false,
-  active = true
+  active = true,
+  externalNavigationTarget = null,
+  onExternalNavigationConsumed = null
 }) => {
   const isVi = language === 'vi';
   
@@ -158,6 +185,17 @@ const MapExplore = ({
   const [statusMessage, setStatusMessage] = useState(null);
   const [statusType, setStatusType] = useState('success');
 
+  // Smart Tour Planning States
+  const [tourData, setTourData] = useState(null);
+  const [activeTourIndex, setActiveTourIndex] = useState(0);
+  const [isTourModalOpen, setIsTourModalOpen] = useState(false);
+  const [tourDuration, setTourDuration] = useState(60);
+  const [tourPlacesCount, setTourPlacesCount] = useState(5);
+  const [isGeneratingTour, setIsGeneratingTour] = useState(false);
+  
+  // Map Leaflet Instance state to close popups programmatically
+  const [mapInstance, setMapInstance] = useState(null);
+
   // Fetch latest calibrated config from DB on mount
   useEffect(() => {
     const fetchConfig = async () => {
@@ -181,9 +219,17 @@ const MapExplore = ({
   const calculateRoute = useCallback(async (start, end) => {
     try {
       const distToHue = Math.sqrt(Math.pow(start.lat - 16.4695, 2) + Math.pow(start.lng - 107.5780, 2));
-      setIsTooFarFromHue(distToHue > 0.05);
+      const isFar = distToHue > 0.05;
+      setIsTooFarFromHue(isFar);
 
-      const data = await getRouteAPI({ start, end, lang: language });
+      let finalStart = start;
+      if (isFar) {
+        // Fallback start coordinates to Ngọ Môn (ID 17) if user is too far from Hue
+        finalStart = { lat: 16.467766, lng: 107.579146 };
+        setCurrentLocation(finalStart);
+      }
+
+      const data = await getRouteAPI({ start: finalStart, end, lang: language });
 
       if (data.success && data.instructions.length > 0) {
         setRoutePath(data.coordinates);
@@ -346,9 +392,29 @@ const MapExplore = ({
     setTargetLocation(artifact);
     setIsNavigating(true);
     setIsNavigatingStarted(false);
+    mapInstance?.closePopup();
     if (currentLocation) {
       await calculateRoute(currentLocation, artifact);
     }
+  };
+
+  const handleArrivedOnly = () => {
+    if (targetLocation) {
+      setCurrentLocation({ lat: targetLocation.lat, lng: targetLocation.lng });
+      setMapCenter([targetLocation.lat, targetLocation.lng]);
+    }
+    
+    // If a tour is active, increment the activeTourIndex so they can go to the next stop later
+    if (tourData) {
+      setActiveTourIndex(prev => prev + 1);
+    }
+    
+    setIsNavigating(false);
+    setIsNavigatingStarted(false);
+    setRoutePath([]);
+    setInstructions([]);
+    setActiveStepIndex(0);
+    setIsStepsExpanded(false);
   };
 
   const handleArrived = () => {
@@ -356,6 +422,12 @@ const MapExplore = ({
       setCurrentLocation({ lat: targetLocation.lat, lng: targetLocation.lng });
       setMapCenter([targetLocation.lat, targetLocation.lng]);
     }
+    
+    // If a tour is active, increment the activeTourIndex so they can go to the next stop later
+    if (tourData) {
+      setActiveTourIndex(prev => prev + 1);
+    }
+    
     setIsNavigating(false);
     setIsNavigatingStarted(false);
     setRoutePath([]);
@@ -366,6 +438,77 @@ const MapExplore = ({
       onArtifactFocus?.(targetLocation);
       onNavigateToStorytelling(targetLocation);
     }
+  };
+
+  // Handle external navigation request (e.g. from recommended next stop)
+  useEffect(() => {
+    if (externalNavigationTarget && active) {
+      const art = artifactsList.find(a => a.id === externalNavigationTarget.id);
+      if (art) {
+        startNavigation(art);
+        onExternalNavigationConsumed?.();
+      }
+    }
+  }, [externalNavigationTarget, active, artifactsList, onExternalNavigationConsumed]);
+
+  const handleGenerateTour = async () => {
+    let startLoc = currentLocation;
+    if (!startLoc) {
+      // Fallback start coordinates to Ngọ Môn (ID 17) if currentLocation is not set
+      startLoc = { lat: 16.467766, lng: 107.579146 };
+      setCurrentLocation(startLoc);
+      setMapCenter([startLoc.lat, startLoc.lng]);
+    }
+    
+    try {
+      setIsGeneratingTour(true);
+      const res = await planTourAPI({
+        start: startLoc,
+        maxDuration: tourDuration,
+        maxPlaces: tourPlacesCount,
+        lang: language
+      });
+      
+      if (res.success) {
+        setTourData(res);
+        setActiveTourIndex(0);
+        setIsTourModalOpen(false);
+        
+        const msg = isVi 
+          ? `Lập lộ trình thành công! ${res.route.length} địa điểm trong ${res.total_duration} phút.`
+          : `Tour planned successfully! ${res.route.length} stops in ${res.total_duration} mins.`;
+        showStatus(msg, 'success');
+        
+        if (res.route.length > 0) {
+          startTourDestination(res.route[0], 0);
+        }
+      } else {
+        showStatus(res.message || (isVi ? 'Không thể tạo lộ trình.' : 'Could not generate tour.'), 'error');
+      }
+    } catch (err) {
+      console.error('Failed to generate tour:', err);
+      showStatus(isVi ? 'Lỗi kết nối khi tạo lộ trình.' : 'Network error generating tour.', 'error');
+    } finally {
+      setIsGeneratingTour(false);
+    }
+  };
+
+  const handleCancelTour = () => {
+    setTourData(null);
+    setActiveTourIndex(0);
+    setIsTourModalOpen(false);
+    handleCancelNavigation();
+    showStatus(isVi ? 'Đã hủy lộ trình tự động.' : 'Tour cleared.', 'success');
+  };
+
+  const startTourDestination = async (artifact, index) => {
+    onArtifactFocus?.(artifact);
+    setTargetLocation(artifact);
+    setIsNavigating(true);
+    setIsNavigatingStarted(false);
+    setActiveTourIndex(index);
+    const startLoc = currentLocation || { lat: 16.467766, lng: 107.579146 };
+    await calculateRoute(startLoc, artifact);
   };
 
   const handleCancelNavigation = () => {
@@ -387,6 +530,7 @@ const MapExplore = ({
 
   const handleIntroduce = (artifact) => {
     onArtifactFocus?.(artifact);
+    mapInstance?.closePopup();
     if (onNavigateToStorytelling) {
       onNavigateToStorytelling(artifact);
     }
@@ -544,6 +688,14 @@ const MapExplore = ({
           >
             <MapPin size={22} />
           </button>
+          <button
+            className={`map-icon-button ${tourData ? 'is-jade' : 'is-paper'}`}
+            onClick={() => setIsTourModalOpen(true)}
+            title={isVi ? 'Lập lộ trình tự động' : 'Smart Tour Planner'}
+            aria-label={isVi ? 'Lập lộ trình' : 'Smart Tour Planner'}
+          >
+            <Route size={22} />
+          </button>
           {!visitorMode && (
             <button
               className={`map-icon-button ${isCalibrating ? 'is-jade' : 'is-paper'}`}
@@ -662,6 +814,7 @@ const MapExplore = ({
           }}
         />
         <MapClickHandler onMapClick={handleMapClick} />
+        <MapInstanceCapture setMapInstance={setMapInstance} />
         {mapCenter && <MapCenterer center={mapCenter} />}
 
         {/* Current location marker */}
@@ -676,7 +829,10 @@ const MapExplore = ({
           <Marker 
             key={art.id} 
             position={[art.lat, art.lng]} 
-            icon={getCustomIcon(art.id, targetLocation?.id === art.id)}
+            icon={tourData && tourData.route.findIndex(item => item.id === art.id) !== -1 
+              ? getNumberedIcon(tourData.route.findIndex(item => item.id === art.id) + 1, targetLocation?.id === art.id) 
+              : getCustomIcon(art.id, targetLocation?.id === art.id)
+            }
             draggable={isCalibrating}
             eventHandlers={{
               click: () => onArtifactFocus?.(art),
@@ -721,6 +877,183 @@ const MapExplore = ({
           />
         )}
       </MapContainer>
+
+      {/* Tour Planner Modal */}
+      {isTourModalOpen && (
+        <div className="map-start-overlay" style={{ zIndex: 3001 }}>
+          <div className="map-start-sheet" style={{ maxWidth: '350px' }}>
+            <div className="map-start-icon" style={{ background: 'linear-gradient(135deg, #0f5f59, #164c5e)' }}>
+              <Route size={30} color="#fff" />
+            </div>
+            <h3>{isVi ? 'Lộ Trình Tự Động' : 'Smart Tour Planner'}</h3>
+            <p style={{ fontSize: '12px', color: '#666', marginTop: '-6px' }}>
+              {isVi 
+                ? 'Hệ thống tự động thiết kế lộ trình tham quan Đại Nội tối ưu dựa trên quỹ thời gian của bạn.'
+                : 'AI will automatically design an optimal walking tour of the Citadel based on your preferences.'}
+            </p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', textAlign: 'left', margin: '10px 0' }}>
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '6px' }}>
+                  {isVi ? 'Quỹ thời gian của bạn:' : 'Your available time:'} <strong>{tourDuration} {isVi ? 'phút' : 'minutes'}</strong>
+                </label>
+                <input 
+                  type="range" 
+                  min="20" 
+                  max="180" 
+                  step="10" 
+                  value={tourDuration} 
+                  onChange={(e) => setTourDuration(parseInt(e.target.value))}
+                  style={{ width: '100%', accentColor: '#0f5f59' }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#888' }}>
+                  <span>20m</span>
+                  <span>60m</span>
+                  <span>120m</span>
+                  <span>180m</span>
+                </div>
+              </div>
+              
+              <div>
+                <label style={{ fontSize: '12px', fontWeight: '600', color: '#333', display: 'block', marginBottom: '6px' }}>
+                  {isVi ? 'Số điểm tham quan tối đa:' : 'Max locations to visit:'}
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                  {[3, 5, 8, 10].map(num => (
+                    <button
+                      key={num}
+                      type="button"
+                      onClick={() => setTourPlacesCount(num)}
+                      style={{
+                        padding: '6px',
+                        borderRadius: '6px',
+                        border: '1px solid',
+                        borderColor: tourPlacesCount === num ? '#0f5f59' : '#ddd',
+                        backgroundColor: tourPlacesCount === num ? '#edf5ef' : '#fff',
+                        color: tourPlacesCount === num ? '#0f5f59' : '#333',
+                        fontWeight: '700',
+                        fontSize: '12px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {num}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px', width: '100%', marginTop: '10px' }}>
+              <button 
+                className="map-action-secondary" 
+                onClick={() => setIsTourModalOpen(false)}
+                style={{ flex: 1, padding: '10px' }}
+              >
+                {isVi ? 'Đóng' : 'Close'}
+              </button>
+              {tourData && (
+                <button 
+                  className="map-action-secondary" 
+                  onClick={handleCancelTour}
+                  style={{ flex: 1, padding: '10px', backgroundColor: '#fff0f0', color: '#d32f2f', border: '1px solid #ffd2d2' }}
+                >
+                  {isVi ? 'Xóa Tour' : 'Clear Tour'}
+                </button>
+              )}
+              <button 
+                className="map-action-primary" 
+                onClick={handleGenerateTour}
+                disabled={isGeneratingTour}
+                style={{ flex: 2, padding: '10px' }}
+              >
+                {isGeneratingTour ? (isVi ? 'Đang tạo...' : 'Planning...') : (isVi ? 'Tạo lộ trình' : 'Generate')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tour Progress bottom Panel */}
+      {tourData && !isNavigating && (
+        <div className="map-route-sheet" style={{ bottom: '20px', zIndex: 1000 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{
+                width: '40px', height: '40px', borderRadius: '12px',
+                background: 'linear-gradient(135deg, #b2820a, #8c6003)',
+                display: 'grid', placeItems: 'center', flexShrink: 0
+              }}>
+                <Compass size={20} color="#fff" />
+              </div>
+              <div>
+                <h4 style={{ margin: 0, color: '#b2820a', fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  {isVi ? 'Lộ Trình Tự Động' : 'Smart Tour Route'}
+                </h4>
+                <p style={{ margin: 0, fontSize: '14px', color: '#333', fontWeight: '600' }}>
+                  {isVi 
+                    ? `Đã hoàn thành ${activeTourIndex} / ${tourData.route.length} địa điểm`
+                    : `Completed ${activeTourIndex} of ${tourData.route.length} stops`}
+                </p>
+              </div>
+            </div>
+
+            {activeTourIndex < tourData.route.length ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <p style={{ margin: 0, fontSize: '13px', color: '#666', lineHeight: '1.4' }}>
+                  {isVi 
+                    ? `Điểm tiếp theo trong lộ trình là: `
+                    : `Next stop in your itinerary is: `}
+                  <strong style={{ color: '#0f5f59' }}>
+                    {getArtifactName(tourData.route[activeTourIndex])}
+                  </strong>
+                </p>
+                
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button onClick={handleCancelTour} style={{
+                    flex: 1, padding: '12px', border: 'none', borderRadius: '10px',
+                    fontWeight: '700', cursor: 'pointer', fontSize: '13px',
+                    background: 'linear-gradient(135deg, #e0e0e0, #bdbdbd)',
+                    color: '#333', display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', gap: '6px'
+                  }}>
+                    {isVi ? 'Hủy Lộ Trình' : 'Cancel Tour'}
+                  </button>
+                  <button 
+                    onClick={() => startTourDestination(tourData.route[activeTourIndex], activeTourIndex)}
+                    style={{
+                      flex: 2, padding: '12px', border: 'none', borderRadius: '10px',
+                      fontWeight: '700', cursor: 'pointer', fontSize: '13px',
+                      background: 'linear-gradient(135deg, #0f5f59, #164c5e)',
+                      color: 'white', display: 'flex', alignItems: 'center',
+                      justifyContent: 'center', gap: '6px',
+                      boxShadow: '0 4px 12px rgba(15,95,89,0.25)'
+                    }}
+                  >
+                    <Navigation size={16} />
+                    {isVi ? 'Đường đi chặng tiếp theo' : 'Start next leg'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <p style={{ margin: 0, fontSize: '13px', color: '#2e7d32', fontWeight: '600' }}>
+                  🎉 {isVi 
+                    ? 'Chúc mừng! Bạn đã hoàn thành toàn bộ lộ trình tham quan.' 
+                    : 'Congratulations! You have completed the entire tour.'}
+                </p>
+                <button onClick={handleCancelTour} style={{
+                  padding: '12px', border: 'none', borderRadius: '10px',
+                  fontWeight: '700', cursor: 'pointer', fontSize: '13px',
+                  background: 'linear-gradient(135deg, #0f5f59, #164c5e)',
+                  color: 'white', width: '100%'
+                }}>
+                  {isVi ? 'Hoàn thành' : 'Done'}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Navigation Panel */}
       {isNavigating && targetLocation && (
@@ -929,28 +1262,39 @@ const MapExplore = ({
                 </div>
               )}
 
-              <div style={{ display: 'flex', gap: '10px' }}>
+              <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
                 <button onClick={handleCancelNavigation} style={{
-                  flex: 1, padding: '12px', border: 'none', borderRadius: '10px',
-                  fontWeight: '700', cursor: 'pointer', fontSize: '14px',
-                  background: 'linear-gradient(135deg, #f44336, #d32f2f)',
-                  color: 'white', display: 'flex', alignItems: 'center',
-                  justifyContent: 'center', gap: '8px',
-                  boxShadow: '0 4px 15px rgba(244,67,54,0.2)'
+                  flex: 1, padding: '10px 8px', border: 'none', borderRadius: '10px',
+                  fontWeight: '700', cursor: 'pointer', fontSize: '13px',
+                  background: 'linear-gradient(135deg, #e0e0e0, #bdbdbd)',
+                  color: '#333', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', gap: '4px',
+                  boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
                 }}>
-                  <X size={18} />
+                  <X size={16} />
                   {isVi ? 'Hủy' : 'Cancel'}
                 </button>
+                <button onClick={handleArrivedOnly} style={{
+                  flex: 1.2, padding: '10px 8px', border: '1.5px solid #2e7d32', borderRadius: '10px',
+                  fontWeight: '700', cursor: 'pointer', fontSize: '13px',
+                  background: '#edf7ed',
+                  color: '#2e7d32', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', gap: '4px',
+                  boxShadow: '0 2px 5px rgba(46,125,50,0.1)'
+                }}>
+                  <CheckCircle size={16} />
+                  {isVi ? 'Đã đến' : 'Arrived'}
+                </button>
                 <button onClick={handleArrived} style={{
-                  flex: 2, padding: '12px', border: 'none', borderRadius: '10px',
-                  fontWeight: '700', cursor: 'pointer', fontSize: '14px',
+                  flex: 1.8, padding: '10px 8px', border: 'none', borderRadius: '10px',
+                  fontWeight: '700', cursor: 'pointer', fontSize: '13px',
                   background: 'linear-gradient(135deg, #4caf50, #388e3c)',
                   color: 'white', display: 'flex', alignItems: 'center',
-                  justifyContent: 'center', gap: '8px',
-                  boxShadow: '0 4px 15px rgba(76,175,80,0.3)'
+                  justifyContent: 'center', gap: '4px',
+                  boxShadow: '0 4px 10px rgba(76,175,80,0.25)'
                 }}>
-                  <CheckCircle size={18} />
-                  {isVi ? 'Đã đến & Giới thiệu' : 'Arrived & Introduce'}
+                  <Play size={16} />
+                  {isVi ? 'Đến & Giới thiệu' : 'Arrived & Intro'}
                 </button>
               </div>
             </>

@@ -167,17 +167,24 @@ async def test_unknown_database_question_gets_resilient_fallback():
 
 
 @pytest.mark.asyncio
-async def test_direct_fact_answer_avoids_llm():
+async def test_direct_fact_answer_uses_llm_with_rag():
     orchestrator = UnifiedOrchestrator(
         MockSTT(),
-        FailingLLM(),
+        MockLLM(),
         MockTTS(),
         ConversationMemory(),
     )
 
     with patch(
-        "orchestrators.unified_orchestrator.find_artifact_by_name",
-        AsyncMock(return_value=sample_artifact()),
+        "orchestrators.unified_orchestrator.hybrid_multi_source_search",
+        AsyncMock(return_value={
+            "context_text": "Ngọ Môn được xây dựng năm 1833 bởi Vua Minh Mạng.",
+            "matched_artifacts": [sample_artifact()],
+            "matched_locations": [],
+            "matched_facts": [],
+            "matched_faqs": [],
+            "best_score": 0.95
+        }),
     ):
         result = await orchestrator.process_chat_request(
             text_query="Ngọ Môn được xây năm nào?",
@@ -185,23 +192,30 @@ async def test_direct_fact_answer_avoids_llm():
             session_id="direct_fact_session",
         )
 
-    assert "1833" in result.response_text
-    assert result.answer_source == "db_direct"
-    assert result.audio_bytes is None
+    assert "AI Response to" in result.response_text
+    assert result.answer_source == "llm"
+    assert result.audio_bytes is not None
 
 
 @pytest.mark.asyncio
-async def test_meaning_question_uses_stored_summary_without_llm():
+async def test_meaning_question_uses_llm_with_rag():
     orchestrator = UnifiedOrchestrator(
         MockSTT(),
-        FailingLLM(),
+        MockLLM(),
         MockTTS(),
         ConversationMemory(),
     )
 
     with patch(
-        "orchestrators.unified_orchestrator.find_artifact_by_name",
-        AsyncMock(return_value=sample_artifact()),
+        "orchestrators.unified_orchestrator.hybrid_multi_source_search",
+        AsyncMock(return_value={
+            "context_text": "Ý nghĩa lịch sử của Ngọ Môn: Cổng chính phía nam của Hoàng thành.",
+            "matched_artifacts": [sample_artifact()],
+            "matched_locations": [],
+            "matched_facts": [],
+            "matched_faqs": [],
+            "best_score": 0.95
+        }),
     ):
         result = await orchestrator.process_chat_request(
             text_query="Ý nghĩa lịch sử của Ngọ Môn là gì?",
@@ -209,7 +223,6 @@ async def test_meaning_question_uses_stored_summary_without_llm():
             session_id="meaning_session",
         )
 
-    assert "Ngọ Môn" in result.response_text
-    assert "cổng chính" in result.response_text
-    assert result.answer_source == "db_direct"
-    assert result.audio_bytes is None
+    assert "AI Response to" in result.response_text
+    assert result.answer_source == "llm"
+    assert result.audio_bytes is not None

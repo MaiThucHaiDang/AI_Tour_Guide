@@ -27,11 +27,12 @@ async def retry_with_backoff(
                 return func(*args, **kwargs)
         except Exception as e:
             error_str = str(e).lower()
-            # Check if it's a rate limit error (429) or overloaded (503)
+            # Check if it's a rate limit error (429), overloaded (503), or timeout/network error
             is_rate_limit = "429" in error_str or "quota" in error_str or "rate limit" in error_str
             is_overloaded = "503" in error_str or "overloaded" in error_str
+            is_timeout = "timeout" in error_str or "timed out" in error_str or "connection" in error_str
             
-            if (is_rate_limit or is_overloaded) and retries < max_retries:
+            if (is_rate_limit or is_overloaded or is_timeout) and retries < max_retries:
                 retries += 1
                 current_delay = delay * (exponential_base ** (retries - 1))
                 if jitter:

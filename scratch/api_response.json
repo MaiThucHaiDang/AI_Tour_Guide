@@ -1,0 +1,19 @@
+{
+  "success": true,
+  "response_text": "Mình đã tìm thấy thông tin liên quan, nhưng chưa soạn được câu trả lời đầy đủ lúc này. Bạn có thể hỏi ngắn hơn về năm xây dựng, tác giả, vị trí hoặc ý nghĩa lịch sử.",
+  "audio_base64": null,
+  "audio_mime": "audio/mpeg",
+  "transcript": "được xây năm nào",
+  "artifact_id": "8",
+  "artifact_name": "Điện Thái Hòa",
+  "detected_lang": null,
+  "answer_source": "cache",
+  "processing_steps": [
+    "Đã phân tích cấu trúc câu hỏi",
+    "Đã truy xuất dữ liệu đa nguồn",
+    "Đã dùng câu trả lời cache"
+  ],
+  "artifact_year": 1805,
+  "artifact_author": "Vua Gia Long",
+  "artifact_summary": "Kính chào quý khách! Hôm nay, chúng ta sẽ cùng nhau khám phá một trong những công trình kiến trúc biểu tượng và linh thiêng bậc nhất của Hoàng thành Huế – Điện Thái Hòa."
+}

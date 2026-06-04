@@ -28,9 +28,13 @@ class GeminiLLMProvider(BaseLLM):
         _LOGGER.info("Initialized Gemini model: %s", self._model_name)
 
     async def generate_response(self, prompt: str, context_data: str, lang: str) -> str:
-        from utils.prompt_templates import build_voice_system_prompt
+        from utils.prompt_templates import build_voice_system_prompt, build_text_system_prompt
 
-        system_instruction = build_voice_system_prompt(lang)
+        if "IMPORTANT STORYTELLING RULE: Do not output long essays" in context_data:
+            system_instruction = build_voice_system_prompt(lang)
+        else:
+            system_instruction = build_text_system_prompt(lang)
+            
         current_settings = get_settings()
         
         full_prompt = (
@@ -54,9 +58,13 @@ class GeminiLLMProvider(BaseLLM):
         return text.strip() if text else ""
 
     async def generate_response_stream(self, prompt: str, context_data: str, lang: str):
-        from utils.prompt_templates import build_voice_system_prompt
+        from utils.prompt_templates import build_voice_system_prompt, build_text_system_prompt
 
-        system_instruction = build_voice_system_prompt(lang)
+        if "IMPORTANT STORYTELLING RULE: Do not output long essays" in context_data:
+            system_instruction = build_voice_system_prompt(lang)
+        else:
+            system_instruction = build_text_system_prompt(lang)
+            
         current_settings = get_settings()
         
         full_prompt = (

@@ -44,11 +44,12 @@ class Settings(BaseSettings):
 
     VOICE_MAX_TURNS: int = 6
     VOICE_SESSION_TTL_SECONDS: int = 3600
-    VOICE_MAX_TURN_CHARS: int = 240
+    VOICE_MAX_TURN_CHARS: int = 1000
     STT_DOMAIN_HINTS: str = ""
 
     EDGE_TTS_VOICE_VI: str = "vi-VN-HoaiMyNeural"
     EDGE_TTS_VOICE_EN: str = "en-US-AriaNeural"
+    EDGE_TTS_RATE: str = "+0%"
 
     RATE_LIMIT: str = "30/minute"
     CORS_ORIGINS: list[str] = ["https://localhost:5173", "http://localhost:5173"]

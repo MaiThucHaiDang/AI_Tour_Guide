@@ -38,6 +38,14 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error("Cache initialization failed: %s", e, exc_info=True)
         # Continue startup even if cache fails
+
+    try:
+        from services.voice.intro_service import intro_service
+        await intro_service.initialize()
+        logger.info("Pre-generated intro cache initialized successfully")
+    except Exception as e:
+        logger.error("Pre-generated intro cache initialization failed: %s", e, exc_info=True)
+
     logger.info("Environment: %s", settings.ENVIRONMENT)
     logger.info("Routers: vision (/api/v1/recognize), voice (/api/v1/voice/chat)")
     yield

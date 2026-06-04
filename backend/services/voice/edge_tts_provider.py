@@ -26,12 +26,13 @@ class EdgeTTSProvider(BaseTTS):
             "en": settings.EDGE_TTS_VOICE_EN,
         }
         voice = voice_map.get(lang, settings.EDGE_TTS_VOICE_EN)
-        cache_key = self._cache_key(text, lang, voice)
+        rate = settings.EDGE_TTS_RATE
+        cache_key = self._cache_key(text, lang, voice, rate)
         cached = _TTS_CACHE.get(cache_key)
         if cached is not None:
             return cached
 
-        communicator = edge_tts.Communicate(text=text, voice=voice)
+        communicator = edge_tts.Communicate(text=text, voice=voice, rate=rate)
 
         audio_chunks = bytearray()
         async for chunk in communicator.stream():
@@ -47,6 +48,6 @@ class EdgeTTSProvider(BaseTTS):
         return audio_bytes
 
     @staticmethod
-    def _cache_key(text: str, lang: str, voice: str) -> str:
+    def _cache_key(text: str, lang: str, voice: str, rate: str) -> str:
         digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
-        return f"{lang}:{voice}:{digest}"
+        return f"{lang}:{voice}:{rate}:{digest}"

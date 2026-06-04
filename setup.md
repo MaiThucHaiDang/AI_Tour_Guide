@@ -46,8 +46,14 @@ npm install
 ```bash
 # Đảm bảo Docker Postgres đang chạy
 alembic upgrade head
-python scripts/seed_data.py
+
+# Nạp dữ liệu thuyết minh phong phú & Đồ thị tri thức (Knowledge Graph)
+python scripts/seed_enriched_data.py
 ```
+
+> [!TIP]
+> **Dữ liệu Đồ thị RAG và Cache Thuyết minh Sẵn có:**
+> Cả dữ liệu Đồ thị tri thức (`backend/data/knowledge_graph_data.json`) và cache thuyết minh di tích (`backend/data/pre_generated_intros.json`) đều đã được tạo sẵn và commit lên Git. Người khác pull về chỉ cần chạy lệnh seed bên trên là cơ sở dữ liệu sẽ được điền đầy đủ thông tin lập tức. Không cần gọi LLM hay chạy lại script `build_graph.py` hoặc `pregenerate_intros.py` trừ khi thay đổi dữ liệu gốc trong `data.txt`.
 
 ---
 

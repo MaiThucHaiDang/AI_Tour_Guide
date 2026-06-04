@@ -20,9 +20,16 @@ class GroqLLMProvider(BaseLLM):
         self._model = current_settings.GROQ_LLM_MODEL
 
     async def generate_response(self, prompt: str, context_data: str, lang: str) -> str:
-        from utils.prompt_templates import build_voice_system_prompt
+        from utils.prompt_templates import build_voice_system_prompt, build_text_system_prompt
 
-        system_instruction = build_voice_system_prompt(lang)
+        is_voice = "IMPORTANT STORYTELLING RULE: Do not output long essays" in context_data
+        if is_voice:
+            system_instruction = build_voice_system_prompt(lang)
+            max_words = 100
+        else:
+            system_instruction = build_text_system_prompt(lang)
+            max_words = 250
+            
         current_settings = get_settings()
 
         try:
@@ -38,14 +45,18 @@ class GroqLLMProvider(BaseLLM):
             text = message.choices[0].message.content
             if text is None:
                 return ""
-            return self._limit_words(text.strip(), 100)
+            return self._limit_words(text.strip(), max_words)
         except Exception as exc:
             raise RuntimeError(f"Groq LLM request failed: {exc}") from exc
 
     async def generate_response_stream(self, prompt: str, context_data: str, lang: str):
-        from utils.prompt_templates import build_voice_system_prompt
+        from utils.prompt_templates import build_voice_system_prompt, build_text_system_prompt
 
-        system_instruction = build_voice_system_prompt(lang)
+        if "IMPORTANT STORYTELLING RULE: Do not output long essays" in context_data:
+            system_instruction = build_voice_system_prompt(lang)
+        else:
+            system_instruction = build_text_system_prompt(lang)
+            
         current_settings = get_settings()
 
         try:
@@ -72,4 +83,11 @@ class GroqLLMProvider(BaseLLM):
         words = text.split()
         if len(words) <= max_words:
             return text
-        return " ".join(words[:max_words]).strip()
+        
+        # Try to find a sentence boundary (., !, ?) before or at max_words
+        truncated = " ".join(words[:max_words])
+        last_boundary = max(truncated.rfind("."), truncated.rfind("!"), truncated.rfind("?"))
+        if last_boundary != -1 and last_boundary > len(truncated) * 0.5:
+            return truncated[:last_boundary + 1].strip()
+            
+        return truncated.strip()

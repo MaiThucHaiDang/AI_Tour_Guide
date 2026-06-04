@@ -22,7 +22,7 @@ from core.database import async_session_factory
 from core.config import settings
 from models.artifact import Artifact
 from models.location import Location
-from models.graph import ArtifactFAQ, ArtifactRelation
+from models.graph import ArtifactFAQ, ArtifactRelation, KnowledgeFact
 from schemas.vision import ArtifactInfo
 from services.ai.embedding_service import EmbeddingService
 
@@ -96,6 +96,181 @@ async def graph_augmented_search(query: str, top_k: int = 3) -> List[ArtifactInf
     except Exception as exc:
         _LOGGER.error("Graph-Augmented search failed: %s", exc)
         return []
+
+
+async def hybrid_multi_source_search(query: str, lang: str = "vi", top_k: int = 3) -> dict:
+    """Advanced Hybrid Search: retrieves matching artifacts, locations, FAQs, and facts."""
+    if not query:
+        return {
+            "context_text": "",
+            "matched_artifacts": [],
+            "matched_locations": [],
+            "matched_facts": [],
+            "matched_faqs": [],
+            "best_score": 0.0
+        }
+
+    matched_artifacts = []
+    matched_locations = []
+    matched_facts = []
+    matched_faqs = []
+    best_score = 0.0
+
+    try:
+        query_vector = None
+        try:
+            query_vector = await EmbeddingService.get_embedding(query)
+        except Exception as e:
+            _LOGGER.warning("Could not get query embedding for hybrid search: %s", e)
+
+        async with async_session_factory() as session:
+            # Step 1: Vector Search on FAQ
+            if query_vector is not None:
+                cos_dist = ArtifactFAQ.embedding.cosine_distance(query_vector)
+                faq_stmt = (
+                    select(ArtifactFAQ, cos_dist)
+                    .order_by(cos_dist)
+                    .limit(top_k)
+                )
+                faq_res = await session.execute(faq_stmt)
+                faq_rows = faq_res.all()
+                
+                for faq, dist in faq_rows:
+                    sim = max(0.0, 1.0 - float(dist))
+                    if sim > 0.45:
+                        if sim > best_score:
+                            best_score = sim
+                        matched_faqs.append(faq.question_text)
+                        
+                        art_stmt = select(Artifact).where(Artifact.art_id == faq.artifact_id)
+                        art_res = await session.execute(art_stmt)
+                        art_obj = art_res.scalar_one_or_none()
+                        if art_obj and art_obj not in matched_artifacts:
+                            matched_artifacts.append(art_obj)
+
+                        if faq.fact_id:
+                            fact_stmt = select(KnowledgeFact).where(KnowledgeFact.id == faq.fact_id)
+                            fact_res = await session.execute(fact_stmt)
+                            fact_obj = fact_res.scalar_one_or_none()
+                            if fact_obj and fact_obj.fact_text not in matched_facts:
+                                matched_facts.append(fact_obj.fact_text)
+
+            # Step 2: Trigram text search on Locations and Artifacts
+            loc_stmt = select(Location, func.word_similarity(Location.name_vi, query)).where(
+                or_(
+                    func.word_similarity(Location.name_vi, query) > 0.4,
+                    func.word_similarity(Location.name_en, query) > 0.4,
+                    Location.name_vi.ilike(f"%{query}%"),
+                    Location.name_en.ilike(f"%{query}%")
+                )
+            ).order_by(func.word_similarity(Location.name_vi, query).desc()).limit(2)
+            loc_res = await session.execute(loc_stmt)
+            loc_rows = loc_res.all()
+            for loc, sim in loc_rows:
+                sim_val = float(sim or 0.5)
+                if sim_val > best_score:
+                    best_score = sim_val
+                if loc not in matched_locations:
+                    matched_locations.append(loc)
+
+            art_stmt = select(Artifact, func.word_similarity(Artifact.name_vi, query)).where(
+                or_(
+                    func.word_similarity(Artifact.name_vi, query) > 0.4,
+                    func.word_similarity(Artifact.name_en, query) > 0.4,
+                    Artifact.name_vi.ilike(f"%{query}%"),
+                    Artifact.name_en.ilike(f"%{query}%")
+                )
+            ).order_by(func.word_similarity(Artifact.name_vi, query).desc()).limit(3)
+            art_res = await session.execute(art_stmt)
+            art_rows = art_res.all()
+            for art, sim in art_rows:
+                sim_val = float(sim or 0.5)
+                if sim_val > best_score:
+                    best_score = sim_val
+                if art not in matched_artifacts:
+                    matched_artifacts.append(art)
+
+            # Step 3: Text Search on KnowledgeFact (Atomic facts)
+            tokens = _tokenize_query(query)
+            if tokens:
+                token_filters = [KnowledgeFact.fact_text.ilike(f"%{token}%") for token in tokens[:4]]
+                fact_stmt = select(KnowledgeFact).where(or_(*token_filters)).limit(5)
+                fact_res = await session.execute(fact_stmt)
+                fact_objs = fact_res.scalars().all()
+                for fact_obj in fact_objs:
+                    if fact_obj.fact_text not in matched_facts:
+                        matched_facts.append(fact_obj.fact_text)
+                        
+                        parent_stmt = select(Artifact).where(Artifact.art_id == fact_obj.artifact_id)
+                        parent_res = await session.execute(parent_stmt)
+                        parent_art = parent_res.scalar_one_or_none()
+                        if parent_art and parent_art not in matched_artifacts:
+                            matched_artifacts.append(parent_art)
+
+            # Step 4: Traversal for related artifacts (relations)
+            related_names = []
+            if matched_artifacts:
+                art_ids = [art.art_id for art in matched_artifacts]
+                rel_stmt = select(ArtifactRelation).where(ArtifactRelation.source_artifact_id.in_(art_ids)).limit(3)
+                rel_res = await session.execute(rel_stmt)
+                relations = rel_res.scalars().all()
+                
+                target_ids = [rel.target_artifact_id for rel in relations]
+                if target_ids:
+                    target_stmt = select(Artifact).where(Artifact.art_id.in_(target_ids))
+                    target_res = await session.execute(target_stmt)
+                    target_arts = target_res.scalars().all()
+                    for ta in target_arts:
+                        name = ta.name_vi if lang == "vi" else ta.name_en
+                        related_names.append(name)
+
+        # Step 5: Format the RAG Context Text
+        context_lines = []
+        
+        for loc in matched_locations:
+            name = loc.name_vi if lang == "vi" else loc.name_en
+            desc = loc.history_text_vi if lang == "vi" else loc.history_text_en
+            context_lines.append(f"[ĐỊA ĐIỂM / LOCATION: {name}]")
+            context_lines.append(f"Mô tả: {desc}\n")
+
+        for art in matched_artifacts:
+            name = art.name_vi if lang == "vi" else art.name_en
+            hist = art.history_text_vi if lang == "vi" else art.history_text_en
+            context_lines.append(f"[DI TÍCH / ARTIFACT: {name}]")
+            context_lines.append(f"Năm xây dựng: {art.year or 'Chưa rõ'}")
+            context_lines.append(f"Tác giả/Triều đại: {art.author or 'Chưa rõ'}")
+            context_lines.append(f"Lịch sử thuyết minh: {hist}\n")
+
+        if matched_facts:
+            context_lines.append("[DỮ KIỆN LỊCH SỬ LIÊN QUAN / HISTORICAL FACTS]")
+            for f in matched_facts[:6]:
+                context_lines.append(f"- {f}")
+            context_lines.append("")
+
+        if related_names:
+            context_lines.append(f"[CÁC DI TÍCH LIÊN QUAN / RELATED PLACES]: {', '.join(related_names)}\n")
+
+        context_text = "\n".join(context_lines).strip()
+        
+        return {
+            "context_text": context_text,
+            "matched_artifacts": matched_artifacts,
+            "matched_locations": matched_locations,
+            "matched_facts": matched_facts,
+            "matched_faqs": matched_faqs,
+            "best_score": best_score
+        }
+
+    except Exception as exc:
+        _LOGGER.error("hybrid_multi_source_search failed: %s", exc, exc_info=True)
+        return {
+            "context_text": "",
+            "matched_artifacts": [],
+            "matched_locations": [],
+            "matched_facts": [],
+            "matched_faqs": [],
+            "best_score": 0.0
+        }
 
 _STOP_WORDS = {
     "la", "ve", "noi", "ke", "gioi", "thieu", "cho", "toi", "ban",

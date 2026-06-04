@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 class GraphBuilder:
     def __init__(self):
         self.client = AsyncGroq(api_key=settings.GROQ_API_KEY)
-        self.model_name = settings.GROQ_LLM_MODEL
+        self.model_name = "llama-3.1-8b-instant"  # Using 8b model with high quotas to avoid rate limits
 
     async def get_all_artifacts(self) -> List[Artifact]:
         async with async_session_factory() as session:
@@ -49,7 +49,7 @@ Phân tích hiện vật lịch sử sau đây và trích xuất dữ liệu cho
 
 TÊN HIỆN VẬT: {artifact.name_vi} / {artifact.name_en}
 MÔ TẢ LỊCH SỬ:
-{artifact.history_text_vi}
+{(artifact.history_text_vi or "")[:1000]}
 
 DANH SÁCH CÁC HIỆN VẬT KHÁC TRONG HỆ THỐNG:
 {artifact_list_str}
@@ -138,8 +138,8 @@ TRẢ VỀ ĐỊNH DẠNG JSON SAU:
                         continue
                 
                 await session.flush()
-                # Wait a bit more to avoid hitting rate limits too hard (3s is safer for free tiers)
-                await asyncio.sleep(3)
+                # Wait a bit more to avoid hitting rate limits too hard (8s is safer for free tiers with TPM 6000)
+                await asyncio.sleep(8)
 
             await session.commit()
             logger.info("Knowledge Graph construction complete!")

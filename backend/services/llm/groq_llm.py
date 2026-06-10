@@ -38,7 +38,7 @@ class GroqLLMProvider(BaseLLM):
             text = message.choices[0].message.content
             if text is None:
                 return ""
-            return self._limit_words(text.strip(), 100)
+            return text.strip()
         except Exception as exc:
             raise RuntimeError(f"Groq LLM request failed: {exc}") from exc
 

@@ -503,8 +503,8 @@ const UnifiedChatPage = ({
     }
     if (lower.includes('timeout') || lower.includes('quá lâu')) {
       return language === 'vi'
-        ? 'Kết nối đang chậm. Hãy thử lại với câu hỏi ngắn hơn hoặc ảnh rõ hơn.'
-        : 'The connection is slow. Try again with a shorter question or a clearer photo.';
+        ? 'Xử lý quá lâu. Hãy thử lại với câu hỏi ngắn hơn, hoặc kiểm tra backend nếu lỗi tái diễn.'
+        : 'Request timed out. Try a shorter question, or check the backend if this persists.';
     }
     if (lower.includes('provider') || lower.includes('api key')) {
       return language === 'vi'

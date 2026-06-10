@@ -38,11 +38,13 @@ _LOGGER = logging.getLogger(__name__)
 # Timeouts in seconds
 STT_TIMEOUT = 20
 VISION_TIMEOUT = 25
-LLM_TIMEOUT = 20
-TTS_TIMEOUT = 20
+LLM_TIMEOUT = 18
+TTS_TIMEOUT = 12
 MIN_AUDIO_BYTES = 800
 ANSWER_CACHE_MAX_SIZE = 128
 _ANSWER_CACHE: dict[str, str] = {}
+_ARTIFACT_INTRO_CACHE: dict[str, str] = {}
+_INTRO_CACHE_MAX_SIZE = 64
 
 @dataclass
 class UnifiedChatResult:
@@ -98,6 +100,7 @@ class UnifiedOrchestrator:
         db_context = ""
         artifact_info: ArtifactInfo | None = None
         processing_steps: list[str] = []
+        llm_skipped = False
 
         # Pre-load context if artifact_id is provided
         if recognized_artifact_id:
@@ -109,6 +112,23 @@ class UnifiedOrchestrator:
                     _LOGGER.info("Pre-loaded context for artifact ID: %s", recognized_artifact_id)
             except Exception as exc:
                 _LOGGER.warning("Pre-load artifact lookup failed: %s", exc)
+
+        # If pre-loaded artifact differs from what the user is asking about in text, override
+        if recognized_artifact_id and final_query:
+            try:
+                query_artifact = await find_artifact_by_name(final_query)
+                if query_artifact and query_artifact.art_id != str(recognized_artifact_id):
+                    previous_id = recognized_artifact_id
+                    artifact_info = query_artifact
+                    recognized_artifact_id = query_artifact.art_id
+                    recognized_artifact_name = self._artifact_name(query_artifact, lang_code)
+                    db_context = self._format_artifact_context(query_artifact, lang_code)
+                    _LOGGER.info(
+                        "Overrode artifact %s with query-matched artifact %s",
+                        previous_id, query_artifact.art_id,
+                    )
+            except Exception as exc:
+                _LOGGER.warning("Query-based artifact override failed: %s", exc)
 
         # 1. Start STT and Vision Concurrently
         stt_task = None
@@ -254,12 +274,12 @@ class UnifiedOrchestrator:
                     detected_lang, "cache", processing_steps,
                 )
 
-            direct_answer = self._build_direct_answer(artifact_info, final_query, lang_code)
-            if direct_answer:
-                self._set_cached_answer(artifact_info, final_query, lang_code, direct_answer)
+            artifact_description = await self._build_artifact_description(artifact_info, final_query, lang_code)
+            if artifact_description:
+                self._set_cached_answer(artifact_info, final_query, lang_code, artifact_description)
                 increment("chat.llm_calls_avoided")
                 return await self._finalize_without_tts(
-                    direct_answer, final_query, lang_code, session_id, artifact_info,
+                    artifact_description, final_query, lang_code, session_id, artifact_info,
                     recognized_artifact_id, recognized_artifact_name,
                     detected_lang, "db_direct", processing_steps,
                 )
@@ -273,7 +293,19 @@ class UnifiedOrchestrator:
                 detected_lang, "template", processing_steps,
             )
 
-        # 5. Prepare LLM Context
+        # 5. Multi-artifact query (no single artifact matched)
+        if not artifact_info and final_query:
+            multi = await self._find_multi_artifacts(final_query)
+            if multi:
+                parts = [self._wrapped_summary(art, lang_code) for art in multi]
+                combined = "\n\n---\n\n".join(parts)
+                increment("chat.llm_calls_avoided")
+                return await self._finalize_without_tts(
+                    combined, final_query, lang_code, session_id, None,
+                    None, None, detected_lang, "db_direct", processing_steps,
+                )
+
+        # 6. Prepare LLM Context
         history_context = await self._memory.format_history(session_id or "")
         system_prompt = build_voice_system_prompt(lang_code)
         
@@ -299,7 +331,7 @@ class UnifiedOrchestrator:
         # Log the full context sent to the LLM for debugging RAG data
         _LOGGER.debug("--- RAG CONTEXT SENT TO LLM ---\n%s\n-------------------------------", llm_full_context)
 
-        # 6. Generate LLM Response
+        # 7. Generate LLM Response
         try:
             processing_steps.append(self._step_label("llm", lang_code))
             llm = self._get_llm()
@@ -312,32 +344,37 @@ class UnifiedOrchestrator:
         except Exception as e:
             _LOGGER.error("LLM generation failed or timed out: %s", e, exc_info=True)
             increment("chat.llm_fallback")
-            response_text = self._build_resilient_fallback_answer(
-                final_query, lang_code, has_database_context
-            )
+            if artifact_info:
+                response_text = self._wrapped_summary(artifact_info, lang_code)
+            else:
+                response_text = self._build_resilient_fallback_answer(
+                    final_query, lang_code, has_database_context
+                )
+            llm_skipped = True
 
         if artifact_info and response_text.strip():
             self._set_cached_answer(artifact_info, final_query, lang_code, response_text)
 
-        # 7. Save to Memory
+        # 8. Save to Memory
         context_data = {"artifact_id": recognized_artifact_id} if recognized_artifact_id else None
         if session_id:
             if final_query:
                 await self._memory.add_turn(session_id, "user", final_query, context_data)
             await self._memory.add_turn(session_id, "assistant", response_text, context_data)
 
-        # 8. Generate Audio Response (TTS)
+        # 9. Generate Audio Response (TTS) - skip if LLM already fell back
         synthesized_audio = None
-        try:
-            tts = self._get_tts()
-            if tts is not None:
-                processing_steps.append(self._step_label("tts", lang_code))
-                synthesized_audio = await asyncio.wait_for(
-                    tts.synthesize(response_text, lang_code),
-                    timeout=TTS_TIMEOUT
-                )
-        except Exception as e:
-            _LOGGER.error("TTS failed or timed out: %s", e, exc_info=True)
+        if not llm_skipped:
+            try:
+                tts = self._get_tts()
+                if tts is not None:
+                    processing_steps.append(self._step_label("tts", lang_code))
+                    synthesized_audio = await asyncio.wait_for(
+                        tts.synthesize(response_text, lang_code),
+                        timeout=TTS_TIMEOUT
+                    )
+            except Exception as e:
+                _LOGGER.error("TTS failed or timed out: %s", e, exc_info=True)
 
         return UnifiedChatResult(
             response_text=response_text,
@@ -405,39 +442,160 @@ class UnifiedOrchestrator:
         # Never use the fast-path summary for Locations, let the LLM generate a natural response
         if artifact.art_id and artifact.art_id.startswith("loc_"):
             return None
+
+        # Safety check: ensure the artifact name appears in the user's query
+        # to avoid answering about the wrong artifact (e.g., stale artifact_id)
+        artifact_name_normalized = self._normalize_text(artifact.name_vi)
+        if artifact_name_normalized and artifact_name_normalized not in normalized:
+            # Also check the English name as a fallback
+            en_normalized = self._normalize_text(artifact.name_en)
+            if not en_normalized or en_normalized not in normalized:
+                # Check if at least one significant word from the artifact name is in the query
+                art_tokens = [t for t in artifact_name_normalized.split() if len(t) >= 3]
+                query_tokens = set(normalized.split())
+                if not any(token in query_tokens for token in art_tokens):
+                    return None
             
-        if not normalized or normalized.startswith("[user sent an image"):
-            return self._summary_answer(artifact, lang_code)
-
-        if any(keyword in normalized for keyword in ("nam", "xay", "built", "year", "when")):
-            if artifact.year:
-                if lang_code == "vi":
-                    return f"{artifact.name_vi} được xây dựng vào khoảng năm {artifact.year}."
-                return f"{artifact.name_en} was built around {artifact.year}."
-
-        if any(keyword in normalized for keyword in ("ai xay", "tac gia", "author", "who built", "builder")):
-            if artifact.author:
-                if lang_code == "vi":
-                    return f"{artifact.name_vi} gắn với {artifact.author}."
-                return f"{artifact.name_en} is associated with {artifact.author}."
-
-        if any(keyword in normalized for keyword in ("o dau", "dia diem", "where", "location")):
+        # Fallback fast-path for common fact queries when LLM is unavailable.
+        # Returns a short 1-sentence answer (no _short_summary / full DB text).
+        if artifact.year and any(kw in normalized for kw in ("nam", "xay", "built", "year", "when")):
             if lang_code == "vi":
-                return f"{artifact.name_vi} thuộc mã địa điểm {artifact.loc_id}. Bạn có thể xem chi tiết địa điểm ở bảng thông tin bên phải."
-            return f"{artifact.name_en} belongs to location ID {artifact.loc_id}. You can review the location details in the side panel."
+                return f"{artifact.name_vi} được xây dựng vào khoảng năm {artifact.year} dưới triều Nguyễn."
+            return f"{artifact.name_en} was built around {artifact.year} during the Nguyen Dynasty."
 
-        # Let the LLM handle storytelling for maximum engagement
-        if any(keyword in normalized for keyword in ("tom tat", "gioi thieu", "ke ngan", "y nghia", "meaning", "summary", "describe", "what is")):
-            return self._summary_answer(artifact, lang_code)
+        if artifact.author and any(kw in normalized for kw in ("ai xay", "tac gia", "author", "who built", "builder")):
+            if lang_code == "vi":
+                return f"{artifact.name_vi} gắn liền với {artifact.author}."
+            return f"{artifact.name_en} is closely tied to {artifact.author}."
+
+        if any(kw in normalized for kw in ("o dau", "dia diem", "where", "location")):
+            if lang_code == "vi":
+                return f"{artifact.name_vi} nằm trong khu vực Đại Nội Huế."
+            return f"{artifact.name_en} is located within the Hue Imperial City."
 
         return None
 
-    def _summary_answer(self, artifact: ArtifactInfo, lang_code: str) -> str:
-        name = self._artifact_name(artifact, lang_code)
-        summary = self._short_summary(artifact, lang_code)
+    _GENERAL_KEYWORDS = {
+        "gioi thieu", "ke ve", "noi ve", "tim hieu", "thong tin",
+        "noi dung", "huong dan vien", "tour guide", "tell me about",
+        "describe", "introduce", "about", "information", "what is",
+        "y nghia", "meaning", "significance", "tai sao", "why",
+        "dung de", "lam gi", "chuc nang", "muc dich", "su dung",
+        "use", "used for", "purpose", "function",
+        "nam", "xay", "built", "year", "when",
+        "ai xay", "tac gia", "author", "who built", "builder",
+        "o dau", "dia diem", "where", "location",
+        "short engaging introduction",
+    }
+
+    async def _build_artifact_description(
+        self, artifact: ArtifactInfo, query: str, lang_code: str
+    ) -> str | None:
+        if artifact is None:
+            return None
+
+        normalized = self._normalize_text(query)
+
+        artifact_name_normalized = self._normalize_text(artifact.name_vi)
+        if artifact_name_normalized and artifact_name_normalized not in normalized:
+            en_normalized = self._normalize_text(artifact.name_en)
+            if not en_normalized or en_normalized not in normalized:
+                art_tokens = [t for t in artifact_name_normalized.split() if len(t) >= 3]
+                query_tokens = set(normalized.split())
+                if not any(token in query_tokens for token in art_tokens):
+                    return None
+
+        if not any(kw in normalized for kw in self._GENERAL_KEYWORDS):
+            return None
+
+        # Map marker click → pre-generated engaging intro, return instantly
+        if normalized.startswith("huong dan vien") or normalized.startswith("tour guide"):
+            cached_intro = _ARTIFACT_INTRO_CACHE.get(artifact.art_id)
+            if cached_intro:
+                return cached_intro
+            try:
+                intro = await self._generate_intro(artifact, lang_code)
+                if len(_ARTIFACT_INTRO_CACHE) >= _INTRO_CACHE_MAX_SIZE:
+                    _ARTIFACT_INTRO_CACHE.pop(next(iter(_ARTIFACT_INTRO_CACHE)))
+                _ARTIFACT_INTRO_CACHE[artifact.art_id] = intro
+                return intro
+            except Exception as e:
+                _LOGGER.warning("Intro generation failed for %s: %s", artifact.art_id, e)
+                return self._wrapped_summary(artifact, lang_code)
+
+        # Regular chat query → per-query cache + LLM with user's exact question
+        cached = self._get_cached_answer(artifact, query, lang_code)
+        if cached:
+            return cached
+
+        try:
+            llm = self._get_llm()
+            context = self._format_artifact_context(artifact, lang_code)
+            system_prompt = build_voice_system_prompt(lang_code)
+            full_context = f"{system_prompt}\n\nDB_CONTEXT:\n{context}\n\nUSER_QUESTION:\n{query}"
+
+            answer = await asyncio.wait_for(
+                llm.generate_response(query, full_context, lang_code),
+                timeout=LLM_TIMEOUT,
+            )
+
+            self._set_cached_answer(artifact, query, lang_code, answer)
+            return answer
+        except Exception as e:
+            _LOGGER.warning("LLM answer failed for %s query '%s': %s", artifact.art_id, query[:60], e)
+            return self._wrapped_summary(artifact, lang_code)
+
+    async def _generate_intro(self, artifact: ArtifactInfo, lang_code: str) -> str:
+        llm = self._get_llm()
+        context = self._format_artifact_context(artifact, lang_code)
+        system_prompt = build_voice_system_prompt(lang_code)
+
         if lang_code == "vi":
-            return f"{name}: {summary}"
-        return f"{name}: {summary}"
+            prompt = f"Hướng dẫn viên: Giới thiệu ngắn gọn và hấp dẫn về {self._artifact_name(artifact, lang_code)}"
+        else:
+            prompt = f"Tour guide: Give a short, engaging introduction to {self._artifact_name(artifact, lang_code)}"
+
+        full_context = f"{system_prompt}\n\nDB_CONTEXT:\n{context}\n\nUSER_QUESTION:\n{prompt}"
+
+        intro = await asyncio.wait_for(
+            llm.generate_response(prompt, full_context, lang_code),
+            timeout=LLM_TIMEOUT,
+        )
+        return intro
+
+    def _wrapped_summary(self, artifact: ArtifactInfo, lang_code: str) -> str:
+        name = self._artifact_name(artifact, lang_code)
+        text = artifact.history_text_vi if lang_code == "vi" else artifact.history_text_en
+        text = (text or "").strip()
+        if not text:
+            return f"{name}: (chưa có dữ liệu)" if lang_code == "vi" else f"{name}: (no data available)"
+        if lang_code == "vi":
+            return (
+                f"Chào bạn! Hãy cùng tôi khám phá {name} - một địa điểm lịch sử đặc biệt trong khu vực Hoàng thành Huế.\n\n"
+                f"{text}\n\n"
+                f"Hy vọng những thông tin trên sẽ giúp bạn hiểu thêm về giá trị lịch sử của nơi này. "
+                f"Nếu bạn muốn tìm hiểu thêm về năm xây dựng, tác giả hay ý nghĩa của {name}, đừng ngần ngại hỏi tôi nhé!"
+            )
+        return (
+            f"Hello! Let me introduce you to {name} - a special historical site within the Hue Imperial City.\n\n"
+            f"{text}\n\n"
+            f"I hope this information helps you better understand the historical value of this place. "
+            f"If you'd like to know more about its construction year, author, or significance, feel free to ask!"
+        )
+
+    async def _find_multi_artifacts(self, query: str) -> list[ArtifactInfo]:
+        normalized = self._normalize_text(query)
+        for sep in (" va ", " and ", " & "):
+            if sep in normalized:
+                parts = [p.strip() for p in normalized.split(sep) if p.strip()]
+                artifacts = []
+                for part in parts:
+                    art = await find_artifact_by_name(part)
+                    if art:
+                        artifacts.append(art)
+                if len(artifacts) >= 2:
+                    return artifacts
+        return []
 
     def _build_small_talk_answer(self, query: str, lang_code: str) -> str | None:
         normalized = self._normalize_text(query)
@@ -526,8 +684,11 @@ class UnifiedOrchestrator:
             f"Year: {artifact.year or 'unknown'}",
             f"Author: {artifact.author or 'unknown'}",
             f"Location ID: {artifact.loc_id}",
+            "",
+            "=== FULL DETAILED DESCRIPTION (use ALL of this in your response) ===",
+            history,
         ]
-        return "\n".join(facts) + f"\nSummary: {history}"
+        return "\n".join(facts)
 
     @staticmethod
     def _artifact_name(artifact: ArtifactInfo, lang_code: str) -> str:
@@ -537,8 +698,8 @@ class UnifiedOrchestrator:
     def _short_summary(artifact: ArtifactInfo, lang_code: str) -> str:
         text = artifact.history_text_vi if lang_code == "vi" else artifact.history_text_en
         sentences = re.split(r"(?<=[.!?])\s+", (text or "").strip())
-        summary = " ".join(sentence for sentence in sentences[:2] if sentence).strip()
-        return summary or text[:240].strip()
+        summary = " ".join(sentence for sentence in sentences[:15] if sentence).strip()
+        return summary or text[:800].strip()
 
     @classmethod
     def _normalize_text(cls, text: str) -> str:

@@ -34,17 +34,17 @@ class Settings(BaseSettings):
     GEMINI_VISION_MODEL: str = "gemini-2.5-flash"
     GROQ_LLM_MODEL: str = "llama-3.3-70b-versatile"
     GROQ_STT_MODEL: str = "whisper-large-v3"
-    LLM_TEMPERATURE: float = 0.6
-    LLM_MAX_TOKENS: int = 400
+    LLM_TEMPERATURE: float = 0.7
+    LLM_MAX_TOKENS: int = 2048
     VISION_CONFIDENCE_THRESHOLD: float = 0.6
 
-    TEXT_MAX_CHARS: int = 1200
+    TEXT_MAX_CHARS: int = 5000
     IMAGE_MAX_BYTES: int = 5_000_000
     AUDIO_MAX_BYTES: int = 8_000_000
 
     VOICE_MAX_TURNS: int = 6
     VOICE_SESSION_TTL_SECONDS: int = 3600
-    VOICE_MAX_TURN_CHARS: int = 240
+    VOICE_MAX_TURN_CHARS: int = 2000
     STT_DOMAIN_HINTS: str = ""
 
     EDGE_TTS_VOICE_VI: str = "vi-VN-HoaiMyNeural"

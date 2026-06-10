@@ -242,7 +242,7 @@ export const unifiedChatAPI = async ({
   } catch (error) {
     clearTimeout(timeoutId);
     if (error.name === 'AbortError') {
-      throw new Error('Yêu cầu quá lâu. Kiểm tra backend hoặc thử lại với ảnh nhỏ hơn.');
+      throw new Error('Yêu cầu quá lâu. Backend xử lý chậm hoặc AI đang quá tải, hãy thử lại.');
     }
     console.error("Unified Chat Error:", error);
     throw error;

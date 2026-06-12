@@ -107,7 +107,7 @@ def downgrade() -> None:
     )
     op.drop_index(
         op.f("ix_artifact_faqs_artifact_id"),
-        table_name="artifact_faqs",
+        table_name="artifact_faqs", 
     )
     op.drop_index(
         op.f("ix_knowledge_facts_artifact_id"),

@@ -11,6 +11,8 @@ import {
   Sparkles,
   Smartphone
 } from 'lucide-react';
+import DestinationGrid from './destinations/DestinationGrid';
+import { featuredDestinations } from '../data/destinations';
 
 const REAL_IMAGES = {
   hue: 'https://commons.wikimedia.org/wiki/Special:FilePath/Meridian%20Gate%2C%20Hue%20%28I%29.jpg',
@@ -20,7 +22,13 @@ const REAL_IMAGES = {
   kienTrung: '/assets/icons/kien_trung.png'
 };
 
-const HomeScreen = ({ onSelectFeature, language, setLanguage, isPhoneFrame = false }) => {
+const HomeScreen = ({
+  onSelectFeature,
+  onSelectDestination,
+  language,
+  setLanguage,
+  isPhoneFrame = false
+}) => {
   const isVi = language === 'vi';
   const [activeScene, setActiveScene] = useState('hue');
   const [visibleIds, setVisibleIds] = useState(() => new Set(['hero']));
@@ -43,6 +51,13 @@ const HomeScreen = ({ onSelectFeature, language, setLanguage, isPhoneFrame = fal
     navPlaces: isVi ? 'Điểm dừng' : 'Stops',
     navFeatures: isVi ? 'Tính năng' : 'Features',
     heroMeta: isVi ? 'Đại Nội Huế - 17 điểm tham quan - bản đồ & hỏi đáp AI' : 'Hue Imperial City - 17 stops - map & AI guide',
+    destinationKicker: isVi ? 'Địa điểm nổi bật' : 'Featured destinations',
+    destinationTitle: isVi
+      ? 'Chọn một điểm dừng trước, rồi để hướng dẫn viên AI đi cùng bạn.'
+      : 'Choose a stop first, then let the AI guide travel with you.',
+    destinationText: isVi
+      ? 'Mỗi card có ảnh, mô tả ngắn, thời lượng gợi ý và hành động rõ ràng. Chạm vào card để xem thông tin chi tiết trước khi mở bản đồ hoặc hỏi AI.'
+      : 'Each card includes an image, short description, suggested duration, and clear action. Tap a card to review details before opening the map or asking AI.',
     storyKicker: isVi ? 'Một luồng tham quan rõ ràng' : 'A focused tour flow',
     storyTitle: isVi
       ? 'Từ bản đồ, đến câu hỏi, đến phần thuyết minh: mọi thứ xoay quanh chuyến đi trong Đại Nội.'
@@ -202,6 +217,10 @@ const HomeScreen = ({ onSelectFeature, language, setLanguage, isPhoneFrame = fal
     onSelectFeature('phone', { id: 1, name_vi: "Kinh thành Huế (Đại Nội)", initialTab: 'map' });
   };
 
+  const handleDestinationSelect = (destination) => {
+    onSelectDestination?.(destination);
+  };
+
   const handlePointerMove = (event) => {
     const root = rootRef.current;
     if (!root) return;
@@ -283,44 +302,23 @@ const HomeScreen = ({ onSelectFeature, language, setLanguage, isPhoneFrame = fal
             <p>{copy.desc}</p>
             
             <div className="location-picker" style={{ marginTop: '40px' }}>
-                <div 
-                    className="location-card-hero" 
-                    role="button"
-                    tabIndex={0}
+                <button
+                    className="location-card-hero"
+                    type="button"
                     onClick={startExperience}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        startExperience();
-                      }
-                    }}
-                    style={{
-                        background: 'rgba(255,255,255,0.12)',
-                        backdropFilter: 'blur(12px)',
-                        border: '1px solid rgba(255,255,255,0.2)',
-                        borderRadius: '8px',
-                        padding: '24px',
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '20px',
-                        maxWidth: '480px',
-                        boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
-                    }}
                 >
-                    <div style={{ width: '70px', height: '70px', borderRadius: '8px', background: '#0f5f59', display: 'grid', placeItems: 'center', boxShadow: '0 8px 20px rgba(15,95,89,0.3)' }}>
+                    <span className="location-card-hero-icon" aria-hidden="true">
                         <Landmark size={36} color="#fff" />
-                    </div>
-                    <div style={{ textAlign: 'left' }}>
-                        <h3 style={{ margin: 0, color: '#fff', fontSize: '20px', fontWeight: '700' }}>{isVi ? 'Đại Nội Huế' : 'Hue Imperial City'}</h3>
-                        <p style={{ margin: '4px 0 0', color: 'rgba(255,255,255,0.8)', fontSize: '13px' }}>{isVi ? '17 điểm tham quan · bản đồ · hỏi AI' : '17 tour stops · map · AI guide'}</p>
-                        <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '6px', color: '#fece14' }}>
-                            <span style={{ fontSize: '14px', fontWeight: 'bold' }}>{isVi ? 'Mở bản đồ mobile' : 'Open mobile map'}</span>
+                    </span>
+                    <span className="location-card-hero-copy">
+                        <strong>{isVi ? 'Đại Nội Huế' : 'Hue Imperial City'}</strong>
+                        <small>{isVi ? '17 điểm tham quan - bản đồ - hỏi AI' : '17 tour stops - map - AI guide'}</small>
+                        <span>
+                            {isVi ? 'Mở bản đồ mobile' : 'Open mobile map'}
                             <ArrowRight size={16} />
-                        </div>
-                    </div>
-                </div>
+                        </span>
+                    </span>
+                </button>
             </div>
 
             {!isPhoneFrame && (
@@ -339,7 +337,16 @@ const HomeScreen = ({ onSelectFeature, language, setLanguage, isPhoneFrame = fal
           </div>
         </section>
 
-        <section className="landing-story-shell" id="places">
+        <DestinationGrid
+          destinations={featuredDestinations}
+          language={language}
+          onSelectDestination={handleDestinationSelect}
+          kicker={copy.destinationKicker}
+          title={copy.destinationTitle}
+          description={copy.destinationText}
+        />
+
+        <section className="landing-story-shell" id="tour-flow">
           <div className="story-stage-wrap">
             <div className="story-stage">
               {copy.scenes.map((scene) => (

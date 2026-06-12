@@ -173,9 +173,12 @@ const ArtifactDetailPanel = ({
 const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) => {
   const isVi = language === 'vi';
   const location = initialLocation || DEFAULT_LOCATION;
+  const initialArtifact = location.initialArtifact || null;
   const [activeTab, setActiveTab] = useState(location.initialTab || 'map');
-  const [targetArtifact, setTargetArtifact] = useState(null);
-  const [currentArtifact, setCurrentArtifact] = useState(null);
+  const [targetArtifact, setTargetArtifact] = useState(() => (
+    location.initialTab === 'ask' ? initialArtifact : null
+  ));
+  const [currentArtifact, setCurrentArtifact] = useState(() => initialArtifact);
   const [systemPrompt, setSystemPrompt] = useState(null);
   const [routeStatus, setRouteStatus] = useState(null);
   const [assistantSteps, setAssistantSteps] = useState([]);
@@ -192,6 +195,13 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
   const [activeRoomCode, setActiveRoomCode] = useState(null);
   const [loadingGame, setLoadingGame] = useState(false);
   const [gameMinimized, setGameMinimized] = useState(false);
+
+  useEffect(() => {
+    if (!location.initialArtifact) return;
+    setCurrentArtifact(location.initialArtifact);
+    setTargetArtifact(location.initialTab === 'ask' ? location.initialArtifact : null);
+    setActiveTab(location.initialTab || 'artifact');
+  }, [location.initialArtifact, location.initialTab]);
 
   const handleCreateGame = async () => {
     if (visitedIds.length < 2) return;
@@ -322,26 +332,17 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           <h1>{locationName}</h1>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="tour-shell-actions">
           <button
+            className="tour-quiz-button"
             onClick={handleCreateGame}
             disabled={visitedIds.length < 2 || loadingGame}
             title={visitedIds.length < 2 
               ? (isVi ? 'Hãy tham quan ít nhất 2 điểm để đấu trí!' : 'Visit at least 2 places to play!') 
               : (isVi ? 'Đấu trí nhóm' : 'Group quiz')}
-            style={{
-              backgroundColor: visitedIds.length >= 2 ? '#b2820a' : '#ddd',
-              color: 'white', border: 'none', borderRadius: '8px',
-              padding: '6px 12px', fontSize: '11px', fontWeight: '700',
-              cursor: visitedIds.length >= 2 ? 'pointer' : 'not-allowed',
-              display: 'flex', alignItems: 'center', gap: '4px',
-              boxShadow: visitedIds.length >= 2 ? '0 2px 6px rgba(178,130,10,0.2)' : 'none',
-              transition: 'all 0.2s',
-              height: '32px'
-            }}
           >
             {loadingGame ? <Loader2 className="spin" size={12} /> : <Gamepad2 size={12} />}
-            {isVi ? 'Đấu Trí Nhóm' : 'Group Quiz'}
+            <span className="tour-quiz-label">{isVi ? 'Đấu Trí Nhóm' : 'Group Quiz'}</span>
           </button>
           
           <LanguageToggle language={language} setLanguage={setLanguage} />

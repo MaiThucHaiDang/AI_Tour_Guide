@@ -4,6 +4,8 @@ import ExploreDashboard from './components/dashboard/ExploreDashboard';
 import MapCalibrate from './components/map/MapCalibrate';
 import PhonePreview from './components/PhonePreview';
 import GamePlayer from './components/game/GamePlayer';
+import DestinationDetail from './components/destinations/DestinationDetail';
+import { getDestinationById } from './data/destinations';
 
 const DEFAULT_TOUR_LOCATION = {
   id: 1,
@@ -11,14 +13,36 @@ const DEFAULT_TOUR_LOCATION = {
   name_en: 'Hue Imperial City'
 };
 
-const updateViewQuery = (view) => {
+const updateViewQuery = (view, params = {}) => {
   const url = new URL(window.location.href);
+  url.searchParams.delete('destination');
   if (view === 'home') {
     url.searchParams.delete('view');
   } else {
     url.searchParams.set('view', view);
   }
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      url.searchParams.set(key, value);
+    }
+  });
   window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+};
+
+const destinationToTourArtifact = (destination, language) => ({
+  id: destination.artifactId || destination.id,
+  name_vi: destination.nameVi,
+  name_en: destination.nameEn,
+  year: destination.year,
+  author: language === 'vi' ? destination.authorVi : destination.authorEn,
+  summary: language === 'vi' ? destination.summaryVi : destination.summaryEn,
+  lat: destination.lat,
+  lng: destination.lng
+});
+
+const getInitialDestinationFromUrl = () => {
+  const params = new URLSearchParams(window.location.search);
+  return getDestinationById(params.get('destination'));
 };
 
 function App() {
@@ -28,12 +52,16 @@ function App() {
     if (view === 'calibrate') return 'calibrate';
     if (view === 'phone') return 'phone';
     if (view === 'join') return 'join';
+    if (view === 'destination' && getInitialDestinationFromUrl()) return 'destination';
     return view === 'dashboard' ? 'dashboard' : 'home';
   });
   const [language, setLanguage] = useState(() => {
     return localStorage.getItem('ai_tour_lang') || 'vi';
   });
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [selectedDestination, setSelectedDestination] = useState(() => {
+    return getInitialDestinationFromUrl();
+  });
 
   useEffect(() => {
     localStorage.setItem('ai_tour_lang', language);
@@ -42,11 +70,39 @@ function App() {
   const resetToHome = () => {
     setAppState('home');
     setSelectedLocation(null);
+    setSelectedDestination(null);
     updateViewQuery('home');
+  };
+
+  const backToDestinationList = () => {
+    resetToHome();
+    window.setTimeout(() => {
+      document.getElementById('places')?.scrollIntoView({ block: 'start' });
+    }, 0);
   };
 
   const handleSelectLocation = (location) => {
     setSelectedLocation(location);
+    setAppState('dashboard');
+    updateViewQuery('dashboard');
+  };
+
+  const handleSelectDestination = (destination) => {
+    setSelectedDestination(destination);
+    setAppState('destination');
+    updateViewQuery('destination', { destination: destination.id });
+  };
+
+  const handleStartDestinationTour = (destination, initialTab = 'artifact') => {
+    setSelectedLocation({
+      id: destination.id,
+      type: 'destination',
+      name_vi: destination.nameVi,
+      name_en: destination.nameEn,
+      initialTab,
+      initialArtifact: destinationToTourArtifact(destination, language),
+      selectedAt: Date.now()
+    });
     setAppState('dashboard');
     updateViewQuery('dashboard');
   };
@@ -62,7 +118,10 @@ function App() {
   };
 
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
+    <div
+      className={`app-root ${isPhoneFrame ? 'is-phone-frame' : ''}`}
+      style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}
+    >
 
       {/* Main Views */}
       {appState === 'home' && (
@@ -88,6 +147,17 @@ function App() {
           language={language}
           setLanguage={setLanguage}
           isPhoneFrame={isPhoneFrame}
+          onSelectDestination={handleSelectDestination}
+        />
+      )}
+
+      {appState === 'destination' && selectedDestination && (
+        <DestinationDetail
+          destination={selectedDestination}
+          language={language}
+          onBack={backToDestinationList}
+          onStartTour={(destination) => handleStartDestinationTour(destination, 'artifact')}
+          onAskGuide={(destination) => handleStartDestinationTour(destination, 'ask')}
         />
       )}
 

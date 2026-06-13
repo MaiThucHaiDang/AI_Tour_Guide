@@ -45,6 +45,13 @@ GEMINI_API_KEY=your_gemini_api_key_here
 GROQ_API_KEY=your_groq_api_key_here
 DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/ai_tour_guide
 LLM_PROVIDER_ORDER=gemini,groq
+GEMINI_TEXT_MODEL=gemini-2.5-flash
+GEMINI_VISION_MODEL=gemini-2.5-flash
+GROQ_LLM_MODEL=llama-3.3-70b-versatile
+GROQ_STT_MODEL=whisper-large-v3
+LLM_TEMPERATURE=0.6
+LLM_MAX_TOKENS=2048
+LLM_MAX_TOKENS_FOLLOWUP=800
 ```
 
 ### 2. Chạy PostgreSQL
@@ -60,13 +67,12 @@ cd ..
 ```bash
 cd backend
 python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
+.venv\Scripts\python -m pip install -r requirements.txt
 cd ..
-alembic upgrade head
-python scripts\seed_data.py
+backend\.venv\Scripts\alembic upgrade head
+backend\.venv\Scripts\python scripts\seed_data.py
 cd backend
-uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+.venv\Scripts\python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 Backend chạy tại:

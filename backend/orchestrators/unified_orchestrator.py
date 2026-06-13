@@ -12,8 +12,10 @@ This orchestrator coordinates:
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import logging
 import re
+import time
 import unicodedata
 from dataclasses import dataclass, field
 from typing import Callable, Optional
@@ -30,7 +32,9 @@ from repositories.artifact_repository import (
     get_artifact_context_by_id,
 )
 from schemas.vision import ArtifactInfo
-from utils.prompt_templates import build_voice_system_prompt
+from utils.prompt_templates import build_voice_system_prompt, build_followup_system_prompt
+from utils.rag_debug_logger import log_rag_context
+from core.config import get_settings
 from core.observability import increment
 
 _LOGGER = logging.getLogger(__name__)
@@ -39,12 +43,17 @@ _LOGGER = logging.getLogger(__name__)
 STT_TIMEOUT = 20
 VISION_TIMEOUT = 25
 LLM_TIMEOUT = 18
-TTS_TIMEOUT = 12
+FOLLOWUP_LLM_TIMEOUT = 12
 MIN_AUDIO_BYTES = 800
 ANSWER_CACHE_MAX_SIZE = 128
 _ANSWER_CACHE: dict[str, str] = {}
 _ARTIFACT_INTRO_CACHE: dict[str, str] = {}
 _INTRO_CACHE_MAX_SIZE = 64
+
+# Background TTS result cache: token -> {"audio_bytes": bytes, "timestamp": float}
+_TTS_RESULT_CACHE: dict[str, dict] = {}
+_TTS_RESULT_CACHE_MAX = 32
+_TTS_RESULT_TTL = 120  # seconds — auto-expire after 2 minutes
 
 @dataclass
 class UnifiedChatResult:
@@ -59,6 +68,7 @@ class UnifiedChatResult:
     artifact_year: Optional[int] = None
     artifact_author: Optional[str] = None
     artifact_summary: Optional[str] = None
+    tts_token: Optional[str] = None
 
 class UnifiedOrchestrator:
     def __init__(
@@ -102,6 +112,23 @@ class UnifiedOrchestrator:
         processing_steps: list[str] = []
         llm_skipped = False
 
+        # If artifact_id is not passed, fetch the last active artifact from session memory
+        if not recognized_artifact_id and session_id:
+            try:
+                recent_turns = await self._memory.get_recent_context(session_id, limit=5)
+                for turn in reversed(recent_turns):
+                    if turn.context_data and "artifact_id" in turn.context_data:
+                        val = turn.context_data["artifact_id"]
+                        if val:
+                            if isinstance(val, (int, str)) and str(val).isdigit():
+                                recognized_artifact_id = int(val)
+                            else:
+                                recognized_artifact_id = val
+                            _LOGGER.info("Retrieved active artifact ID from memory: %s", recognized_artifact_id)
+                            break
+            except Exception as exc:
+                _LOGGER.warning("Failed to retrieve active artifact from memory: %s", exc)
+
         # Pre-load context if artifact_id is provided
         if recognized_artifact_id:
             try:
@@ -117,16 +144,44 @@ class UnifiedOrchestrator:
         if recognized_artifact_id and final_query:
             try:
                 query_artifact = await find_artifact_by_name(final_query)
-                if query_artifact and query_artifact.art_id != str(recognized_artifact_id):
-                    previous_id = recognized_artifact_id
-                    artifact_info = query_artifact
-                    recognized_artifact_id = query_artifact.art_id
-                    recognized_artifact_name = self._artifact_name(query_artifact, lang_code)
-                    db_context = self._format_artifact_context(query_artifact, lang_code)
-                    _LOGGER.info(
-                        "Overrode artifact %s with query-matched artifact %s",
-                        previous_id, query_artifact.art_id,
+                if query_artifact and str(query_artifact.art_id) != str(recognized_artifact_id):
+                    # Classify context intent to determine if it is SWITCH or COMPARE_OR_REFER
+                    current_name = recognized_artifact_name or "Địa điểm hiện tại"
+                    new_name = self._artifact_name(query_artifact, lang_code)
+                    intent = await self._classify_context_intent(
+                        current_art_name=current_name,
+                        new_art_name=new_name,
+                        query=final_query,
+                        lang_code=lang_code,
                     )
+                    
+                    if intent == "SWITCH":
+                        previous_id = recognized_artifact_id
+                        artifact_info = query_artifact
+                        recognized_artifact_id = query_artifact.art_id
+                        recognized_artifact_name = self._artifact_name(query_artifact, lang_code)
+                        db_context = self._format_artifact_context(query_artifact, lang_code)
+                        _LOGGER.info(
+                            "Overrode artifact %s with query-matched artifact %s (SWITCH)",
+                            previous_id, query_artifact.art_id,
+                        )
+                    else:
+                        # COMPARE_OR_REFER
+                        # Retain the current primary location context, but append comparative context
+                        primary_context = db_context or ""
+                        if not primary_context and artifact_info:
+                            primary_context = self._format_artifact_context(artifact_info, lang_code)
+                        
+                        comp_context = self._format_artifact_context(query_artifact, lang_code)
+                        
+                        db_context = (
+                            f"DB_CONTEXT_PRIMARY ({recognized_artifact_name}):\n{primary_context}\n\n"
+                            f"DB_CONTEXT_COMPARATIVE ({new_name}):\n{comp_context}"
+                        )
+                        _LOGGER.info(
+                            "Maintained artifact %s as primary, loaded comparative context for %s (COMPARE_OR_REFER)",
+                            recognized_artifact_id, query_artifact.art_id,
+                        )
             except Exception as exc:
                 _LOGGER.warning("Query-based artifact override failed: %s", exc)
 
@@ -263,7 +318,7 @@ class UnifiedOrchestrator:
             except Exception as e:
                 _LOGGER.error("DB context lookup failed: %s", e, exc_info=True)
 
-        # 4. Prefer cheap answers before LLM.
+        # 4. Prefer cached answers before LLM.
         if artifact_info:
             cached = self._get_cached_answer(artifact_info, final_query, lang_code)
             if cached:
@@ -272,16 +327,6 @@ class UnifiedOrchestrator:
                     cached, final_query, lang_code, session_id, artifact_info,
                     recognized_artifact_id, recognized_artifact_name,
                     detected_lang, "cache", processing_steps,
-                )
-
-            artifact_description = await self._build_artifact_description(artifact_info, final_query, lang_code)
-            if artifact_description:
-                self._set_cached_answer(artifact_info, final_query, lang_code, artifact_description)
-                increment("chat.llm_calls_avoided")
-                return await self._finalize_without_tts(
-                    artifact_description, final_query, lang_code, session_id, artifact_info,
-                    recognized_artifact_id, recognized_artifact_name,
-                    detected_lang, "db_direct", processing_steps,
                 )
 
         small_talk = self._build_small_talk_answer(final_query, lang_code)
@@ -305,12 +350,22 @@ class UnifiedOrchestrator:
                     None, None, detected_lang, "db_direct", processing_steps,
                 )
 
-        # 6. Prepare LLM Context
+        # 6. Prepare LLM Context — classify query to pick prompt & max_tokens
+        query_type = self._classify_query_type(final_query, artifact_info)
+        _settings = get_settings()
+        if query_type == "intro":
+            system_prompt = build_voice_system_prompt(lang_code)
+            chosen_max_tokens = _settings.LLM_MAX_TOKENS
+            chosen_timeout = LLM_TIMEOUT
+        else:
+            system_prompt = build_followup_system_prompt(lang_code)
+            chosen_max_tokens = _settings.LLM_MAX_TOKENS_FOLLOWUP
+            chosen_timeout = FOLLOWUP_LLM_TIMEOUT
+
         history_context = await self._memory.format_history(session_id or "")
-        system_prompt = build_voice_system_prompt(lang_code)
         
         # Build a rich prompt context
-        llm_context_parts = [system_prompt]
+        llm_context_parts = []
         if history_context:
             llm_context_parts.append(f"CONVERSATION_HISTORY:\n{history_context}")
         
@@ -328,18 +383,21 @@ class UnifiedOrchestrator:
 
         llm_full_context = "\n\n".join(llm_context_parts)
         
-        # Log the full context sent to the LLM for debugging RAG data
+        # Log RAG context to debug file
         _LOGGER.debug("--- RAG CONTEXT SENT TO LLM ---\n%s\n-------------------------------", llm_full_context)
+        log_rag_context(final_query, db_context, answer_source="llm")
 
-        # 7. Generate LLM Response
+        # 7. Generate LLM Response with dynamic max_tokens
         try:
             processing_steps.append(self._step_label("llm", lang_code))
             llm = self._get_llm()
             response_text = await asyncio.wait_for(
                 llm.generate_response(
-                    final_query, llm_full_context, lang_code
+                    final_query, llm_full_context, lang_code,
+                    max_tokens=chosen_max_tokens,
+                    system_prompt=system_prompt,
                 ),
-                timeout=LLM_TIMEOUT
+                timeout=chosen_timeout
             )
         except Exception as e:
             _LOGGER.error("LLM generation failed or timed out: %s", e, exc_info=True)
@@ -362,23 +420,29 @@ class UnifiedOrchestrator:
                 await self._memory.add_turn(session_id, "user", final_query, context_data)
             await self._memory.add_turn(session_id, "assistant", response_text, context_data)
 
-        # 9. Generate Audio Response (TTS) - skip if LLM already fell back
-        synthesized_audio = None
+        # 9. Generate Audio Response (TTS) — fire-and-forget background task
+        tts_token = None
         if not llm_skipped:
-            try:
-                tts = self._get_tts()
-                if tts is not None:
+            tts = self._get_tts()
+            if tts is not None:
+                tts_token = self._make_tts_token(response_text, lang_code)
+                # Check if this exact text already has cached audio
+                cached_entry = _TTS_RESULT_CACHE.get(tts_token)
+                if cached_entry and cached_entry.get("audio_bytes"):
+                    _LOGGER.info("TTS cache hit for token %s", tts_token[:12])
+                else:
                     processing_steps.append(self._step_label("tts", lang_code))
-                    synthesized_audio = await asyncio.wait_for(
-                        tts.synthesize(response_text, lang_code),
-                        timeout=TTS_TIMEOUT
+                    _LOGGER.info(
+                        "Launching background TTS synthesis (length=%d, token=%s)",
+                        len(response_text), tts_token[:12],
                     )
-            except Exception as e:
-                _LOGGER.error("TTS failed or timed out: %s", e, exc_info=True)
+                    asyncio.create_task(
+                        self._background_tts(tts, response_text, lang_code, tts_token)
+                    )
 
         return UnifiedChatResult(
             response_text=response_text,
-            audio_bytes=synthesized_audio,
+            audio_bytes=None,  # Always None — frontend polls via tts_token
             transcript=final_query,
             artifact_id=recognized_artifact_id,
             artifact_name=recognized_artifact_name,
@@ -388,6 +452,7 @@ class UnifiedOrchestrator:
             artifact_year=artifact_info.year if artifact_info else None,
             artifact_author=artifact_info.author if artifact_info else None,
             artifact_summary=self._short_summary(artifact_info, lang_code) if artifact_info else None,
+            tts_token=tts_token,
         )
 
     async def _finalize_without_tts(
@@ -403,6 +468,12 @@ class UnifiedOrchestrator:
         answer_source: str,
         processing_steps: list[str],
     ) -> UnifiedChatResult:
+        # Log RAG context to debug file for non-LLM paths
+        log_rag_context(
+            final_query,
+            self._format_artifact_context(artifact_info, lang_code) if artifact_info else "(không có)",
+            answer_source=answer_source,
+        )
         context_data = {"artifact_id": artifact_id} if artifact_id else None
         if session_id:
             if final_query:
@@ -421,6 +492,58 @@ class UnifiedOrchestrator:
             artifact_author=artifact_info.author if artifact_info else None,
             artifact_summary=self._short_summary(artifact_info, lang_code) if artifact_info else None,
         )
+
+    async def _classify_context_intent(
+        self, current_art_name: str, new_art_name: str, query: str, lang_code: str
+    ) -> str:
+        # Prompt phân loại để AI quyết định SWITCH hay COMPARE_OR_REFER
+        prompt = (
+            f"Bạn là trợ lý AI phân tích ngữ cảnh hội thoại tại Kinh thành Huế.\n"
+            f"Địa điểm đang được giới thiệu hiện tại (Current Location): {current_art_name}\n"
+            f"Địa điểm mới vừa được nhắc tới trong câu hỏi (New Candidate Location): {new_art_name}\n"
+            f"Câu hỏi của người dùng (User Query): \"{query}\"\n\n"
+            f"Hãy phân tích xem người dùng đang thực hiện hành động nào sau đây:\n"
+            f"1. SWITCH: Người dùng muốn đổi chủ đề hoàn toàn, chuyển sang giới thiệu/kể về/chỉ đường tới địa điểm mới.\n"
+            f"   Ví dụ: \"Kể về Ngọ Môn đi\", \"Dẫn tôi tới Điện Kiến Trung\", \"Điện Thái Hòa có gì đẹp?\".\n"
+            f"2. COMPARE_OR_REFER: Người dùng đang so sánh, hỏi khoảng cách/hướng đi, hoặc hỏi liên hệ giữa địa điểm hiện tại và địa điểm mới, hoặc câu hỏi vẫn ngụ ý giữ địa điểm hiện tại làm trọng tâm.\n"
+            f"   Ví dụ: \"nó với ngọ môn cái nào xây trước?\", \"từ đây đi sang Ngọ Môn như thế nào?\", \"Kiến Trung nằm ở đâu so với Ngọ Môn?\".\n\n"
+            f"Hãy trả về kết quả dưới dạng chuỗi chữ hoa duy nhất: \"SWITCH\" hoặc \"COMPARE_OR_REFER\".\n"
+            f"Không giải thích gì thêm, chỉ trả về đúng 1 từ khóa."
+        )
+        # Gọi LLM với max_tokens thấp để trả về nhanh
+        llm = self._get_llm()
+        response = await llm.generate_response(prompt, context_data="", lang=lang_code, max_tokens=10)
+        clean_resp = response.strip().upper()
+        if "COMPARE" in clean_resp or "REFER" in clean_resp:
+            return "COMPARE_OR_REFER"
+        return "SWITCH"
+
+    def _classify_query_type(
+        self, query: str, artifact_info: ArtifactInfo | None
+    ) -> str:
+        """Classify query as 'intro' (needs long response) or 'followup' (shorter response).
+
+        'intro' triggers: marker clicks, first-time introductions, general "tell me about" queries.
+        'followup' triggers: specific fact questions (who/when/why), conversational follow-ups.
+        """
+        normalized = self._normalize_text(query)
+
+        # Marker click → always an intro
+        if normalized.startswith("[user sent"):
+            return "intro"
+
+        # Explicit intro keywords
+        intro_keywords = {
+            "gioi thieu", "ke ve", "noi ve", "tim hieu", "thong tin",
+            "huong dan vien", "tour guide", "tell me about",
+            "describe", "introduce", "information", "what is",
+            "short engaging introduction",
+        }
+        if any(kw in normalized for kw in intro_keywords):
+            return "intro"
+
+        # Everything else is a follow-up
+        return "followup"
 
     def _get_llm(self) -> BaseLLM:
         if self._llm is None:
@@ -530,13 +653,19 @@ class UnifiedOrchestrator:
 
         try:
             llm = self._get_llm()
+            _settings = get_settings()
             context = self._format_artifact_context(artifact, lang_code)
-            system_prompt = build_voice_system_prompt(lang_code)
-            full_context = f"{system_prompt}\n\nDB_CONTEXT:\n{context}\n\nUSER_QUESTION:\n{query}"
+            # Follow-up questions use shorter prompt & fewer tokens
+            system_prompt = build_followup_system_prompt(lang_code)
+            full_context = f"DB_CONTEXT:\n{context}"
 
             answer = await asyncio.wait_for(
-                llm.generate_response(query, full_context, lang_code),
-                timeout=LLM_TIMEOUT,
+                llm.generate_response(
+                    query, full_context, lang_code,
+                    max_tokens=_settings.LLM_MAX_TOKENS_FOLLOWUP,
+                    system_prompt=system_prompt,
+                ),
+                timeout=FOLLOWUP_LLM_TIMEOUT,
             )
 
             self._set_cached_answer(artifact, query, lang_code, answer)
@@ -547,18 +676,23 @@ class UnifiedOrchestrator:
 
     async def _generate_intro(self, artifact: ArtifactInfo, lang_code: str) -> str:
         llm = self._get_llm()
+        _settings = get_settings()
         context = self._format_artifact_context(artifact, lang_code)
-        system_prompt = build_voice_system_prompt(lang_code)
+        system_prompt = build_voice_system_prompt(lang_code)  # Full intro prompt
 
         if lang_code == "vi":
-            prompt = f"Hướng dẫn viên: Giới thiệu ngắn gọn và hấp dẫn về {self._artifact_name(artifact, lang_code)}"
+            prompt = f"Hãy giới thiệu chi tiết và hấp dẫn về {self._artifact_name(artifact, lang_code)} cho vị khách quý"
         else:
-            prompt = f"Tour guide: Give a short, engaging introduction to {self._artifact_name(artifact, lang_code)}"
+            prompt = f"Give a detailed, engaging introduction to {self._artifact_name(artifact, lang_code)} for our honored guest"
 
-        full_context = f"{system_prompt}\n\nDB_CONTEXT:\n{context}\n\nUSER_QUESTION:\n{prompt}"
+        full_context = f"DB_CONTEXT:\n{context}"
 
         intro = await asyncio.wait_for(
-            llm.generate_response(prompt, full_context, lang_code),
+            llm.generate_response(
+                prompt, full_context, lang_code,
+                max_tokens=_settings.LLM_MAX_TOKENS,  # Full tokens for intro
+                system_prompt=system_prompt,
+            ),
             timeout=LLM_TIMEOUT,
         )
         return intro
@@ -603,10 +737,20 @@ class UnifiedOrchestrator:
         thanks = {"cam on", "thank", "thanks"}
         if normalized in greetings or any(normalized.startswith(item) for item in greetings):
             if lang_code == "vi":
-                return "Xin chào! Bạn có thể tải ảnh hiện vật, chụp bằng webcam hoặc hỏi trực tiếp về một địa điểm lịch sử."
-            return "Hello! You can upload an artifact photo, use the webcam, or ask about a historical site."
+                return (
+                    "Kính chào khanh! Ta là một vị quan uyên bác trong triều đình nhà Nguyễn, "
+                    "sẵn lòng dẫn khanh tham quan Kinh thành Huế. "
+                    "Khanh có thể gửi ảnh di tích, chụp bằng webcam hoặc hỏi ta về bất kỳ địa điểm lịch sử nào."
+                )
+            return (
+                "Greetings, honored guest! I am a scholarly official of the Nguyen Dynasty court, "
+                "ready to guide you through the Hue Imperial City. "
+                "You may send a photo of an artifact, use the webcam, or ask me about any historical site."
+            )
         if any(item in normalized for item in thanks):
-            return "Rất vui được hỗ trợ bạn." if lang_code == "vi" else "Happy to help."
+            if lang_code == "vi":
+                return "Ta rất vui khi được phụng sự khanh trong chuyến tham quan này."
+            return "It is my honor to serve you on this tour, dear guest."
         return None
 
     @staticmethod
@@ -703,7 +847,10 @@ class UnifiedOrchestrator:
 
     @classmethod
     def _normalize_text(cls, text: str) -> str:
-        normalized = unicodedata.normalize("NFD", text or "")
+        if not text:
+            return ""
+        text_cleaned = text.replace("đ", "d").replace("Đ", "d")
+        normalized = unicodedata.normalize("NFD", text_cleaned)
         stripped = "".join(
             char for char in normalized if unicodedata.category(char) != "Mn"
         )
@@ -750,3 +897,58 @@ class UnifiedOrchestrator:
         }
         labels = vi if lang_code == "vi" else en
         return labels.get(step, step)
+
+    # ── Background TTS helpers ───────────────────────────────────────────
+
+    @staticmethod
+    def _make_tts_token(text: str, lang: str) -> str:
+        """Deterministic hash so identical text reuses the same cache slot."""
+        digest = hashlib.sha256(f"{lang}:{text}".encode("utf-8")).hexdigest()
+        return digest[:24]
+
+    @staticmethod
+    async def _background_tts(
+        tts: BaseTTS, text: str, lang: str, token: str
+    ) -> None:
+        """Synthesize TTS in the background and store the result in cache."""
+        try:
+            audio = await asyncio.wait_for(
+                tts.synthesize(text, lang),
+                timeout=30,
+            )
+            if audio:
+                _evict_tts_cache()
+                _TTS_RESULT_CACHE[token] = {
+                    "audio_bytes": audio,
+                    "timestamp": time.time(),
+                }
+                _LOGGER.info("Background TTS completed for token %s (%d bytes)", token[:12], len(audio))
+            else:
+                _LOGGER.info("Background TTS returned empty audio for token %s", token[:12])
+        except Exception as exc:
+            _LOGGER.warning("Background TTS failed for token %s: %s", token[:12], exc)
+
+    @staticmethod
+    def fetch_tts_audio(token: str) -> bytes | None:
+        """Retrieve synthesized audio by token. Returns None if not ready."""
+        entry = _TTS_RESULT_CACHE.get(token)
+        if not entry:
+            return None
+        # Expire stale entries
+        if time.time() - entry["timestamp"] > _TTS_RESULT_TTL:
+            _TTS_RESULT_CACHE.pop(token, None)
+            return None
+        return entry.get("audio_bytes")
+
+
+def _evict_tts_cache() -> None:
+    """Evict oldest entries if cache exceeds max size, and remove expired."""
+    now = time.time()
+    # Remove expired first
+    expired = [k for k, v in _TTS_RESULT_CACHE.items() if now - v["timestamp"] > _TTS_RESULT_TTL]
+    for k in expired:
+        _TTS_RESULT_CACHE.pop(k, None)
+    # Evict oldest if still over limit
+    while len(_TTS_RESULT_CACHE) >= _TTS_RESULT_CACHE_MAX:
+        oldest_key = next(iter(_TTS_RESULT_CACHE))
+        _TTS_RESULT_CACHE.pop(oldest_key, None)

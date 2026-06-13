@@ -387,7 +387,10 @@ class VoiceOrchestrator:
 
     @staticmethod
     def _normalize_text(text: str) -> str:
-        normalized = unicodedata.normalize("NFD", text or "")
+        if not text:
+            return ""
+        text_cleaned = text.replace("đ", "d").replace("Đ", "d")
+        normalized = unicodedata.normalize("NFD", text_cleaned)
         stripped = "".join(
             char for char in normalized if unicodedata.category(char) != "Mn"
         )

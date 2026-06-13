@@ -101,9 +101,11 @@ _STOP_WORDS = {
     "la", "ve", "noi", "ke", "gioi", "thieu", "cho", "toi", "ban",
     "please", "tell", "me", "about", "the", "a", "an", "this",
     "that", "is", "are",
-    "hay", "duoc", "duoc", "xay", "dung", "nam", "nao", "ai",
+    "hay", "duoc", "xay", "dung", "nam", "nao", "ai",
     "o", "dau", "lich", "su", "y", "nghia", "what", "when", "where",
     "who", "built", "meaning", "history",
+    "muon", "di", "den", "tim", "hieu", "giup", "voi", "hoi", "duong",
+    "tham", "quan", "chao", "minh", "va", "cung",
 }
 
 
@@ -149,6 +151,41 @@ async def find_artifact_by_name(name: str, lat: float = None, lng: float = None)
     """
     if not name:
         return None
+
+    def is_valid_candidate(query: str, row_obj: Artifact) -> bool:
+        normalized_query = _normalize_text(query)
+        query_words = normalized_query.split()
+        if not query_words:
+            return False
+            
+        def get_core_words(item_name: str) -> list[str]:
+            if not item_name:
+                return []
+            norm_name = _normalize_text(item_name)
+            norm_name = re.sub(r"\(.*?\)", "", norm_name)
+            words = [w.strip() for w in norm_name.split() if w.strip()]
+            
+            prefixes = {"dien", "cung", "cua", "vuon", "nen", "phu", "bao", "tang"}
+            suffixes = {"gate", "palace", "temple", "theater", "garden", "foundation", "museum"}
+            
+            while words and words[0] in prefixes:
+                words.pop(0)
+            while words and words[-1] in suffixes:
+                words.pop()
+                
+            return words
+
+        core_vi = get_core_words(row_obj.name_vi)
+        if core_vi:
+            if all(any(qw.startswith(cw) for qw in query_words) for cw in core_vi):
+                return True
+                
+        core_en = get_core_words(row_obj.name_en)
+        if core_en:
+            if all(any(qw.startswith(cw) for qw in query_words) for cw in core_en):
+                return True
+                
+        return False
 
     try:
         async with async_session_factory() as session:
@@ -230,6 +267,12 @@ async def find_artifact_by_name(name: str, lat: float = None, lng: float = None)
 
             if not rows:
                 return None
+
+            # Filter candidates using robust token-matching validation
+            valid_rows = [r for r in rows if is_valid_candidate(name, r)]
+            if not valid_rows:
+                return None
+            rows = valid_rows
 
             # 2. Rerank by GPS if available
             best_row = rows[0]
@@ -497,7 +540,10 @@ async def _token_match(session: AsyncSession, tokens: list[str]):
 
 def _normalize_text(text: str) -> str:
     """Remove diacritics and normalize whitespace."""
-    normalized = unicodedata.normalize("NFD", text or "")
+    if not text:
+        return ""
+    text_cleaned = text.replace("đ", "d").replace("Đ", "d")
+    normalized = unicodedata.normalize("NFD", text_cleaned)
     stripped = "".join(
         char for char in normalized if unicodedata.category(char) != "Mn"
     )
@@ -592,11 +638,16 @@ def _replace_canonical_tokens(text: str, canonical_tokens: list[str]) -> str:
     if not replacements:
         return text
 
+    canonical_set = set(canonical_tokens)
     token_pattern = re.compile(r"[\wÀ-ỹ]+", flags=re.UNICODE)
 
     def replace_match(match: re.Match) -> str:
         raw = match.group(0)
+        if raw in canonical_set:
+            return raw
         normalized = _normalize_text(raw)
+        if normalized in _STOP_WORDS:
+            return raw
         replacement = replacements.get(normalized)
         if not replacement:
             return raw
@@ -614,11 +665,16 @@ def _replace_fuzzy_canonical_tokens(text: str, canonical_tokens: list[str]) -> s
     if not replacements:
         return text
 
+    canonical_set = set(canonical_tokens)
     token_pattern = re.compile(r"[\wÀ-ỹ]+", flags=re.UNICODE)
 
     def replace_match(match: re.Match) -> str:
         raw = match.group(0)
+        if raw in canonical_set:
+            return raw
         normalized = _normalize_text(raw)
+        if normalized in _STOP_WORDS:
+            return raw
         if normalized in replacements:
             return raw
         best_replacement = None

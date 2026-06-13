@@ -29,13 +29,14 @@ class Settings(BaseSettings):
     CACHE_TTL_SECONDS: int = 3600
 
     LLM_PROVIDER_ORDER: str = "gemini, groq"
-    GEMINI_TEXT_MODEL: str = "gemini-2.5-flash"
+    GEMINI_TEXT_MODEL: str = "gemini-2.5-flash-lite"
     GEMINI_EMBEDDING_MODEL: str = "gemini-embedding-2"
-    GEMINI_VISION_MODEL: str = "gemini-2.5-flash"
+    GEMINI_VISION_MODEL: str = "gemini-2.5-flash-lite"
     GROQ_LLM_MODEL: str = "llama-3.3-70b-versatile"
     GROQ_STT_MODEL: str = "whisper-large-v3"
     LLM_TEMPERATURE: float = 0.7
     LLM_MAX_TOKENS: int = 2048
+    LLM_MAX_TOKENS_FOLLOWUP: int = 800
     VISION_CONFIDENCE_THRESHOLD: float = 0.6
 
     TEXT_MAX_CHARS: int = 5000

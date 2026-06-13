@@ -47,36 +47,128 @@ export const recognizeArtifactAPI = async (imageBase64, lang = 'vi', sessionId =
 };
 
 /**
- * Text to Speech Service sử dụng trình duyệt để phát qua loa
+ * Text to Speech Service — supports Pause / Resume
+ *
+ * playTTS   → start speaking (cancels previous)
+ * pauseTTS  → pause current speech / audio
+ * resumeTTS → resume from where it was paused
+ * stopTTS   → cancel completely
  */
+
+// Global audio state tracker
+let _ttsCurrentAudio = null;   // Audio element (for backend blob)
+let _ttsCurrentUtterance = null; // SpeechSynthesisUtterance (for Web Speech)
+let _ttsIsPaused = false;
+let _ttsOnEndCallback = null;
+
 export const playTTS = (text, lang = 'vi', onEndCallback) => {
+  stopTTS(); // cancel anything playing
+  _ttsIsPaused = false;
+  _ttsOnEndCallback = onEndCallback || null;
+
   if (!('speechSynthesis' in window)) {
-    console.warn("Trình duyệt không hỗ trợ Web Speech API");
+    console.warn("Browser does not support Web Speech API");
     if (onEndCallback) onEndCallback();
     return null;
   }
 
-  // Hủy các speech cũ nếu có
   window.speechSynthesis.cancel();
 
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = lang === 'vi' ? 'vi-VN' : 'en-US'; 
+  utterance.lang = lang === 'vi' ? 'vi-VN' : 'en-US';
   utterance.rate = 1.0;
 
-  if (onEndCallback) {
-    utterance.onend = onEndCallback;
-    utterance.onerror = onEndCallback;
-  }
+  utterance.onend = () => {
+    _ttsCurrentUtterance = null;
+    if (_ttsOnEndCallback) _ttsOnEndCallback();
+  };
+  utterance.onerror = () => {
+    _ttsCurrentUtterance = null;
+    if (_ttsOnEndCallback) _ttsOnEndCallback();
+  };
 
+  _ttsCurrentUtterance = utterance;
   window.speechSynthesis.speak(utterance);
   return utterance;
 };
 
 export const stopTTS = () => {
+  _ttsIsPaused = false;
+  _ttsOnEndCallback = null;
+
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel();
   }
+  _ttsCurrentUtterance = null;
+
+  if (_ttsCurrentAudio) {
+    _ttsCurrentAudio.pause();
+    _ttsCurrentAudio.src = '';
+    _ttsCurrentAudio = null;
+  }
 };
+
+export const pauseTTS = () => {
+  if (_ttsCurrentAudio && !_ttsCurrentAudio.paused) {
+    _ttsCurrentAudio.pause();
+    _ttsIsPaused = true;
+    return;
+  }
+  if ('speechSynthesis' in window && window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+    window.speechSynthesis.pause();
+    _ttsIsPaused = true;
+  }
+};
+
+export const resumeTTS = () => {
+  if (_ttsCurrentAudio && _ttsCurrentAudio.paused && _ttsIsPaused) {
+    _ttsCurrentAudio.play().catch(() => {});
+    _ttsIsPaused = false;
+    return;
+  }
+  if ('speechSynthesis' in window && window.speechSynthesis.paused) {
+    window.speechSynthesis.resume();
+    _ttsIsPaused = false;
+  }
+};
+
+export const isTTSPlaying = () => {
+  if (_ttsCurrentAudio && !_ttsCurrentAudio.paused && !_ttsCurrentAudio.ended) return true;
+  if ('speechSynthesis' in window && window.speechSynthesis.speaking && !window.speechSynthesis.paused) return true;
+  return false;
+};
+
+export const isTTSPaused = () => _ttsIsPaused;
+
+/**
+ * Set the global Audio element for blob playback (used by UnifiedChatPage).
+ */
+export const setTTSAudioElement = (audio) => {
+  _ttsCurrentAudio = audio;
+};
+
+/**
+ * Poll the backend for TTS audio by token.
+ * Returns { status: "ready", audioBlob } or { status: "pending" }.
+ */
+export const fetchTTSAudio = async (ttsToken) => {
+  if (!ttsToken) return { status: 'none' };
+
+  try {
+    const response = await fetch(`/api/v1/tts/fetch?tts_token=${encodeURIComponent(ttsToken)}`);
+    if (!response.ok) return { status: 'error' };
+    const data = await response.json();
+    if (data.status === 'ready' && data.audio_base64) {
+      const blob = base64ToBlob(data.audio_base64, data.audio_mime || 'audio/mpeg');
+      return { status: 'ready', audioBlob: blob };
+    }
+    return { status: 'pending' };
+  } catch (err) {
+    console.warn('fetchTTSAudio error:', err);
+    return { status: 'error' };
+  }
+};
+
 
 /**
  * Gửi ghi âm lên API Voice Chat
@@ -237,7 +329,8 @@ export const unifiedChatAPI = async ({
       artifactAuthor: data.artifact_author,
       artifactSummary: data.artifact_summary,
       answerSource: data.answer_source,
-      processingSteps: data.processing_steps || []
+      processingSteps: data.processing_steps || [],
+      ttsToken: data.tts_token || null,
     };
   } catch (error) {
     clearTimeout(timeoutId);

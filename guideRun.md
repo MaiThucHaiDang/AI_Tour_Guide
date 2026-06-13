@@ -2,7 +2,7 @@
 
 ## 1. Cấu hình Môi trường (`.env`)
 
-Tạo file `.env` tại thư mục root (nếu chưa có) và cập nhật các API Keys:
+Tạo file `.env` tại thư mục root (nếu chưa có) và cập nhật các cấu hình sau:
 
 ```env
 ENVIRONMENT=development
@@ -15,9 +15,17 @@ GROQ_API_KEY=your_groq_api_key_here
 # Database (PostgreSQL)
 DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/ai_tour_guide
 
-# Cấu hình Model ưu tiên cho Storytelling (Giai đoạn Test)
+# ─── Cấu hình AI & LLM ────────────────────────────────────────────────────────
 LLM_PROVIDER_ORDER=gemini,groq
-STORYTELLING_MODEL=gemini-1.5-flash # Hoặc llama3-70b-8192 (Groq)
+GEMINI_TEXT_MODEL=gemini-2.5-flash
+GEMINI_VISION_MODEL=gemini-2.5-flash
+GROQ_LLM_MODEL=llama-3.3-70b-versatile
+GROQ_STT_MODEL=whisper-large-v3
+
+# Cấu hình độ sáng tạo (đã tối ưu 0.6) và số lượng token cho các loại câu hỏi
+LLM_TEMPERATURE=0.6
+LLM_MAX_TOKENS=2048
+LLM_MAX_TOKENS_FOLLOWUP=800
 ```
 
 ## 2. Khởi động Cơ sở dữ liệu
@@ -34,21 +42,20 @@ cd ..
 
 ```bash
 cd backend
-# Tạo và kích hoạt môi trường ảo
+# Tạo môi trường ảo
 python -m venv .venv
-.venv\Scripts\activate # Windows
 
 # Cài đặt thư viện (bao gồm networkx cho bản đồ)
-pip install -r requirements.txt
+.venv\Scripts\python -m pip install -r requirements.txt
 
-# Cập nhật Database Schema và nạp dữ liệu 16 công trình Kinh thành Huế
+# Cập nhật Database Schema và nạp dữ liệu 16 công trình Kinh thành Huế (ở thư mục root)
 cd ..
-alembic upgrade head
-python scripts/seed_data.py
+backend\.venv\Scripts\alembic upgrade head
+backend\.venv\Scripts\python scripts/seed_data.py
 
 # Chạy server Backend (Giữ terminal này chạy)
 cd backend
-uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+.venv\Scripts\python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 ## 4. Thiết lập Frontend
@@ -117,3 +124,17 @@ Nếu vị trí GPS của bạn hoặc các di tích hiển thị chưa chính x
 5.  **Lưu ý kỹ thuật:** 
     *   Ảnh bản đồ có độ xoay góc khoảng 37 độ so với hướng Bắc thật. Định vị GPS sẽ sử dụng thuật toán chiếu của Leaflet lên góc bounds để hiển thị chính xác tương đối.
     *   Routing sử dụng dịch vụ đi bộ OSRM dựa trên dữ liệu đường đi của OpenStreetMap. Nếu xuất phát quá xa, hệ thống sẽ tự động vẽ đường thẳng (đường chim bay) và hiển thị cảnh báo hướng dẫn ghim vị trí bắt đầu gần Đại Nội.
+
+## 8. Nhật ký trích xuất dữ liệu RAG (RAG Debug Logging)
+
+Hệ thống cung cấp cơ chế ghi nhật ký gỡ lỗi tự động nhằm phục vụ việc kiểm tra và quan sát xem dữ liệu di tích từ Database đã được trích xuất chính xác và nạp vào prompt của AI hay chưa:
+
+- **Đường dẫn file nhật ký:** `backend/data/rag_debug_log.txt` (tự động tạo sau câu hỏi chatbot đầu tiên).
+- **Định dạng ghi nhận:**
+  ```text
+  câu hỏi: <câu hỏi người dùng nhập>
+  data lấy từ data của bạn: <dữ liệu RAG Context trích xuất từ database>
+  --------------------
+  ```
+- Mỗi lượt trao đổi đều được ngăn cách bằng chuỗi `--------------------` để bạn dễ dàng theo dõi.
+

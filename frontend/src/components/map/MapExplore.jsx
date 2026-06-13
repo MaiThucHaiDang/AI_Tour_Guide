@@ -5,8 +5,8 @@ import L from 'leaflet';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-import { LocateFixed, Navigation, MapPin, Info, CheckCircle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Volume2, Wrench, Save, RefreshCw, Compass, X, Play, Route } from 'lucide-react';
-import { playTTS, getMapConfigAPI, getRouteAPI, saveMapConfigAPI, planTourAPI } from '../../services/apiService';
+import { LocateFixed, Navigation, MapPin, Info, CheckCircle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Volume2, Pause, Wrench, Save, RefreshCw, Compass, X, Play, Route } from 'lucide-react';
+import { playTTS, stopTTS, pauseTTS, resumeTTS, isTTSPaused, getMapConfigAPI, getRouteAPI, saveMapConfigAPI, planTourAPI } from '../../services/apiService';
 
 // Fix Leaflet default icon issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -16,9 +16,33 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
+// Trusted Types policy helper to support Leaflet DivIcon HTML in secure environments
+let leafletTrustedPolicy;
+if (typeof window !== 'undefined' && window.trustedTypes && window.trustedTypes.createPolicy) {
+  if (window.__leafletTrustedPolicy) {
+    leafletTrustedPolicy = window.__leafletTrustedPolicy;
+  } else {
+    try {
+      leafletTrustedPolicy = window.trustedTypes.createPolicy('leaflet-policy', {
+        createHTML: (string) => string
+      });
+      window.__leafletTrustedPolicy = leafletTrustedPolicy;
+    } catch (e) {
+      console.warn("Trusted Types policy creation failed:", e);
+    }
+  }
+}
+
+const getTrustedHTML = (htmlString) => {
+  if (leafletTrustedPolicy) {
+    return leafletTrustedPolicy.createHTML(htmlString);
+  }
+  return htmlString;
+};
+
 // Custom Icons
 const CurrentLocationIcon = new L.DivIcon({
-  html: '<span class="current-location-marker" aria-hidden="true"></span>',
+  html: getTrustedHTML('<span class="current-location-marker" aria-hidden="true"></span>'),
   className: 'current-location-div-icon',
   iconSize: [28, 28],
   iconAnchor: [14, 14],
@@ -65,9 +89,10 @@ const getNumberedIcon = (number, isActive = false) => {
   const border = isActive ? '3px solid #fff' : '2px solid #fff';
   const scale = isActive ? 'scale(1.1)' : 'scale(1.0)';
   const shadow = 'box-shadow: 0 4px 10px rgba(0,0,0,0.35);';
+  const htmlContent = `<div style="background-color: ${bgColor}; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; border: ${border}; ${shadow} transform: ${scale}; transition: all 0.2s;">${number}</div>`;
   
   return new L.DivIcon({
-    html: `<div style="background-color: ${bgColor}; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; border: ${border}; ${shadow} transform: ${scale}; transition: all 0.2s;">${number}</div>`,
+    html: getTrustedHTML(htmlContent),
     className: 'custom-numbered-marker',
     iconSize: [30, 30],
     iconAnchor: [15, 15],
@@ -154,7 +179,6 @@ const getDistance = (p1, p2) => {
 
 const MapExplore = ({
   onNavigateToStorytelling,
-  onInstructionUpdate,
   onArtifactFocus,
   onRouteStatusChange,
   language,
@@ -197,6 +221,7 @@ const MapExplore = ({
   
   // Map Leaflet Instance state to close popups programmatically
   const [mapInstance, setMapInstance] = useState(null);
+  const [isStepPaused, setIsStepPaused] = useState(false);
 
   // Fetch latest calibrated config from DB on mount
   useEffect(() => {
@@ -240,13 +265,7 @@ const MapExplore = ({
         setIsStepsExpanded(false);
         lastRouteStartRef.current = start;
 
-        if (onInstructionUpdate) {
-          const name = getArtifactName(end);
-          const fullGuide = isVi
-            ? `Lộ trình đi bộ từ vị trí của bạn đến ${name}: ${data.instructions.join(' ')}`
-            : `Walking directions from your location to ${name}: ${data.instructions.join(' ')}`;
-          onInstructionUpdate(fullGuide);
-        }
+
       } else {
         throw new Error(data.message || "Failed to find walking route");
       }
@@ -261,7 +280,7 @@ const MapExplore = ({
       setIsStepsExpanded(false);
       lastRouteStartRef.current = start;
     }
-  }, [getArtifactName, isVi, language, onInstructionUpdate]);
+  }, [getArtifactName, isVi, language]);
 
   // GPS watch tracking effect
   useEffect(() => {
@@ -525,6 +544,7 @@ const MapExplore = ({
 
   const handleStartNavigation = () => {
     setIsNavigatingStarted(true);
+    setIsStepPaused(false);
     if (instructions.length > 0) {
       playTTS(instructions[0], language);
     }
@@ -540,6 +560,8 @@ const MapExplore = ({
 
   const handleNextStep = () => {
     if (activeStepIndex < instructions.length - 1) {
+      stopTTS();
+      setIsStepPaused(false);
       const nextIdx = activeStepIndex + 1;
       setActiveStepIndex(nextIdx);
       playTTS(instructions[nextIdx], language);
@@ -548,6 +570,8 @@ const MapExplore = ({
 
   const handlePrevStep = () => {
     if (activeStepIndex > 0) {
+      stopTTS();
+      setIsStepPaused(false);
       const prevIdx = activeStepIndex - 1;
       setActiveStepIndex(prevIdx);
       playTTS(instructions[prevIdx], language);
@@ -555,12 +579,25 @@ const MapExplore = ({
   };
 
   const handleSpeakActiveStep = () => {
+    if (isStepPaused) {
+      resumeTTS();
+      setIsStepPaused(false);
+      return;
+    }
     if (instructions[activeStepIndex]) {
       playTTS(instructions[activeStepIndex], language);
+      setIsStepPaused(false);
     }
   };
 
+  const handlePauseStep = () => {
+    pauseTTS();
+    setIsStepPaused(true);
+  };
+
   const handleSelectStep = (idx) => {
+    stopTTS();
+    setIsStepPaused(false);
     setActiveStepIndex(idx);
     playTTS(instructions[idx], language);
   };
@@ -1205,17 +1242,44 @@ const MapExplore = ({
                   </div>
 
                   <div style={{ display: 'flex', gap: '6px' }}>
-                    <button 
-                      onClick={handleSpeakActiveStep}
-                      title={isVi ? 'Đọc lại' : 'Speak'}
-                      style={{
-                        padding: '6px', borderRadius: '8px', border: '1px solid #ddd',
-                        backgroundColor: '#fff', color: '#333', cursor: 'pointer',
-                        display: 'grid', placeItems: 'center'
-                      }}
-                    >
-                      <Volume2 size={16} />
-                    </button>
+                    {isStepPaused ? (
+                      <button 
+                        onClick={handleSpeakActiveStep}
+                        title={isVi ? 'Tiếp tục' : 'Resume'}
+                        style={{
+                          padding: '6px', borderRadius: '8px', border: '1px solid #0f5f59',
+                          backgroundColor: '#edf5ef', color: '#0f5f59', cursor: 'pointer',
+                          display: 'grid', placeItems: 'center'
+                        }}
+                      >
+                        <Play size={16} />
+                      </button>
+                    ) : (
+                      <>
+                        <button 
+                          onClick={handlePauseStep}
+                          title={isVi ? 'Tạm dừng' : 'Pause'}
+                          style={{
+                            padding: '6px', borderRadius: '8px', border: '1px solid #ddd',
+                            backgroundColor: '#fff', color: '#333', cursor: 'pointer',
+                            display: 'grid', placeItems: 'center'
+                          }}
+                        >
+                          <Pause size={16} />
+                        </button>
+                        <button 
+                          onClick={handleSpeakActiveStep}
+                          title={isVi ? 'Đọc lại' : 'Speak'}
+                          style={{
+                            padding: '6px', borderRadius: '8px', border: '1px solid #ddd',
+                            backgroundColor: '#fff', color: '#333', cursor: 'pointer',
+                            display: 'grid', placeItems: 'center'
+                          }}
+                        >
+                          <Volume2 size={16} />
+                        </button>
+                      </>
+                    )}
                     
                     <button 
                       onClick={handleNextStep} 

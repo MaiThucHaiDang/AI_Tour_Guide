@@ -19,13 +19,21 @@ class GroqLLMProvider(BaseLLM):
         self._client = AsyncGroq(api_key=api_key)
         self._model = current_settings.GROQ_LLM_MODEL
 
-    async def generate_response(self, prompt: str, context_data: str, lang: str) -> str:
+    async def generate_response(
+        self,
+        prompt: str,
+        context_data: str,
+        lang: str,
+        max_tokens: int | None = None,
+        system_prompt: str | None = None,
+    ) -> str:
         from utils.prompt_templates import build_voice_system_prompt
 
-        system_instruction = build_voice_system_prompt(lang)
+        system_instruction = system_prompt or build_voice_system_prompt(lang)
         current_settings = get_settings()
 
         try:
+            effective_max_tokens = max_tokens or current_settings.LLM_MAX_TOKENS
             message = await self._client.chat.completions.create(
                 model=self._model,
                 messages=[
@@ -33,7 +41,7 @@ class GroqLLMProvider(BaseLLM):
                     {"role": "user", "content": f"Context Data:\n{context_data}\n\nUser Prompt:\n{prompt}"},
                 ],
                 temperature=current_settings.LLM_TEMPERATURE,
-                max_tokens=current_settings.LLM_MAX_TOKENS,
+                max_tokens=effective_max_tokens,
             )
             text = message.choices[0].message.content
             if text is None:
@@ -42,10 +50,12 @@ class GroqLLMProvider(BaseLLM):
         except Exception as exc:
             raise RuntimeError(f"Groq LLM request failed: {exc}") from exc
 
-    async def generate_response_stream(self, prompt: str, context_data: str, lang: str):
+    async def generate_response_stream(
+        self, prompt: str, context_data: str, lang: str, system_prompt: str | None = None
+    ):
         from utils.prompt_templates import build_voice_system_prompt
 
-        system_instruction = build_voice_system_prompt(lang)
+        system_instruction = system_prompt or build_voice_system_prompt(lang)
         current_settings = get_settings()
 
         try:

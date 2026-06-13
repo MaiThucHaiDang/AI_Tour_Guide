@@ -201,7 +201,6 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
     location.initialTab === 'ask' ? initialArtifact : null
   ));
   const [currentArtifact, setCurrentArtifact] = useState(() => initialArtifact);
-  const [systemPrompt, setSystemPrompt] = useState(null);
   const [routeStatus, setRouteStatus] = useState(null);
   const [assistantSteps, setAssistantSteps] = useState([]);
   const [isOnline, setIsOnline] = useState(() => (
@@ -330,10 +329,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
     setActiveTab('ask');
   };
 
-  const handleMapInstruction = (text) => {
-    UnifiedChatPage.preload();
-    setSystemPrompt(text);
-  };
+
 
   const locationName = isVi
     ? (location.name_vi || DEFAULT_LOCATION.name_vi)
@@ -390,7 +386,6 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
         <section className={`tour-shell-panel map-panel ${activeTab === 'map' ? 'is-active' : ''}`}>
           <MapExplore
             onNavigateToStorytelling={handleNavigateToStorytelling}
-            onInstructionUpdate={handleMapInstruction}
             onArtifactFocus={handleArtifactFocus}
             onRouteStatusChange={setRouteStatus}
             language={language}
@@ -409,7 +404,6 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
               language={language}
               setLanguage={setLanguage}
               initialArtifact={targetArtifact}
-              externalPrompt={systemPrompt}
               onArtifactUpdate={handleArtifactFocus}
               onProcessingStepsUpdate={setAssistantSteps}
               embedded

@@ -29,3 +29,4 @@ class UnifiedChatResponse(BaseModel):
     artifact_year: Optional[int] = None
     artifact_author: Optional[str] = None
     artifact_summary: Optional[str] = None
+    tts_token: Optional[str] = None

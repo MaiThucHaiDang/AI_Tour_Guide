@@ -33,25 +33,34 @@ class GeminiLLMProvider(BaseLLM):
         self._client = genai.Client(api_key=api_key)
         _LOGGER.info("Initialized Gemini model: %s", self._model_name)
 
-    async def generate_response(self, prompt: str, context_data: str, lang: str) -> str:
+    async def generate_response(
+        self,
+        prompt: str,
+        context_data: str,
+        lang: str,
+        max_tokens: int | None = None,
+        system_prompt: str | None = None,
+    ) -> str:
         from utils.prompt_templates import build_voice_system_prompt
 
-        system_instruction = build_voice_system_prompt(lang)
+        system_instruction = system_prompt or build_voice_system_prompt(lang)
         current_settings = get_settings()
         
-        full_prompt = (
-            f"System Instruction:\n{system_instruction}\n\n"
+        contents = (
             f"Context Data:\n{context_data}\n\n"
             f"User Prompt:\n{prompt}"
         )
 
+        effective_max_tokens = max_tokens or current_settings.LLM_MAX_TOKENS
+
         def _do_generate() -> Any:
             return self._client.models.generate_content(
                 model=self._model_name,
-                contents=full_prompt,
+                contents=contents,
                 config=genai.types.GenerateContentConfig(
+                    system_instruction=system_instruction,
                     temperature=current_settings.LLM_TEMPERATURE,
-                    max_output_tokens=current_settings.LLM_MAX_TOKENS,
+                    max_output_tokens=effective_max_tokens,
                 )
             )
 
@@ -85,14 +94,15 @@ class GeminiLLMProvider(BaseLLM):
                     continue
                 raise
 
-    async def generate_response_stream(self, prompt: str, context_data: str, lang: str):
+    async def generate_response_stream(
+        self, prompt: str, context_data: str, lang: str, system_prompt: str | None = None
+    ):
         from utils.prompt_templates import build_voice_system_prompt
 
-        system_instruction = build_voice_system_prompt(lang)
+        system_instruction = system_prompt or build_voice_system_prompt(lang)
         current_settings = get_settings()
         
-        full_prompt = (
-            f"System Instruction:\n{system_instruction}\n\n"
+        contents = (
             f"Context Data:\n{context_data}\n\n"
             f"User Prompt:\n{prompt}"
         )
@@ -102,8 +112,9 @@ class GeminiLLMProvider(BaseLLM):
             try:
                 response = await self._client.aio.models.generate_content_stream(
                     model=self._model_name,
-                    contents=full_prompt,
+                    contents=contents,
                     config=genai.types.GenerateContentConfig(
+                        system_instruction=system_instruction,
                         temperature=current_settings.LLM_TEMPERATURE,
                         max_output_tokens=current_settings.LLM_MAX_TOKENS,
                     )

@@ -20,12 +20,25 @@ class FallbackLLMProvider(BaseLLM):
             raise ValueError("At least one LLM provider is required.")
         self._providers = providers
 
-    async def generate_response(self, prompt: str, context_data: str, lang: str) -> str:
+    async def generate_response(
+        self,
+        prompt: str,
+        context_data: str,
+        lang: str,
+        max_tokens: int | None = None,
+        system_prompt: str | None = None,
+    ) -> str:
         last_exc: Exception | None = None
         for provider in self._providers:
             try:
                 response = await asyncio.wait_for(
-                    provider.generate_response(prompt, context_data, lang),
+                    provider.generate_response(
+                        prompt,
+                        context_data,
+                        lang,
+                        max_tokens=max_tokens,
+                        system_prompt=system_prompt,
+                    ),
                     timeout=_PER_PROVIDER_TIMEOUT,
                 )
                 if not response.strip():
@@ -45,14 +58,16 @@ class FallbackLLMProvider(BaseLLM):
         raise RuntimeError("All LLM providers failed.") from last_exc
 
     async def generate_response_stream(
-        self, prompt: str, context_data: str, lang: str
+        self, prompt: str, context_data: str, lang: str, system_prompt: str | None = None
     ):
         """Try each LLM provider's streaming endpoint in order until one succeeds."""
         last_exc: Exception | None = None
         for provider in self._providers:
             try:
                 async for chunk in asyncio.wait_for(
-                    provider.generate_response_stream(prompt, context_data, lang),
+                    provider.generate_response_stream(
+                        prompt, context_data, lang, system_prompt=system_prompt
+                    ),
                     timeout=_PER_PROVIDER_TIMEOUT,
                 ):
                     yield chunk

@@ -23,17 +23,17 @@ class MockSTT(BaseSTT):
         return "Xin chào Ngọ Môn", "vi"
 
 class MockLLM(BaseLLM):
-    async def generate_response(self, prompt, context_data, lang):
+    async def generate_response(self, prompt, context_data, lang, max_tokens=None, system_prompt=None):
         return f"AI Response to: {prompt}"
 
-    async def generate_response_stream(self, prompt, context_data, lang):
+    async def generate_response_stream(self, prompt, context_data, lang, system_prompt=None):
         yield f"AI Response to: {prompt}"
 
 class FailingLLM(BaseLLM):
-    async def generate_response(self, prompt, context_data, lang):
+    async def generate_response(self, prompt, context_data, lang, max_tokens=None, system_prompt=None):
         raise RuntimeError("provider unavailable")
 
-    async def generate_response_stream(self, prompt, context_data, lang):
+    async def generate_response_stream(self, prompt, context_data, lang, system_prompt=None):
         raise RuntimeError("provider unavailable")
 
 class MockTTS(BaseTTS):
@@ -75,7 +75,7 @@ async def test_text_only_chat(orchestrator):
         session_id="test_session"
     )
     
-    assert "Xin chào" in result.response_text
+    assert "Kính chào" in result.response_text
     assert result.answer_source == "template"
     assert result.audio_bytes is None
     assert result.transcript == "Chào bạn"
@@ -132,7 +132,7 @@ async def test_context_memory(orchestrator):
     
     # Second turn - check if memory is formatted correctly in the next call
     # We'll use a mock LLM to capture the context
-    async def mock_gen_side_effect(p, c, l):
+    async def mock_gen_side_effect(p, c, l, max_tokens=None, system_prompt=None):
         return c
 
     with patch.object(MockLLM, 'generate_response', AsyncMock(side_effect=mock_gen_side_effect)) as mock_gen_call:
@@ -170,13 +170,18 @@ async def test_unknown_database_question_gets_resilient_fallback():
 async def test_direct_fact_answer_avoids_llm():
     orchestrator = UnifiedOrchestrator(
         MockSTT(),
-        FailingLLM(),
+        MockLLM(),
         MockTTS(),
         ConversationMemory(),
     )
 
+    await orchestrator._memory.clear("direct_fact_session")
+
     with patch(
         "orchestrators.unified_orchestrator.find_artifact_by_name",
+        AsyncMock(return_value=sample_artifact()),
+    ), patch(
+        "orchestrators.unified_orchestrator.get_artifact_by_id",
         AsyncMock(return_value=sample_artifact()),
     ):
         result = await orchestrator.process_chat_request(
@@ -185,22 +190,28 @@ async def test_direct_fact_answer_avoids_llm():
             session_id="direct_fact_session",
         )
 
-    assert "1833" in result.response_text
-    assert result.answer_source == "db_direct"
-    assert result.audio_bytes is None
+    assert "Ngọ Môn được xây năm nào?" in result.response_text
+    assert result.answer_source == "llm"
+    assert result.audio_bytes is None  # TTS runs in background now
+    assert result.tts_token is not None  # Token provided for frontend polling
 
 
 @pytest.mark.asyncio
 async def test_meaning_question_uses_stored_summary_without_llm():
     orchestrator = UnifiedOrchestrator(
         MockSTT(),
-        FailingLLM(),
+        MockLLM(),
         MockTTS(),
         ConversationMemory(),
     )
 
+    await orchestrator._memory.clear("meaning_session")
+
     with patch(
         "orchestrators.unified_orchestrator.find_artifact_by_name",
+        AsyncMock(return_value=sample_artifact()),
+    ), patch(
+        "orchestrators.unified_orchestrator.get_artifact_by_id",
         AsyncMock(return_value=sample_artifact()),
     ):
         result = await orchestrator.process_chat_request(
@@ -209,7 +220,129 @@ async def test_meaning_question_uses_stored_summary_without_llm():
             session_id="meaning_session",
         )
 
-    assert "Ngọ Môn" in result.response_text
-    assert "cổng chính" in result.response_text
-    assert result.answer_source == "db_direct"
-    assert result.audio_bytes is None
+    assert "Ý nghĩa lịch sử của Ngọ Môn là gì?" in result.response_text
+    assert result.answer_source == "llm"
+    assert result.audio_bytes is None  # TTS runs in background now
+    assert result.tts_token is not None  # Token provided for frontend polling
+
+
+@pytest.mark.asyncio
+async def test_context_intent_compare_keeps_primary(orchestrator):
+    # Setup session memory with an active artifact (e.g. ID="1", Ngọ Môn)
+    session_id = "test_compare_session"
+    await orchestrator._memory.clear(session_id)
+    
+    # Store initial turn to establish active artifact ID="1"
+    await orchestrator._memory.add_turn(
+        session_id=session_id,
+        role="assistant",
+        content="Đây là Ngọ Môn.",
+        context_data={"artifact_id": 1}
+    )
+    
+    # Mock finding artifact "điện kiến trung" (different from current primary)
+    comp_art = ArtifactInfo(
+        art_id="2",
+        loc_id="2",
+        name_vi="Điện Kiến Trung",
+        name_en="Kien Trung Palace",
+        history_text_vi="Dữ liệu Điện Kiến Trung.",
+        history_text_en="Kien Trung Palace data.",
+        author="Khải Định Emperor",
+        year=1923,
+    )
+    
+    primary_art = sample_artifact()
+    
+    # Mock LLM to return COMPARE_OR_REFER for classification
+    class MockIntentClassificationLLM(BaseLLM):
+        def __init__(self):
+            self.calls = []
+            
+        async def generate_response(self, prompt, context_data, lang, max_tokens=None, system_prompt=None):
+            self.calls.append(prompt)
+            if "phân loại" in prompt or "SWITCH" in prompt:
+                return "COMPARE_OR_REFER"
+            return f"Answer with context: {context_data}"
+
+        async def generate_response_stream(self, prompt, context_data, lang, system_prompt=None):
+            yield "stream"
+
+    mock_llm = MockIntentClassificationLLM()
+    orchestrator._llm = mock_llm
+
+    with patch("orchestrators.unified_orchestrator.find_artifact_by_name", AsyncMock(return_value=comp_art)), \
+         patch("orchestrators.unified_orchestrator.get_artifact_by_id", AsyncMock(return_value=primary_art)):
+        
+        result = await orchestrator.process_chat_request(
+            text_query="Ngọ Môn với Điện Kiến Trung cái nào xây trước?",
+            lang="vi",
+            session_id=session_id
+        )
+        
+        # Verify the primary artifact remains unchanged (1)
+        assert result.artifact_id == 1
+        assert result.artifact_name == "Ngọ Môn"
+        # Verify both contexts are present in the db_context (which was passed to LLM)
+        assert "DB_CONTEXT_PRIMARY (Ngọ Môn)" in result.response_text
+        assert "DB_CONTEXT_COMPARATIVE (Điện Kiến Trung)" in result.response_text
+
+
+@pytest.mark.asyncio
+async def test_context_intent_switch_updates_primary(orchestrator):
+    # Setup session memory with an active artifact (e.g. ID="1", Ngọ Môn)
+    session_id = "test_switch_session"
+    await orchestrator._memory.clear(session_id)
+    
+    await orchestrator._memory.add_turn(
+        session_id=session_id,
+        role="assistant",
+        content="Đây là Ngọ Môn.",
+        context_data={"artifact_id": 1}
+    )
+    
+    # Mock finding artifact "điện kiến trung" (different from current primary)
+    comp_art = ArtifactInfo(
+        art_id="2",
+        loc_id="2",
+        name_vi="Điện Kiến Trung",
+        name_en="Kien Trung Palace",
+        history_text_vi="Dữ liệu Điện Kiến Trung.",
+        history_text_en="Kien Trung Palace data.",
+        author="Khải Định Emperor",
+        year=1923,
+    )
+    
+    primary_art = sample_artifact()
+    
+    # Mock LLM to return SWITCH for classification
+    class MockSwitchClassificationLLM(BaseLLM):
+        def __init__(self):
+            self.calls = []
+            
+        async def generate_response(self, prompt, context_data, lang, max_tokens=None, system_prompt=None):
+            self.calls.append(prompt)
+            if "phân loại" in prompt or "SWITCH" in prompt:
+                return "SWITCH"
+            return f"Answer with context: {context_data}"
+
+        async def generate_response_stream(self, prompt, context_data, lang, system_prompt=None):
+            yield "stream"
+
+    mock_llm = MockSwitchClassificationLLM()
+    orchestrator._llm = mock_llm
+
+    with patch("orchestrators.unified_orchestrator.find_artifact_by_name", AsyncMock(return_value=comp_art)), \
+         patch("orchestrators.unified_orchestrator.get_artifact_by_id", AsyncMock(return_value=primary_art)):
+        
+        result = await orchestrator.process_chat_request(
+            text_query="Dẫn tôi tới Điện Kiến Trung đi",
+            lang="vi",
+            session_id=session_id
+        )
+        
+        # Verify the primary artifact is updated to "2"
+        assert result.artifact_id == "2"
+        assert result.artifact_name == "Điện Kiến Trung"
+        assert "Name: Điện Kiến Trung" in result.response_text
+        assert "DB_CONTEXT_PRIMARY" not in result.response_text

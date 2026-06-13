@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   ArrowLeft,
   Camera,
@@ -10,6 +10,8 @@ import {
   Loader2,
   MapPin,
   Mic,
+  Pause,
+  Play,
   RotateCcw,
   Send,
   Sparkles,
@@ -22,9 +24,22 @@ import {
 } from 'lucide-react';
 import LanguageToggle from '../shared/LanguageToggle';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder';
-import { unifiedChatAPI, playTTS, stopTTS, submitFeedbackAPI } from '../../services/apiService';
+import {
+  unifiedChatAPI,
+  playTTS,
+  stopTTS,
+  pauseTTS,
+  resumeTTS,
+  isTTSPlaying,
+  isTTSPaused,
+  setTTSAudioElement,
+  fetchTTSAudio,
+  submitFeedbackAPI,
+} from '../../services/apiService';
 import { compressImage } from '../../utils/imageUtils';
 import CameraScanner from '../CameraScanner';
+
+const AUDIO_HISTORY_MAX = 3;
 
 const COPY = {
   vi: {
@@ -135,7 +150,6 @@ const UnifiedChatPage = ({
   language,
   setLanguage,
   initialArtifact,
-  externalPrompt,
   onArtifactUpdate,
   onProcessingStepsUpdate,
   embedded = false,
@@ -153,6 +167,9 @@ const UnifiedChatPage = ({
   const [selectedLocation, setSelectedLocation] = useState(0);
   const [mobileGuidePanel, setMobileGuidePanel] = useState('prompts');
   const [showJumpToLatest, setShowJumpToLatest] = useState(false);
+  const [playingMsgId, setPlayingMsgId] = useState(null);
+  const [pausedMsgId, setPausedMsgId] = useState(null);
+  const [audioHistory, setAudioHistory] = useState([]); // { id, audioBlob }
 
   const messagesEndRef = useRef(null);
   const messageListRef = useRef(null);
@@ -162,10 +179,19 @@ const UnifiedChatPage = ({
   const fileInputRef = useRef(null);
   const workspaceRef = useRef(null);
   const currentArtifactRef = useRef(null);
+  const ttsCheckIntervalRef = useRef(null);
 
   useEffect(() => {
     currentArtifactRef.current = currentArtifact;
   }, [currentArtifact]);
+
+  // Clean up TTS polling on unmount
+  useEffect(() => {
+    return () => {
+      if (ttsCheckIntervalRef.current) clearTimeout(ttsCheckIntervalRef.current);
+      stopTTS();
+    };
+  }, []);
 
   const {
     isRecording,
@@ -186,23 +212,7 @@ const UnifiedChatPage = ({
     onProcessingStepsUpdate?.(processingSteps);
   }, [onProcessingStepsUpdate, processingSteps]);
 
-  useEffect(() => {
-    if (externalPrompt) {
-      // IN RA VÀ ĐỌC: Thêm tin nhắn vào khung chat cục bộ dưới danh nghĩa AI
-      const navMessage = {
-        id: `nav-${Date.now()}`,
-        role: 'ai',
-        type: 'text',
-        content: externalPrompt,
-        timestamp: new Date(),
-        source: 'navigation'
-      };
-      setMessages(prev => [...prev, navMessage]);
-      
-      // Tự động đọc chỉ dẫn
-      playTTS(externalPrompt, language);
-    }
-  }, [externalPrompt]);
+
 
   useEffect(() => {
     if (initialArtifact) {
@@ -337,12 +347,14 @@ const UnifiedChatPage = ({
 
       setProcessingSteps(response.processingSteps || []);
 
+      const aiMsgId = `ai-${Date.now()}`;
       const aiMsg = {
-        id: `ai-${Date.now()}`,
+        id: aiMsgId,
         role: 'ai',
         type: 'text',
         content: response.responseText || '',
-        audioBlob: response.audioBlob,
+        audioBlob: response.audioBlob,  // may be null (text-first)
+        ttsToken: response.ttsToken,
         timestamp: new Date(),
         source: response.answerSource,
         artifactData: response.artifactId ? {
@@ -352,6 +364,11 @@ const UnifiedChatPage = ({
       };
       setIsProcessing(false);
       await appendAssistantMessageProgressively(aiMsg);
+
+      // Poll for backend TTS audio if ttsToken is present and no inline audio
+      if (response.ttsToken && (!response.audioBlob || response.audioBlob.size === 0)) {
+        pollTTSAudio(response.ttsToken, aiMsgId);
+      }
     } catch (error) {
       addErrorMessage(error.message);
       setProcessingSteps([]);
@@ -445,13 +462,15 @@ const UnifiedChatPage = ({
       item.id === streamId ? { ...item, content: fullContent, isStreaming: false } : item
     )));
 
-    if (autoSpeak) {
+    if (autoSpeak && message.audioBlob && message.audioBlob.size > 0) {
+      // If inline audio is available, play it immediately
       handleSpeakMessage(message);
-    } else {
+    } else if (!autoSpeak) {
       if (onNarrationFinished && currentArtifactRef.current) {
         onNarrationFinished(currentArtifactRef.current);
       }
     }
+    // If autoSpeak but no inline audio, pollTTSAudio will handle playback
   };
 
   const getFriendlyError = (message = '') => {
@@ -527,7 +546,7 @@ const UnifiedChatPage = ({
     resetRecording();
   }, [recordingError, resetRecording]);
 
-  const playAudioBlob = async (blob) => {
+  const playAudioBlob = async (blob, msgId) => {
     stopTTS();
     if (!blob || blob.size === 0) return false;
     if (audioRef.current) {
@@ -537,10 +556,15 @@ const UnifiedChatPage = ({
     const url = URL.createObjectURL(blob);
     const audio = new Audio(url);
     audioRef.current = audio;
+    setTTSAudioElement(audio); // register for pause/resume
+    setPlayingMsgId(msgId || null);
+    setPausedMsgId(null);
     try {
       await audio.play();
       audio.onended = () => {
         URL.revokeObjectURL(url);
+        setPlayingMsgId(null);
+        setPausedMsgId(null);
         if (onNarrationFinished && currentArtifactRef.current) {
           onNarrationFinished(currentArtifactRef.current);
         }
@@ -549,17 +573,99 @@ const UnifiedChatPage = ({
     } catch (err) {
       console.error('Playback failed:', err);
       URL.revokeObjectURL(url);
+      setPlayingMsgId(null);
       return false;
     }
   };
 
+  /**
+   * Poll backend for TTS audio (up to 3 times, 3s apart).
+   * When audio arrives, save to audioHistory and auto-play if autoSpeak.
+   */
+  const pollTTSAudio = useCallback((ttsToken, msgId) => {
+    let attempts = 0;
+    const maxAttempts = 3;
+    const poll = async () => {
+      attempts++;
+      const result = await fetchTTSAudio(ttsToken);
+      if (result.status === 'ready' && result.audioBlob) {
+        // Save to message and audio history
+        setMessages(prev => prev.map(m =>
+          m.id === msgId ? { ...m, audioBlob: result.audioBlob } : m
+        ));
+        saveToAudioHistory(msgId, result.audioBlob);
+        // Auto-play if enabled
+        if (autoSpeak) {
+          playAudioBlob(result.audioBlob, msgId);
+        }
+        return;
+      }
+      if (attempts < maxAttempts) {
+        ttsCheckIntervalRef.current = setTimeout(poll, 3000);
+      } else {
+        // Fallback: use Web Speech API
+        if (autoSpeak) {
+          const msg = messages.find(m => m.id === msgId) || {};
+          if (msg.content) {
+            setPlayingMsgId(msgId);
+            playTTS(msg.content, language, () => {
+              setPlayingMsgId(null);
+              setPausedMsgId(null);
+              if (onNarrationFinished && currentArtifactRef.current) {
+                onNarrationFinished(currentArtifactRef.current);
+              }
+            });
+          }
+        }
+      }
+    };
+    // Start polling after 2.5 seconds (give backend time)
+    ttsCheckIntervalRef.current = setTimeout(poll, 2500);
+  }, [autoSpeak, language, messages, onNarrationFinished]);
+
+  const saveToAudioHistory = (msgId, audioBlob) => {
+    setAudioHistory(prev => {
+      const filtered = prev.filter(h => h.id !== msgId);
+      const next = [...filtered, { id: msgId, audioBlob }];
+      // Keep only AUDIO_HISTORY_MAX most recent
+      return next.slice(-AUDIO_HISTORY_MAX);
+    });
+  };
+
+  /**
+   * Speak/Pause/Resume toggle for a message.
+   */
   const handleSpeakMessage = async (message) => {
+    // If this message is currently playing → pause
+    if (playingMsgId === message.id && !pausedMsgId) {
+      pauseTTS();
+      setPlayingMsgId(null);
+      setPausedMsgId(message.id);
+      return;
+    }
+    // If this message is paused → resume
+    if (pausedMsgId === message.id) {
+      resumeTTS();
+      setPausedMsgId(null);
+      setPlayingMsgId(message.id);
+      return;
+    }
+    // Otherwise, start playing
+    // Try audioBlob first, then audioHistory, then Web Speech
+    let blob = message.audioBlob;
+    if (!blob || blob.size === 0) {
+      const historyEntry = audioHistory.find(h => h.id === message.id);
+      if (historyEntry) blob = historyEntry.audioBlob;
+    }
     let played = false;
-    if (message.audioBlob && message.audioBlob.size > 0) {
-      played = await playAudioBlob(message.audioBlob);
+    if (blob && blob.size > 0) {
+      played = await playAudioBlob(blob, message.id);
     }
     if (!played && message.content) {
+      setPlayingMsgId(message.id);
       playTTS(message.content, language, () => {
+        setPlayingMsgId(null);
+        setPausedMsgId(null);
         if (onNarrationFinished && currentArtifactRef.current) {
           onNarrationFinished(currentArtifactRef.current);
         }
@@ -889,8 +995,13 @@ const UnifiedChatPage = ({
                       <p>{message.content}</p>
                       {message.isStreaming && <span className="stream-caret" aria-hidden="true" />}
                       {message.role === 'ai' && message.type !== 'error' && (
-                        <button onClick={() => handleSpeakMessage(message)} aria-label={copy.listen}>
-                          <Volume2 size={14} />
+                        <button
+                          className={`tts-control-btn ${playingMsgId === message.id ? 'is-playing' : ''} ${pausedMsgId === message.id ? 'is-paused' : ''}`}
+                          onClick={() => handleSpeakMessage(message)}
+                          aria-label={playingMsgId === message.id ? (language === 'vi' ? 'Tạm dừng' : 'Pause') : pausedMsgId === message.id ? (language === 'vi' ? 'Tiếp tục' : 'Resume') : copy.listen}
+                          title={playingMsgId === message.id ? (language === 'vi' ? 'Tạm dừng' : 'Pause') : pausedMsgId === message.id ? (language === 'vi' ? 'Tiếp tục' : 'Resume') : copy.listen}
+                        >
+                          {playingMsgId === message.id ? <Pause size={14} /> : pausedMsgId === message.id ? <Play size={14} /> : <Volume2 size={14} />}
                         </button>
                       )}
                     </div>
@@ -1535,6 +1646,28 @@ const UnifiedChatPage = ({
         .message-body button:hover {
           color: var(--ui-text);
           background: var(--ui-surface-strong);
+        }
+
+        .tts-control-btn {
+          transition: color 0.2s, background 0.2s, box-shadow 0.2s;
+          flex-shrink: 0;
+          padding: 4px;
+        }
+
+        .tts-control-btn.is-playing {
+          color: #16835e !important;
+          background: #e8f5e9 !important;
+          animation: tts-pulse 1.5s ease-in-out infinite;
+        }
+
+        .tts-control-btn.is-paused {
+          color: #b2820a !important;
+          background: #fff8e1 !important;
+        }
+
+        @keyframes tts-pulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(22, 131, 94, 0.3); }
+          50% { box-shadow: 0 0 0 5px rgba(22, 131, 94, 0); }
         }
 
         .message.user .message-body button {

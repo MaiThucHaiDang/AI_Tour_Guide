@@ -31,8 +31,10 @@ Hệ thống sử dụng dữ liệu thực tế tại Kinh thành Huế (Đại
 ### Backend:
 ```bash
 cd backend
-# Cài đặt các thư viện
-pip install -r requirements.txt
+# Tạo môi trường ảo
+python -m venv .venv
+# Cài đặt các thư viện bằng python trong môi trường ảo
+.venv\Scripts\python -m pip install -r requirements.txt
 ```
 
 ### Frontend:
@@ -44,9 +46,9 @@ npm install
 
 ### Khởi tạo lại Dữ liệu:
 ```bash
-# Đảm bảo Docker Postgres đang chạy
-alembic upgrade head
-python scripts/seed_data.py
+# Đảm bảo Docker Postgres đang chạy (chạy ở thư mục root)
+backend\.venv\Scripts\alembic upgrade head
+backend\.venv\Scripts\python scripts/seed_data.py
 ```
 
 ---
@@ -56,7 +58,7 @@ python scripts/seed_data.py
 ### Terminal 1 - Backend:
 ```bash
 cd backend
-uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+.venv\Scripts\python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 ### Terminal 2 - Frontend:

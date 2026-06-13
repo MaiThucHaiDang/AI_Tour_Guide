@@ -30,8 +30,15 @@ from repositories.artifact_repository import (
     _replace_canonical_phrases,
     _replace_canonical_tokens,
 )
+from unittest.mock import AsyncMock, patch
 
 TEST_AUDIO = b"x" * 1200
+
+
+@pytest.fixture(autouse=True)
+def mock_graph_search():
+    with patch("orchestrators.voice_orchestrator.graph_augmented_search", AsyncMock(return_value=[])):
+        yield
 
 
 class MockTTSProvider(BaseTTS):
@@ -50,13 +57,13 @@ async def test_unit_4_language_accuracy(monkeypatch: pytest.MonkeyPatch) -> None
         def __init__(self) -> None:
             self.calls: list[dict[str, str]] = []
 
-        async def generate_response(self, prompt: str, context_data: str, lang: str) -> str:
+        async def generate_response(self, prompt: str, context_data: str, lang: str, max_tokens: int | None = None, system_prompt: str | None = None) -> str:
             self.calls.append({"prompt": prompt, "context_data": context_data, "lang": lang})
             if lang == "vi":
                 return "Đây là câu trả lời ngắn gọn bằng tiếng Việt."
             return "This is a concise English answer."
 
-        async def generate_response_stream(self, prompt: str, context_data: str, lang: str):
+        async def generate_response_stream(self, prompt: str, context_data: str, lang: str, system_prompt: str | None = None):
             self.calls.append({"prompt": prompt, "context_data": context_data, "lang": lang})
             if lang == "vi":
                 yield "Đây là câu trả lời ngắn gọn bằng tiếng Việt."
@@ -122,13 +129,13 @@ async def test_unit_5_language_switching() -> None:
         def __init__(self):
             self.calls: list[tuple[str, str, str]] = []
 
-        async def generate_response(self, prompt, context_data, lang):
+        async def generate_response(self, prompt, context_data, lang, max_tokens=None, system_prompt=None):
             self.calls.append((prompt, context_data, lang))
             if lang == "vi":
                 return "Đây là câu trả lời tiếng Việt cho lượt đầu."
             return "This is the English answer for the next turn."
 
-        async def generate_response_stream(self, prompt, context_data, lang):
+        async def generate_response_stream(self, prompt, context_data, lang, system_prompt=None):
             self.calls.append((prompt, context_data, lang))
             if lang == "vi":
                 yield "Đây là câu trả lời tiếng Việt cho lượt đầu."
@@ -216,10 +223,10 @@ async def test_voice_llm_failure_returns_fallback_text() -> None:
             return "Ngọ Môn được xây năm nào?", "vi"
 
     class FailingLLMProvider(BaseLLM):
-        async def generate_response(self, prompt: str, context_data: str, lang: str) -> str:
+        async def generate_response(self, prompt: str, context_data: str, lang: str, max_tokens: int | None = None, system_prompt: str | None = None) -> str:
             raise RuntimeError("quota exceeded")
 
-        async def generate_response_stream(self, prompt: str, context_data: str, lang: str):
+        async def generate_response_stream(self, prompt: str, context_data: str, lang: str, system_prompt: str | None = None):
             raise RuntimeError("quota exceeded")
 
     orchestrator = VoiceOrchestrator(
@@ -243,10 +250,10 @@ async def test_voice_tts_failure_keeps_text_response() -> None:
             return "Tell me about Ngo Mon", "en"
 
     class MockLLMProvider(BaseLLM):
-        async def generate_response(self, prompt: str, context_data: str, lang: str) -> str:
+        async def generate_response(self, prompt: str, context_data: str, lang: str, max_tokens: int | None = None, system_prompt: str | None = None) -> str:
             return "Ngo Mon Gate is the main southern gate of Hue Imperial City."
 
-        async def generate_response_stream(self, prompt: str, context_data: str, lang: str):
+        async def generate_response_stream(self, prompt: str, context_data: str, lang: str, system_prompt: str | None = None):
             yield "Ngo Mon Gate is the main southern gate of Hue Imperial City."
 
     orchestrator = VoiceOrchestrator(

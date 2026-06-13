@@ -30,14 +30,14 @@ class BaseLLM(ABC):
 
     @abstractmethod
     async def generate_response(
-        self, prompt: str, context_data: str, lang: str
+        self, prompt: str, context_data: str, lang: str, max_tokens: int | None = None, system_prompt: str | None = None
     ) -> str:
         """Generate a response using the language model."""
         pass
 
     @abstractmethod
     async def generate_response_stream(
-        self, prompt: str, context_data: str, lang: str
+        self, prompt: str, context_data: str, lang: str, system_prompt: str | None = None
     ):
         """Generate a response stream using the language model."""
         pass

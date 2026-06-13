@@ -147,6 +147,7 @@ async def unified_chat(
             artifact_year=result.artifact_year,
             artifact_author=result.artifact_author,
             artifact_summary=result.artifact_summary,
+            tts_token=result.tts_token,
         )
         
     except HTTPException:
@@ -157,3 +158,26 @@ async def unified_chat(
             status_code=500,
             detail="Không xử lý được yêu cầu lúc này. Vui lòng thử lại.",
         ) from exc
+
+
+@router.get("/tts/fetch")
+async def fetch_tts_audio(
+    tts_token: str,
+):
+    """Poll for background TTS audio result by token.
+
+    Returns:
+      - status "ready" with audio_base64 when synthesis is complete.
+      - status "pending" when synthesis is still in progress.
+    """
+    if not tts_token or len(tts_token) > 64:
+        raise HTTPException(status_code=400, detail="Invalid tts_token")
+
+    audio_bytes = UnifiedOrchestrator.fetch_tts_audio(tts_token)
+    if audio_bytes:
+        return {
+            "status": "ready",
+            "audio_base64": base64.b64encode(audio_bytes).decode("ascii"),
+            "audio_mime": "audio/mpeg",
+        }
+    return {"status": "pending"}

@@ -5,6 +5,7 @@ from models.bilingual_content import BilingualContent
 from models.feedback_event import FeedbackEvent
 from models.graph import ArtifactFAQ, ArtifactRelation, KnowledgeFact
 from models.chat_history import ChatTurn
+from models.blog import BlogComment, BlogPost
 
 __all__ = [
     "Location",
@@ -16,4 +17,6 @@ __all__ = [
     "ArtifactRelation",
     "KnowledgeFact",
     "ChatTurn",
+    "BlogComment",
+    "BlogPost",
 ]

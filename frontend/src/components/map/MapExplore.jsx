@@ -2,25 +2,27 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, Polygon, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { LocateFixed, Navigation, MapPin, Info, CheckCircle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Volume2, Wrench, Save, RefreshCw, Compass, X, Play, Route } from 'lucide-react';
 import { playTTS, getMapConfigAPI, getRouteAPI, saveMapConfigAPI, planTourAPI } from '../../services/apiService';
 
 // Fix Leaflet default icon issue
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
 });
 
 // Custom Icons
-const CurrentLocationIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
+const CurrentLocationIcon = new L.DivIcon({
+  html: '<span class="current-location-marker" aria-hidden="true"></span>',
+  className: 'current-location-div-icon',
+  iconSize: [28, 28],
+  iconAnchor: [14, 14],
+  popupAnchor: [0, -16]
 });
 
 // Helper function to return beautiful custom 2.5D architecture icons
@@ -50,7 +52,7 @@ const getCustomIcon = (artifactId, isTarget = false) => {
   const size = isTarget ? 58 : 46;
   return new L.Icon({
     iconUrl: `/assets/icons/${iconName}`,
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+    shadowUrl: markerShadow,
     iconSize: [size, size],
     iconAnchor: [size / 2, size - 2],
     popupAnchor: [0, -size + 10],
@@ -798,10 +800,15 @@ const MapExplore = ({
         zoomControl={false}
         maxZoom={19}
         minZoom={14}
+        preferCanvas
+        wheelDebounceTime={80}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          keepBuffer={2}
+          updateWhenIdle
+          updateWhenZooming={false}
         />
         <Polygon 
           positions={IMPERIAL_CITY_BOUNDARY} 

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeft,
   Compass,
@@ -13,15 +13,37 @@ import {
   Loader2
 } from 'lucide-react';
 import MapExplore from '../map/MapExplore';
-import UnifiedChatPage from '../voice/UnifiedChatPage';
 import LanguageToggle from '../shared/LanguageToggle';
-import GameHost from '../game/GameHost';
 import { getNextSuggestionAPI, createGameRoomAPI } from '../../services/apiService';
+
+const lazyWithPreload = (factory) => {
+  let modulePromise;
+  const load = () => {
+    modulePromise ||= factory();
+    return modulePromise;
+  };
+  const Component = lazy(load);
+  Component.preload = load;
+  return Component;
+};
+
+const UnifiedChatPage = lazyWithPreload(() => import('../voice/UnifiedChatPage'));
+const GameHost = lazyWithPreload(() => import('../game/GameHost'));
 
 const DEFAULT_LOCATION = {
   id: 1,
   name_vi: 'Kinh thành Huế (Đại Nội)',
   name_en: 'Hue Imperial City'
+};
+
+const PanelLoader = ({ language }) => {
+  const isVi = language === 'vi';
+  return (
+    <div className="tour-panel-loader" role="status" aria-live="polite">
+      <span aria-hidden="true" />
+      <strong>{isVi ? 'Đang mở hướng dẫn...' : 'Opening guide...'}</strong>
+    </div>
+  );
 };
 
 const normalizeArtifact = (artifact, language) => {
@@ -205,6 +227,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
 
   const handleCreateGame = async () => {
     if (visitedIds.length < 2) return;
+    GameHost.preload();
     try {
       setLoadingGame(true);
       const res = await createGameRoomAPI(visitedIds, language);
@@ -277,6 +300,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
 
   const handleNavigateToStorytelling = (artifact) => {
     if (!artifact) return;
+    UnifiedChatPage.preload();
     const normalized = normalizeArtifact(artifact, language);
     const nextArtifact = {
       ...artifact,
@@ -292,6 +316,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
 
   const handleAskArtifact = (artifact) => {
     if (!artifact) return;
+    UnifiedChatPage.preload();
     const normalized = normalizeArtifact(artifact, language);
     const nextArtifact = {
       ...artifact,
@@ -306,6 +331,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
   };
 
   const handleMapInstruction = (text) => {
+    UnifiedChatPage.preload();
     setSystemPrompt(text);
   };
 
@@ -377,17 +403,19 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
         </section>
 
         <section className={`tour-shell-panel ask-panel ${activeTab === 'ask' ? 'is-active' : ''}`}>
-          <UnifiedChatPage
-            onBack={onBack}
-            language={language}
-            setLanguage={setLanguage}
-            initialArtifact={targetArtifact}
-            externalPrompt={systemPrompt}
-            onArtifactUpdate={handleArtifactFocus}
-            onProcessingStepsUpdate={setAssistantSteps}
-            embedded
-            onNarrationFinished={handleNarrationFinished}
-          />
+          <Suspense fallback={<PanelLoader language={language} />}>
+            <UnifiedChatPage
+              onBack={onBack}
+              language={language}
+              setLanguage={setLanguage}
+              initialArtifact={targetArtifact}
+              externalPrompt={systemPrompt}
+              onArtifactUpdate={handleArtifactFocus}
+              onProcessingStepsUpdate={setAssistantSteps}
+              embedded
+              onNarrationFinished={handleNarrationFinished}
+            />
+          </Suspense>
         </section>
 
         <section className={`tour-shell-panel artifact-panel-mobile ${activeTab === 'artifact' ? 'is-active' : ''}`}>
@@ -494,7 +522,16 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           <button
             key={key}
             className={activeTab === key ? 'active' : ''}
-            onClick={() => setActiveTab(key)}
+            onClick={() => {
+              if (key === 'ask') UnifiedChatPage.preload();
+              setActiveTab(key);
+            }}
+            onMouseEnter={() => {
+              if (key === 'ask') UnifiedChatPage.preload();
+            }}
+            onFocus={() => {
+              if (key === 'ask') UnifiedChatPage.preload();
+            }}
             aria-current={activeTab === key ? 'page' : undefined}
           >
             <Icon size={21} />
@@ -560,15 +597,17 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           display: gameMinimized ? 'none' : 'flex',
           flexDirection: 'column'
         }}>
-          <GameHost 
-            roomCode={activeRoomCode} 
-            language={language} 
-            onBack={() => {
-              setActiveRoomCode(null);
-              setGameMinimized(false);
-            }} 
-            onMinimize={() => setGameMinimized(true)}
-          />
+          <Suspense fallback={<PanelLoader language={language} />}>
+            <GameHost
+              roomCode={activeRoomCode}
+              language={language}
+              onBack={() => {
+                setActiveRoomCode(null);
+                setGameMinimized(false);
+              }}
+              onMinimize={() => setGameMinimized(true)}
+            />
+          </Suspense>
         </div>
       )}
     </div>

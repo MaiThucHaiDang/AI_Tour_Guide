@@ -2,15 +2,18 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polygon, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { Save, RefreshCw, ChevronLeft, Compass } from 'lucide-react';
 import { getMapConfigAPI, saveMapConfigAPI } from '../../services/apiService';
 
 // Fix Leaflet default icon issue
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
 });
 
 // Helper function to return beautiful custom 2.5D architecture icons
@@ -39,7 +42,7 @@ const getCustomIcon = (artifactId) => {
   const iconName = iconNames[artifactId] || 'palace.png';
   return new L.Icon({
     iconUrl: `/assets/icons/${iconName}`,
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+    shadowUrl: markerShadow,
     iconSize: [46, 46],
     iconAnchor: [23, 45],
     popupAnchor: [0, -40],
@@ -335,10 +338,15 @@ const MapCalibrate = ({ onBack, language = 'vi' }) => {
           zoomControl={true}
           maxZoom={19}
           minZoom={14}
+          preferCanvas
+          wheelDebounceTime={80}
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            keepBuffer={2}
+            updateWhenIdle
+            updateWhenZooming={false}
           />
           <Polygon 
             positions={IMPERIAL_CITY_BOUNDARY} 

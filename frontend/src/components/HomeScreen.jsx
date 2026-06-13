@@ -14,6 +14,8 @@ import {
 import DestinationGrid from './destinations/DestinationGrid';
 import { featuredDestinations } from '../data/destinations';
 
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
+
 const REAL_IMAGES = {
   hue: 'https://commons.wikimedia.org/wiki/Special:FilePath/Meridian%20Gate%2C%20Hue%20%28I%29.jpg',
   map: '/map.jpg',
@@ -25,6 +27,7 @@ const REAL_IMAGES = {
 const HomeScreen = ({
   onSelectFeature,
   onSelectDestination,
+  onOpenBlog,
   language,
   setLanguage,
   isPhoneFrame = false
@@ -36,6 +39,9 @@ const HomeScreen = ({
   const rootRef = useRef(null);
   const carouselRef = useRef(null);
   const dragStateRef = useRef({ active: false, startX: 0, scrollLeft: 0 });
+  const pointerFrameRef = useRef(0);
+  const pointerPositionRef = useRef({ x: 0.5, y: 0.5 });
+  const prefersReducedMotionRef = useRef(false);
   const sectionRefs = useRef({});
 
   const copy = {
@@ -50,14 +56,15 @@ const HomeScreen = ({
     secondary: isVi ? 'Mở khung điện thoại' : 'Open phone frame',
     navPlaces: isVi ? 'Điểm dừng' : 'Stops',
     navFeatures: isVi ? 'Tính năng' : 'Features',
+    navBlog: isVi ? 'Cẩm nang' : 'Guide',
     heroMeta: isVi ? 'Đại Nội Huế - 17 điểm tham quan - bản đồ & hỏi đáp AI' : 'Hue Imperial City - 17 stops - map & AI guide',
     destinationKicker: isVi ? 'Địa điểm nổi bật' : 'Featured destinations',
     destinationTitle: isVi
       ? 'Chọn một điểm dừng trước, rồi để hướng dẫn viên AI đi cùng bạn.'
       : 'Choose a stop first, then let the AI guide travel with you.',
     destinationText: isVi
-      ? 'Mỗi card có ảnh, mô tả ngắn, thời lượng gợi ý và hành động rõ ràng. Chạm vào card để xem thông tin chi tiết trước khi mở bản đồ hoặc hỏi AI.'
-      : 'Each card includes an image, short description, suggested duration, and clear action. Tap a card to review details before opening the map or asking AI.',
+      ? 'Mỗi điểm dừng có ảnh, mô tả ngắn, thời lượng gợi ý và hành động rõ ràng. Chạm vào một địa điểm để xem trước khi mở bản đồ hoặc hỏi AI.'
+      : 'Each stop includes an image, short description, suggested duration, and clear action. Tap a place to review it before opening the map or asking AI.',
     storyKicker: isVi ? 'Một luồng tham quan rõ ràng' : 'A focused tour flow',
     storyTitle: isVi
       ? 'Từ bản đồ, đến câu hỏi, đến phần thuyết minh: mọi thứ xoay quanh chuyến đi trong Đại Nội.'
@@ -74,13 +81,13 @@ const HomeScreen = ({
     finalText: isVi
       ? 'Bắt đầu bằng bản đồ, chọn vị trí hiện tại, rồi chạm vào một công trình để hỏi đường hoặc nghe giới thiệu.'
       : 'Start with the map, set your position, then tap a monument for directions or narration.',
-    contactTitle: isVi ? 'Đang hỗ trợ' : 'Now supported',
+    contactTitle: isVi ? 'Có thể dùng ngay tại Đại Nội' : 'Ready for an Imperial City visit',
     contactText: isVi
-      ? 'Phiên bản này tập trung vào Kinh thành Huế / Đại Nội với bản đồ Leaflet, chỉ đường đi bộ, hỏi đáp AI, nhận diện ảnh và đọc thuyết minh.'
-      : 'This version focuses on Hue Imperial City with Leaflet mapping, walking directions, AI Q&A, image recognition, and spoken narration.',
+      ? 'Mở bản đồ, chọn điểm dừng, hỏi đường, nghe thuyết minh hoặc chụp ảnh công trình để giữ đúng ngữ cảnh tham quan.'
+      : 'Open the map, choose a stop, ask for directions, hear narration, or capture a monument to keep the visit in context.',
     footerNote: isVi
-      ? 'Hiện app đang chạy như một hướng dẫn viên mobile-first cho Đại Nội Huế.'
-      : 'The app currently runs as a mobile-first guide for Hue Imperial City.',
+      ? 'Hướng dẫn viên bỏ túi cho hành trình trong Đại Nội Huế.'
+      : 'A pocket guide for Hue Imperial City.',
     launchText: isVi ? 'Đang mở bản đồ Đại Nội' : 'Opening the Citadel map',
     scenes: [
       {
@@ -155,14 +162,40 @@ const HomeScreen = ({
       },
       {
         icon: ShieldCheck,
-        title: isVi ? 'Cho trình bày mobile' : 'For mobile presentation',
-        text: isVi ? 'Có thể trình bày bằng giả lập điện thoại trên localhost với bản đồ, chat và tab điểm dừng.' : 'Can be presented in a phone-sized localhost viewport with map, chat, and stop detail tabs.'
+        title: isVi ? 'Cho nhóm đi bằng điện thoại' : 'For phone-first visits',
+        text: isVi ? 'Bản đồ, hỏi đáp và thông tin điểm dừng được gom vào một luồng dễ dùng khi đang di chuyển.' : 'Map, Q&A, and stop details stay in one flow while visitors are moving.'
       }
     ]
   };
 
   const sceneMap = Object.fromEntries(copy.scenes.map((scene) => [scene.id, scene]));
   const currentScene = sceneMap[activeScene] || copy.scenes[0];
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(REDUCED_MOTION_QUERY);
+    const updateMotionPreference = () => {
+      prefersReducedMotionRef.current = mediaQuery.matches;
+    };
+
+    updateMotionPreference();
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', updateMotionPreference);
+    } else {
+      mediaQuery.addListener(updateMotionPreference);
+    }
+
+    return () => {
+      if (pointerFrameRef.current) {
+        window.cancelAnimationFrame(pointerFrameRef.current);
+      }
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', updateMotionPreference);
+      } else {
+        mediaQuery.removeListener(updateMotionPreference);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -173,6 +206,7 @@ const HomeScreen = ({
 
           if (entry.isIntersecting && revealId) {
             setVisibleIds((prev) => {
+              if (prev.has(revealId)) return prev;
               const next = new Set(prev);
               next.add(revealId);
               return next;
@@ -180,7 +214,7 @@ const HomeScreen = ({
           }
 
           if (entry.isIntersecting && sceneId) {
-            setActiveScene(sceneId);
+            setActiveScene((current) => (current === sceneId ? current : sceneId));
           }
         });
       },
@@ -221,13 +255,27 @@ const HomeScreen = ({
     onSelectDestination?.(destination);
   };
 
+  const handleOpenBlog = (event) => {
+    event.preventDefault();
+    onOpenBlog?.();
+  };
+
   const handlePointerMove = (event) => {
     const root = rootRef.current;
-    if (!root) return;
-    const x = event.clientX / window.innerWidth;
-    const y = event.clientY / window.innerHeight;
-    root.style.setProperty('--move-x', `${(x - 0.5) * 22}px`);
-    root.style.setProperty('--move-y', `${(y - 0.5) * 18}px`);
+    if (!root || prefersReducedMotionRef.current) return;
+    pointerPositionRef.current = {
+      x: event.clientX / window.innerWidth,
+      y: event.clientY / window.innerHeight
+    };
+
+    if (pointerFrameRef.current) return;
+
+    pointerFrameRef.current = window.requestAnimationFrame(() => {
+      const { x, y } = pointerPositionRef.current;
+      root.style.setProperty('--move-x', `${(x - 0.5) * 22}px`);
+      root.style.setProperty('--move-y', `${(y - 0.5) * 18}px`);
+      pointerFrameRef.current = 0;
+    });
   };
 
   const handleCarouselPointerDown = (event) => {
@@ -277,6 +325,7 @@ const HomeScreen = ({
         <nav className="landing-nav" aria-label="Landing navigation">
           <a href="#places">{copy.navPlaces}</a>
           <a href="#features">{copy.navFeatures}</a>
+          <a href="/blog" onClick={handleOpenBlog}>{copy.navBlog}</a>
         </nav>
 
         <div className="tour-home-lang">
@@ -497,13 +546,13 @@ const HomeScreen = ({
           <div className="footer-contact">
             <strong>{copy.contactTitle}</strong>
             <p>{copy.contactText}</p>
-            <span>{isVi ? 'Dữ liệu: 17 công trình Đại Nội Huế' : 'Data: 17 Hue Imperial City stops'}</span>
-            <span>{isVi ? 'Luồng chính: bản đồ, hỏi AI, ảnh, giọng nói' : 'Main flow: map, AI chat, image, voice'}</span>
+            <span>{isVi ? '17 điểm dừng chính trong Đại Nội Huế' : '17 main stops inside Hue Imperial City'}</span>
+            <span>{isVi ? 'Bản đồ, hỏi đáp, nhận diện ảnh và thuyết minh giọng nói' : 'Map, Q&A, image recognition, and spoken narration'}</span>
           </div>
           <div className="footer-sources">
             <strong>{isVi ? 'Nguồn ảnh' : 'Image sources'}</strong>
             <a href="https://commons.wikimedia.org/wiki/File:Meridian_Gate,_Hue_(I).jpg" target="_blank" rel="noreferrer">Hue Imperial City / Wikimedia Commons</a>
-            <span>{isVi ? 'Bản đồ và icon công trình: assets local của project' : 'Map and monument icons: local project assets'}</span>
+            <span>{isVi ? 'Bản đồ và minh họa công trình thuộc bộ nội dung của ứng dụng' : 'Map and monument illustrations are part of the app content set'}</span>
           </div>
         </footer>
       </main>

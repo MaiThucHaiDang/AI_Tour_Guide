@@ -3,7 +3,7 @@ import { X, Check, Image as ImageIcon, Upload } from 'lucide-react';
 
 const CAMERA_COPY = {
   vi: {
-    unsupported: 'Trình duyệt không hỗ trợ camera hoặc trang chưa chạy qua localhost/HTTPS.',
+    unsupported: 'Trình duyệt không mở được camera ở chế độ hiện tại. Hãy dùng kết nối an toàn hoặc tải ảnh lên.',
     denied: 'Bạn đã từ chối quyền truy cập camera. Hãy cấp quyền trong trình duyệt hoặc dùng nút tải ảnh lên.',
     unavailable: 'Không mở được camera. Hãy thử lại hoặc tải ảnh từ máy tính.',
     captureFailed: 'Không thể chụp ảnh. Hãy thử lại hoặc tải ảnh lên.',
@@ -13,7 +13,7 @@ const CAMERA_COPY = {
     usePhoto: 'Sử dụng'
   },
   en: {
-    unsupported: 'This browser does not support camera access, or the page is not running on localhost/HTTPS.',
+    unsupported: 'Camera access is not available in this browser mode. Use a secure connection or upload a photo instead.',
     denied: 'Camera permission was denied. Allow camera access in the browser or upload a photo instead.',
     unavailable: 'Could not open the camera. Try again or upload a photo from your computer.',
     captureFailed: 'Could not capture the photo. Try again or upload a photo.',

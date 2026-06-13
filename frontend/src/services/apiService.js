@@ -560,3 +560,125 @@ export const getLocalIpAPI = async () => {
   }
 };
 
+export const BLOG_TAGS = [
+  'Kinh nghiệm',
+  'Lịch trình',
+  'Văn hóa - lịch sử',
+  'Ẩm thực',
+  'Review',
+  'Mẹo du lịch'
+];
+
+const normalizeBlogComment = (comment = {}) => ({
+  id: comment.id ?? comment.comment_id,
+  postId: comment.post_id,
+  authorName: comment.author_name || 'Khách',
+  content: comment.content || '',
+  createdAt: comment.created_at
+});
+
+const normalizeBlogPost = (post = {}) => ({
+  id: post.id ?? post.post_id,
+  slug: post.slug,
+  title: post.title || '',
+  excerpt: post.excerpt || '',
+  content: post.content || '',
+  coverImage: post.cover_image || '/assets/icons/palace.png',
+  coverAlt: post.cover_alt || 'Ảnh minh họa bài viết du lịch Huế',
+  authorName: post.author_name || 'AITourGuide',
+  sourceType: post.source_type || 'user',
+  sourceName: post.source_name || '',
+  sourceUrl: post.source_url || '',
+  tags: Array.isArray(post.tags) ? post.tags : [],
+  createdAt: post.created_at,
+  updatedAt: post.updated_at,
+  publishedAt: post.published_at || post.created_at,
+  readingTime: post.reading_time || 1,
+  likesCount: post.likes_count || 0,
+  commentsCount: post.comments_count || 0,
+  bookmarksCount: post.bookmarks_count || 0,
+  status: post.status || 'published',
+  comments: Array.isArray(post.comments) ? post.comments.map(normalizeBlogComment) : []
+});
+
+const parseBlogResponse = async (response) => {
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.detail || data.message || `HTTP ${response.status}`);
+  }
+  return data;
+};
+
+export const getBlogPostsAPI = async ({ search = '', tag = '', limit = 30, offset = 0 } = {}) => {
+  const params = new URLSearchParams({
+    limit: String(limit),
+    offset: String(offset)
+  });
+  if (search.trim()) params.set('search', search.trim());
+  if (tag.trim()) params.set('tag', tag.trim());
+
+  const response = await fetch(`/api/v1/blog-posts?${params.toString()}`);
+  const data = await parseBlogResponse(response);
+  return {
+    success: data.success,
+    total: data.total || 0,
+    posts: Array.isArray(data.posts) ? data.posts.map(normalizeBlogPost) : []
+  };
+};
+
+export const getBlogPostAPI = async (slug) => {
+  const response = await fetch(`/api/v1/blog-posts/${encodeURIComponent(slug)}`);
+  const data = await parseBlogResponse(response);
+  return normalizeBlogPost(data.post);
+};
+
+export const createBlogPostAPI = async (payload) => {
+  const response = await fetch('/api/v1/blog-posts', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      title: payload.title,
+      excerpt: payload.excerpt,
+      content: payload.content,
+      cover_image: payload.coverImage,
+      cover_alt: payload.coverAlt,
+      author_name: payload.authorName,
+      tags: payload.tags,
+      status: payload.status || 'published'
+    })
+  });
+  const data = await parseBlogResponse(response);
+  return normalizeBlogPost(data.post);
+};
+
+export const addBlogCommentAPI = async (slug, payload) => {
+  const response = await fetch(`/api/v1/blog-posts/${encodeURIComponent(slug)}/comments`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      author_name: payload.authorName || 'Khách',
+      content: payload.content
+    })
+  });
+  const data = await parseBlogResponse(response);
+  return normalizeBlogComment(data);
+};
+
+export const updateBlogInteractionAPI = async (slug, payload) => {
+  const response = await fetch(`/api/v1/blog-posts/${encodeURIComponent(slug)}/interactions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      action: payload.action,
+      active: payload.active
+    })
+  });
+  return parseBlogResponse(response);
+};
+

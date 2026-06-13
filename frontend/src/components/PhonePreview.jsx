@@ -25,7 +25,7 @@ const PhonePreview = ({ onBack, language }) => {
             : 'This frame starts from the landing page, then continues into map, AI guide, image recognition, and stop details like a real mobile user.'}
         </p>
 
-        <div className="phone-preview-facts" aria-label={isVi ? 'Thông tin demo' : 'Demo facts'}>
+        <div className="phone-preview-facts" aria-label={isVi ? 'Thông tin trải nghiệm mobile' : 'Mobile experience facts'}>
           <span>
             <strong>{isVi ? 'Landing' : 'Landing'}</strong>
             {isVi ? 'mở đầu' : 'entry'}
@@ -42,7 +42,7 @@ const PhonePreview = ({ onBack, language }) => {
 
         <div className="phone-preview-url">
           <MapPin size={16} />
-          <span>localhost:5173/?view=phone</span>
+          <span>{isVi ? 'Mở như một người đang đứng trong Đại Nội' : 'Open it like a visitor inside the Imperial City'}</span>
         </div>
       </aside>
 

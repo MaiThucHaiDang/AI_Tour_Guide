@@ -483,8 +483,8 @@ const UnifiedChatPage = ({
     }
     if (lower.includes('camera_unsupported')) {
       return language === 'vi'
-        ? 'Trình duyệt không hỗ trợ camera ở chế độ hiện tại. Hãy dùng localhost/HTTPS hoặc tải ảnh lên.'
-        : 'Camera access is not supported in the current browser mode. Use localhost/HTTPS or upload a photo.';
+        ? 'Trình duyệt không mở được camera ở chế độ hiện tại. Hãy dùng kết nối an toàn hoặc tải ảnh lên.'
+        : 'Camera access is not available in this browser mode. Use a secure connection or upload a photo.';
     }
     if (lower.includes('camera_unavailable') || lower.includes('camera_capture_failed')) {
       return language === 'vi'

@@ -179,6 +179,7 @@ const getDistance = (p1, p2) => {
 
 const MapExplore = ({
   onNavigateToStorytelling,
+  onOpenArtifactContext,
   onArtifactFocus,
   onRouteStatusChange,
   language,
@@ -186,7 +187,8 @@ const MapExplore = ({
   visitorMode = false,
   active = true,
   externalNavigationTarget = null,
-  onExternalNavigationConsumed = null
+  onExternalNavigationConsumed = null,
+  focusedArtifactId = null
 }) => {
   const isVi = language === 'vi';
   
@@ -210,6 +212,7 @@ const MapExplore = ({
   const [isSaving, setIsSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState(null);
   const [statusType, setStatusType] = useState('success');
+  const [selectedArtifact, setSelectedArtifact] = useState(null);
 
   // Smart Tour Planning States
   const [tourData, setTourData] = useState(null);
@@ -344,6 +347,15 @@ const MapExplore = ({
     return () => window.clearTimeout(timeoutId);
   }, [active]);
 
+  useEffect(() => {
+    if (!active || !focusedArtifactId) return;
+    const focusedArtifact = artifactsList.find(artifact => Number(artifact.id) === Number(focusedArtifactId));
+    if (focusedArtifact) {
+      setSelectedArtifact(focusedArtifact);
+      setMapCenter([focusedArtifact.lat, focusedArtifact.lng]);
+    }
+  }, [active, artifactsList, focusedArtifactId]);
+
   const handleGetGPS = () => {
     setIsManualMode(false);
     setShowStartModal(false);
@@ -409,7 +421,9 @@ const MapExplore = ({
   };
 
   const startNavigation = async (artifact) => {
+    setSelectedArtifact(artifact);
     onArtifactFocus?.(artifact);
+    setMapCenter([artifact.lat, artifact.lng]);
     setTargetLocation(artifact);
     setIsNavigating(true);
     setIsNavigatingStarted(false);
@@ -497,7 +511,7 @@ const MapExplore = ({
         
         const msg = isVi 
           ? `Lập lộ trình thành công! ${res.route.length} địa điểm trong ${res.total_duration} phút.`
-          : `Tour planned successfully! ${res.route.length} stops in ${res.total_duration} mins.`;
+          : `Route ready: ${res.route.length} stops in ${res.total_duration} mins.`;
         showStatus(msg, 'success');
         
         if (res.route.length > 0) {
@@ -519,11 +533,13 @@ const MapExplore = ({
     setActiveTourIndex(0);
     setIsTourModalOpen(false);
     handleCancelNavigation();
-    showStatus(isVi ? 'Đã hủy lộ trình tự động.' : 'Tour cleared.', 'success');
+    showStatus(isVi ? 'Đã hủy lộ trình đề xuất.' : 'Route cleared.', 'success');
   };
 
   const startTourDestination = async (artifact, index) => {
+    setSelectedArtifact(artifact);
     onArtifactFocus?.(artifact);
+    setMapCenter([artifact.lat, artifact.lng]);
     setTargetLocation(artifact);
     setIsNavigating(true);
     setIsNavigatingStarted(false);
@@ -551,9 +567,27 @@ const MapExplore = ({
   };
 
   const handleIntroduce = (artifact) => {
+    setSelectedArtifact(artifact);
     onArtifactFocus?.(artifact);
+    setMapCenter([artifact.lat, artifact.lng]);
     mapInstance?.closePopup();
     if (onNavigateToStorytelling) {
+      onNavigateToStorytelling(artifact);
+    }
+  };
+
+  const handleSelectArtifact = (artifact) => {
+    setSelectedArtifact(artifact);
+    onArtifactFocus?.(artifact);
+    setMapCenter([artifact.lat, artifact.lng]);
+  };
+
+  const handleAskSelectedArtifact = (artifact) => {
+    setSelectedArtifact(artifact);
+    mapInstance?.closePopup();
+    if (onOpenArtifactContext) {
+      onOpenArtifactContext(artifact);
+    } else if (onNavigateToStorytelling) {
       onNavigateToStorytelling(artifact);
     }
   };
@@ -730,8 +764,8 @@ const MapExplore = ({
           <button
             className={`map-icon-button ${tourData ? 'is-jade' : 'is-paper'}`}
             onClick={() => setIsTourModalOpen(true)}
-            title={isVi ? 'Lập lộ trình tự động' : 'Smart Tour Planner'}
-            aria-label={isVi ? 'Lập lộ trình' : 'Smart Tour Planner'}
+            title={isVi ? 'Gợi ý lộ trình' : 'Suggested route'}
+            aria-label={isVi ? 'Gợi ý lộ trình' : 'Suggested route'}
           >
             <Route size={22} />
           </button>
@@ -869,17 +903,24 @@ const MapExplore = ({
         )}
 
         {/* Artifact markers */}
-        {artifactsList.map(art => (
+        {artifactsList.map(art => {
+          const isFocused = Number(focusedArtifactId) === Number(art.id);
+          const isActiveTarget = Number(targetLocation?.id) === Number(art.id);
+          const routeIndex = tourData ? tourData.route.findIndex(item => item.id === art.id) : -1;
+          return (
           <Marker 
             key={art.id} 
             position={[art.lat, art.lng]} 
-            icon={tourData && tourData.route.findIndex(item => item.id === art.id) !== -1 
-              ? getNumberedIcon(tourData.route.findIndex(item => item.id === art.id) + 1, targetLocation?.id === art.id) 
-              : getCustomIcon(art.id, targetLocation?.id === art.id)
+            icon={routeIndex !== -1
+              ? getNumberedIcon(routeIndex + 1, isActiveTarget || isFocused)
+              : getCustomIcon(art.id, isActiveTarget || isFocused)
             }
             draggable={isCalibrating}
             eventHandlers={{
-              click: () => onArtifactFocus?.(art),
+              click: (event) => {
+                event.originalEvent?.stopPropagation?.();
+                handleSelectArtifact(art);
+              },
               dragend: (e) => {
                 const marker = e.target;
                 const position = marker.getLatLng();
@@ -912,7 +953,8 @@ const MapExplore = ({
               </div>
             </Popup>
           </Marker>
-        ))}
+          );
+        })}
 
         {routePath.length > 0 && (
           <Polyline 
@@ -922,6 +964,38 @@ const MapExplore = ({
         )}
       </MapContainer>
 
+      {selectedArtifact && !isNavigating && !isTourModalOpen && !showStartModal && (
+        <div
+          className="map-context-card"
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div className="map-context-copy">
+            <span>{isVi ? 'Đang xem trên bản đồ' : 'Viewing on map'}</span>
+            <strong>{getArtifactName(selectedArtifact)}</strong>
+            <small>
+              {isVi
+                ? 'Chọn cách bạn muốn tiếp tục với điểm này.'
+                : 'Choose how you want to continue from this stop.'}
+            </small>
+          </div>
+          <div className="map-context-actions">
+            <button onClick={() => handleIntroduce(selectedArtifact)}>
+              <Volume2 size={15} />
+              {isVi ? 'Nghe giới thiệu' : 'Hear intro'}
+            </button>
+            <button onClick={() => handleAskSelectedArtifact(selectedArtifact)}>
+              <Info size={15} />
+              {isVi ? 'Hỏi về điểm này' : 'Ask here'}
+            </button>
+            <button onClick={() => startNavigation(selectedArtifact)}>
+              <Navigation size={15} />
+              {isVi ? 'Đường đi' : 'Route'}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Tour Planner Modal */}
       {isTourModalOpen && (
         <div className="map-start-overlay" style={{ zIndex: 3001 }}>
@@ -929,11 +1003,11 @@ const MapExplore = ({
             <div className="map-start-icon" style={{ background: 'linear-gradient(135deg, #0f5f59, #164c5e)' }}>
               <Route size={30} color="#fff" />
             </div>
-            <h3>{isVi ? 'Lộ Trình Tự Động' : 'Smart Tour Planner'}</h3>
+            <h3>{isVi ? 'Gợi ý lộ trình' : 'Suggested route'}</h3>
             <p style={{ fontSize: '12px', color: '#666', marginTop: '-6px' }}>
               {isVi 
-                ? 'Hệ thống tự động thiết kế lộ trình tham quan Đại Nội tối ưu dựa trên quỹ thời gian của bạn.'
-                : 'AI will automatically design an optimal walking tour of the Citadel based on your preferences.'}
+                ? 'Chọn thời gian và số điểm muốn ghé, app sẽ gợi ý một tuyến đi bộ phù hợp trong Đại Nội.'
+                : 'Choose your time and number of stops, and the app will suggest a fitting walking route in the Citadel.'}
             </p>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', textAlign: 'left', margin: '10px 0' }}>
@@ -1001,7 +1075,7 @@ const MapExplore = ({
                   onClick={handleCancelTour}
                   style={{ flex: 1, padding: '10px', backgroundColor: '#fff0f0', color: '#d32f2f', border: '1px solid #ffd2d2' }}
                 >
-                  {isVi ? 'Xóa Tour' : 'Clear Tour'}
+                  {isVi ? 'Xóa lộ trình' : 'Clear route'}
                 </button>
               )}
               <button 
@@ -1031,7 +1105,7 @@ const MapExplore = ({
               </div>
               <div>
                 <h4 style={{ margin: 0, color: '#b2820a', fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  {isVi ? 'Lộ Trình Tự Động' : 'Smart Tour Route'}
+                  {isVi ? 'Lộ trình đề xuất' : 'Suggested route'}
                 </h4>
                 <p style={{ margin: 0, fontSize: '14px', color: '#333', fontWeight: '600' }}>
                   {isVi 
@@ -1060,7 +1134,7 @@ const MapExplore = ({
                     color: '#333', display: 'flex', alignItems: 'center',
                     justifyContent: 'center', gap: '6px'
                   }}>
-                    {isVi ? 'Hủy Lộ Trình' : 'Cancel Tour'}
+                    {isVi ? 'Hủy lộ trình' : 'Cancel route'}
                   </button>
                   <button 
                     onClick={() => startTourDestination(tourData.route[activeTourIndex], activeTourIndex)}

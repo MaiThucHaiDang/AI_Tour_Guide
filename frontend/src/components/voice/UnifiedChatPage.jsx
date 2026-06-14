@@ -20,7 +20,10 @@ import {
   Upload,
   Volume2,
   VolumeX,
-  X
+  X,
+  SkipBack,
+  SkipForward,
+  Square
 } from 'lucide-react';
 import LanguageToggle from '../shared/LanguageToggle';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder';
@@ -169,7 +172,12 @@ const UnifiedChatPage = ({
   const [showJumpToLatest, setShowJumpToLatest] = useState(false);
   const [playingMsgId, setPlayingMsgId] = useState(null);
   const [pausedMsgId, setPausedMsgId] = useState(null);
-  const [audioHistory, setAudioHistory] = useState([]); // { id, audioBlob }
+
+  // Audio Playback states
+  const [activeAudioMsgId, setActiveAudioMsgId] = useState(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const messagesEndRef = useRef(null);
   const messageListRef = useRef(null);
@@ -180,23 +188,69 @@ const UnifiedChatPage = ({
   const workspaceRef = useRef(null);
   const currentArtifactRef = useRef(null);
   const ttsCheckIntervalRef = useRef(null);
+  const messagesRef = useRef(messages);
 
   useEffect(() => {
     currentArtifactRef.current = currentArtifact;
   }, [currentArtifact]);
 
-  // Clean up TTS polling on unmount
   useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  // Unified HTML5 Audio listeners setup
+  useEffect(() => {
+    audioRef.current = new Audio();
+    setTTSAudioElement(audioRef.current);
+    const audio = audioRef.current;
+
+    const handleTimeUpdate = () => {
+      setCurrentTime(audio.currentTime);
+    };
+
+    const handleLoadedMetadata = () => {
+      setDuration(audio.duration || 0);
+    };
+
+    const handleEnded = () => {
+      setIsPlaying(false);
+      setPlayingMsgId(null);
+      setPausedMsgId(null);
+      if (onNarrationFinished && currentArtifactRef.current) {
+        onNarrationFinished(currentArtifactRef.current);
+      }
+    };
+
+    const handlePlay = () => {
+      setIsPlaying(true);
+    };
+
+    const handlePause = () => {
+      setIsPlaying(false);
+    };
+
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('play', handlePlay);
+    audio.addEventListener('pause', handlePause);
+
     return () => {
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('play', handlePlay);
+      audio.removeEventListener('pause', handlePause);
       if (ttsCheckIntervalRef.current) clearTimeout(ttsCheckIntervalRef.current);
       stopTTS();
+      audio.pause();
     };
-  }, []);
+  }, [onNarrationFinished]);
 
   const {
     isRecording,
     audioBlob,
-    duration,
+    duration: recordDuration,
     error: recordingError,
     startRecording,
     stopRecording,
@@ -278,6 +332,7 @@ const UnifiedChatPage = ({
   }, [audioBlob]);
 
   const processUnifiedChat = async ({ text, audioBlob, imageBase64, filename, artifactId = null }) => {
+    handleStopAudio();
     setIsProcessing(true);
     shouldStickToBottomRef.current = true;
     setShowJumpToLatest(false);
@@ -549,68 +604,71 @@ const UnifiedChatPage = ({
   const playAudioBlob = async (blob, msgId) => {
     stopTTS();
     if (!blob || blob.size === 0) return false;
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = '';
-    }
-    const url = URL.createObjectURL(blob);
-    const audio = new Audio(url);
-    audioRef.current = audio;
-    setTTSAudioElement(audio); // register for pause/resume
-    setPlayingMsgId(msgId || null);
-    setPausedMsgId(null);
-    try {
-      await audio.play();
-      audio.onended = () => {
-        URL.revokeObjectURL(url);
+    const audio = audioRef.current;
+    if (audio) {
+      if (audio.src && audio.src.startsWith('blob:')) {
+        URL.revokeObjectURL(audio.src);
+      }
+      const url = URL.createObjectURL(blob);
+      audio.src = url;
+      setPlayingMsgId(msgId || null);
+      setPausedMsgId(null);
+      setActiveAudioMsgId(msgId || null);
+      try {
+        await audio.play();
+        return true;
+      } catch (err) {
+        console.error('Playback failed:', err);
         setPlayingMsgId(null);
-        setPausedMsgId(null);
-        if (onNarrationFinished && currentArtifactRef.current) {
-          onNarrationFinished(currentArtifactRef.current);
-        }
-      };
-      return true;
-    } catch (err) {
-      console.error('Playback failed:', err);
-      URL.revokeObjectURL(url);
-      setPlayingMsgId(null);
-      return false;
+        setActiveAudioMsgId(null);
+        return false;
+      }
     }
+    return false;
   };
 
   /**
-   * Poll backend for TTS audio (up to 3 times, 3s apart).
+   * Poll backend for TTS audio (up to 12 times, 2s apart).
    * When audio arrives, save to audioHistory and auto-play if autoSpeak.
    */
   const pollTTSAudio = useCallback((ttsToken, msgId) => {
     let attempts = 0;
-    const maxAttempts = 3;
+    const maxAttempts = 12;
     const poll = async () => {
       attempts++;
-      const result = await fetchTTSAudio(ttsToken);
-      if (result.status === 'ready' && result.audioBlob) {
-        // Save to message and audio history
-        setMessages(prev => prev.map(m =>
-          m.id === msgId ? { ...m, audioBlob: result.audioBlob } : m
-        ));
-        saveToAudioHistory(msgId, result.audioBlob);
-        // Auto-play if enabled
-        if (autoSpeak) {
-          playAudioBlob(result.audioBlob, msgId);
+      try {
+        const result = await fetchTTSAudio(ttsToken);
+        if (result.status === 'ready' && result.audioBlob) {
+          // Save to message
+          setMessages(prev => prev.map(m =>
+            m.id === msgId ? { ...m, audioBlob: result.audioBlob } : m
+          ));
+          // Auto-play if enabled
+          if (autoSpeak) {
+            playAudioBlob(result.audioBlob, msgId);
+          }
+          return;
         }
-        return;
+      } catch (err) {
+        console.warn('fetchTTSAudio error during polling:', err);
       }
+
       if (attempts < maxAttempts) {
-        ttsCheckIntervalRef.current = setTimeout(poll, 3000);
+        ttsCheckIntervalRef.current = setTimeout(poll, 2000);
       } else {
         // Fallback: use Web Speech API
         if (autoSpeak) {
-          const msg = messages.find(m => m.id === msgId) || {};
+          const msg = messagesRef.current.find(m => m.id === msgId) || {};
           if (msg.content) {
             setPlayingMsgId(msgId);
+            setPausedMsgId(null);
+            setActiveAudioMsgId(msgId);
+            setIsPlaying(true);
             playTTS(msg.content, language, () => {
               setPlayingMsgId(null);
               setPausedMsgId(null);
+              setActiveAudioMsgId(null);
+              setIsPlaying(false);
               if (onNarrationFinished && currentArtifactRef.current) {
                 onNarrationFinished(currentArtifactRef.current);
               }
@@ -619,53 +677,70 @@ const UnifiedChatPage = ({
         }
       }
     };
-    // Start polling after 2.5 seconds (give backend time)
-    ttsCheckIntervalRef.current = setTimeout(poll, 2500);
-  }, [autoSpeak, language, messages, onNarrationFinished]);
+    // Start polling after 2 seconds
+    ttsCheckIntervalRef.current = setTimeout(poll, 2000);
+  }, [autoSpeak, language, onNarrationFinished]);
 
-  const saveToAudioHistory = (msgId, audioBlob) => {
-    setAudioHistory(prev => {
-      const filtered = prev.filter(h => h.id !== msgId);
-      const next = [...filtered, { id: msgId, audioBlob }];
-      // Keep only AUDIO_HISTORY_MAX most recent
-      return next.slice(-AUDIO_HISTORY_MAX);
-    });
-  };
+
 
   /**
    * Speak/Pause/Resume toggle for a message.
    */
   const handleSpeakMessage = async (message) => {
-    // If this message is currently playing → pause
-    if (playingMsgId === message.id && !pausedMsgId) {
-      pauseTTS();
-      setPlayingMsgId(null);
-      setPausedMsgId(message.id);
+    // If this message is currently playing -> pause
+    if (activeAudioMsgId === message.id) {
+      if (isPlaying) {
+        if (audioRef.current && audioRef.current.src) {
+          audioRef.current.pause();
+        } else {
+          // Web Speech pause
+          pauseTTS();
+          setIsPlaying(false);
+          setPlayingMsgId(null);
+          setPausedMsgId(message.id);
+        }
+      } else {
+        // Resume
+        if (audioRef.current && audioRef.current.src) {
+          if (audioRef.current.currentTime >= audioRef.current.duration - 0.1) {
+            audioRef.current.currentTime = 0;
+          }
+          audioRef.current.play().catch(() => {});
+        } else {
+          // Web Speech resume
+          resumeTTS();
+          setIsPlaying(true);
+          setPlayingMsgId(message.id);
+          setPausedMsgId(null);
+        }
+      }
       return;
     }
-    // If this message is paused → resume
-    if (pausedMsgId === message.id) {
-      resumeTTS();
-      setPausedMsgId(null);
-      setPlayingMsgId(message.id);
-      return;
+
+    // Otherwise, start playing a different message
+    stopTTS();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = '';
     }
-    // Otherwise, start playing
-    // Try audioBlob first, then audioHistory, then Web Speech
+    setCurrentTime(0);
+    setDuration(0);
+
     let blob = message.audioBlob;
-    if (!blob || blob.size === 0) {
-      const historyEntry = audioHistory.find(h => h.id === message.id);
-      if (historyEntry) blob = historyEntry.audioBlob;
-    }
     let played = false;
     if (blob && blob.size > 0) {
       played = await playAudioBlob(blob, message.id);
     }
     if (!played && message.content) {
       setPlayingMsgId(message.id);
+      setPausedMsgId(null);
+      setActiveAudioMsgId(message.id);
+      setIsPlaying(true);
       playTTS(message.content, language, () => {
         setPlayingMsgId(null);
         setPausedMsgId(null);
+        setActiveAudioMsgId(null);
+        setIsPlaying(false);
         if (onNarrationFinished && currentArtifactRef.current) {
           onNarrationFinished(currentArtifactRef.current);
         }
@@ -673,20 +748,59 @@ const UnifiedChatPage = ({
     }
   };
 
+  const handleSeekChange = (e) => {
+    const value = parseFloat(e.target.value);
+    setCurrentTime(value);
+    if (audioRef.current && audioRef.current.src) {
+      audioRef.current.currentTime = value;
+    }
+  };
+
+  const handleSkipBackward = () => {
+    if (audioRef.current && audioRef.current.src) {
+      audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 10);
+    }
+  };
+
+  const handleSkipForward = () => {
+    if (audioRef.current && audioRef.current.src) {
+      audioRef.current.currentTime = Math.min(duration, audioRef.current.currentTime + 10);
+    }
+  };
+
+  const handleStopAudio = () => {
+    stopTTS();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current.src = '';
+    }
+    setPlayingMsgId(null);
+    setPausedMsgId(null);
+    setActiveAudioMsgId(null);
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
+  };
+
+  const handleSelectHistoryAudio = async (item) => {
+    const msg = messagesRef.current.find(m => m.id === item.id);
+    if (msg) {
+      await handleSpeakMessage(msg);
+    }
+  };
+
   const formatDuration = (seconds) => {
+    if (isNaN(seconds) || seconds === null || seconds === undefined) return '00:00';
     const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
-    const secs = (seconds % 60).toString().padStart(2, '0');
+    const secs = Math.floor(seconds % 60).toString().padStart(2, '0');
     return `${mins}:${secs}`;
   };
 
   const handleResetConversation = () => {
     shouldStickToBottomRef.current = true;
     setShowJumpToLatest(false);
-    stopTTS();
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = '';
-    }
+    handleStopAudio();
     const newId = `chat-${Date.now()}-${Math.random().toString(16).slice(2)}`;
     sessionIdRef.current = newId;
     sessionStorage.setItem('unified_chat_session_id', newId);
@@ -994,16 +1108,21 @@ const UnifiedChatPage = ({
                     <div className="message-body">
                       <p>{message.content}</p>
                       {message.isStreaming && <span className="stream-caret" aria-hidden="true" />}
-                      {message.role === 'ai' && message.type !== 'error' && (
-                        <button
-                          className={`tts-control-btn ${playingMsgId === message.id ? 'is-playing' : ''} ${pausedMsgId === message.id ? 'is-paused' : ''}`}
-                          onClick={() => handleSpeakMessage(message)}
-                          aria-label={playingMsgId === message.id ? (language === 'vi' ? 'Tạm dừng' : 'Pause') : pausedMsgId === message.id ? (language === 'vi' ? 'Tiếp tục' : 'Resume') : copy.listen}
-                          title={playingMsgId === message.id ? (language === 'vi' ? 'Tạm dừng' : 'Pause') : pausedMsgId === message.id ? (language === 'vi' ? 'Tiếp tục' : 'Resume') : copy.listen}
-                        >
-                          {playingMsgId === message.id ? <Pause size={14} /> : pausedMsgId === message.id ? <Play size={14} /> : <Volume2 size={14} />}
-                        </button>
-                      )}
+                      {message.role === 'ai' && message.type !== 'error' && (() => {
+                        const isActive = activeAudioMsgId === message.id;
+                        const isCurrentPlaying = isActive && isPlaying;
+                        const isCurrentPaused = isActive && !isPlaying;
+                        return (
+                          <button
+                            className={`tts-control-btn ${isCurrentPlaying ? 'is-playing' : ''} ${isCurrentPaused ? 'is-paused' : ''}`}
+                            onClick={() => handleSpeakMessage(message)}
+                            aria-label={isCurrentPlaying ? (language === 'vi' ? 'Tạm dừng' : 'Pause') : isCurrentPaused ? (language === 'vi' ? 'Tiếp tục' : 'Resume') : copy.listen}
+                            title={isCurrentPlaying ? (language === 'vi' ? 'Tạm dừng' : 'Pause') : isCurrentPaused ? (language === 'vi' ? 'Tiếp tục' : 'Resume') : copy.listen}
+                          >
+                            {isCurrentPlaying ? <Pause size={14} /> : isCurrentPaused ? <Play size={14} /> : <Volume2 size={14} />}
+                          </button>
+                        );
+                      })()}
                     </div>
                     {message.role === 'ai' && message.type !== 'error' && (
                       <div className="message-feedback">
@@ -1046,6 +1165,97 @@ const UnifiedChatPage = ({
             </button>
           )}
 
+          {activeAudioMsgId && (() => {
+            const activeMsg = messages.find(m => m.id === activeAudioMsgId) || {};
+            const historyItems = messages
+              .filter(m => m.role === 'ai' && m.type === 'text' && !m.isStreaming)
+              .slice(-3);
+
+            const isWebSpeech = !(audioRef.current && audioRef.current.src);
+            const displayTitle = activeMsg.content 
+              ? (activeMsg.content.length > 50 ? activeMsg.content.slice(0, 50) + '...' : activeMsg.content)
+              : (language === 'vi' ? 'Đang phát thuyết minh di tích' : 'Playing narration');
+
+            return (
+              <div className="bottom-audio-player">
+                <div className="audio-player-layout">
+                  <div className="audio-player-meta">
+                    <div className={`audio-wave-icon ${isPlaying ? 'wave-playing' : ''}`}>
+                      <Volume2 size={16} />
+                    </div>
+                    <div className="audio-meta-text">
+                      <strong>{displayTitle}</strong>
+                      <span>{isWebSpeech ? (language === 'vi' ? 'Giọng đọc Web Speech' : 'Web Speech voice') : (language === 'vi' ? 'Âm thanh di sản' : 'Heritage Audio')}</span>
+                    </div>
+                  </div>
+
+                  <div className="audio-player-controls-section">
+                    <div className="audio-playback-buttons">
+                      <button onClick={handleSkipBackward} disabled={isWebSpeech} title={language === 'vi' ? 'Lùi 10s' : 'Back 10s'} aria-label="Skip backward">
+                        <SkipBack size={14} />
+                      </button>
+                      <button 
+                        className="play-pause-toggle-btn"
+                        onClick={() => handleSpeakMessage(activeMsg)} 
+                        title={isPlaying ? (language === 'vi' ? 'Tạm dừng' : 'Pause') : (language === 'vi' ? 'Phát tiếp' : 'Play')}
+                        aria-label={isPlaying ? 'Pause' : 'Play'}
+                      >
+                        {isPlaying ? <Pause size={16} /> : <Play size={16} />}
+                      </button>
+                      <button onClick={handleSkipForward} disabled={isWebSpeech} title={language === 'vi' ? 'Tiến 10s' : 'Forward 10s'} aria-label="Skip forward">
+                        <SkipForward size={14} />
+                      </button>
+                      <button onClick={handleStopAudio} className="stop-playback-btn" title={language === 'vi' ? 'Dừng phát' : 'Stop'} aria-label="Stop playback">
+                        <Square size={13} fill="currentColor" />
+                      </button>
+                    </div>
+
+                    <div className="audio-timeline-container">
+                      <span className="time-label">{formatDuration(currentTime)}</span>
+                      <input 
+                        type="range"
+                        min={0}
+                        max={duration || 1}
+                        value={currentTime}
+                        onChange={handleSeekChange}
+                        disabled={isWebSpeech}
+                        className="audio-seekbar"
+                        aria-label="Seek bar"
+                      />
+                      <span className="time-label">{formatDuration(duration)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {historyItems.length > 0 && (
+                  <div className="audio-history-switcher">
+                    <span className="switcher-label">
+                      <Sparkles size={11} />
+                      {language === 'vi' ? '3 câu thoại gần nhất:' : 'Last 3 narrations:'}
+                    </span>
+                    <div className="history-chips-row">
+                      {historyItems.map((item, index) => {
+                        const isActive = item.id === activeAudioMsgId;
+                        const shortText = item.content.length > 22 ? item.content.slice(0, 22) + '...' : item.content;
+                        return (
+                          <button 
+                            key={item.id} 
+                            onClick={() => handleSelectHistoryAudio(item)}
+                            className={`history-audio-chip ${isActive ? 'active' : ''}`}
+                            title={item.content}
+                          >
+                            <span className="chip-num">#{index + 1}</span>
+                            <span>{shortText}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
           <div className="composer">
             {pendingImage && (
               <div className="pending-image">
@@ -1063,7 +1273,7 @@ const UnifiedChatPage = ({
                   <span className="recording-dot" />
                   <strong>{copy.recording}</strong>
                 </div>
-                <span className="recording-time">{formatDuration(duration)}</span>
+                <span className="recording-time">{formatDuration(recordDuration)}</span>
                 <button onClick={stopRecording}>
                   <Mic size={18} />
                 </button>
@@ -2471,6 +2681,254 @@ const UnifiedChatPage = ({
           border-radius: 999px;
           background: var(--ui-teal);
           box-shadow: 0 0 0 4px rgba(15, 95, 89, 0.1);
+        }
+
+        /* Bottom Audio Player styling */
+        .bottom-audio-player {
+          background: rgba(255, 253, 246, 0.96);
+          backdrop-filter: blur(20px);
+          border-top: 1px solid var(--ui-border);
+          border-bottom: 1px solid var(--ui-border);
+          padding: 12px clamp(14px, 2vw, 20px);
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          box-shadow: 0 -8px 24px rgba(24, 32, 35, 0.05);
+          position: relative;
+          z-index: 10;
+        }
+
+        .audio-player-layout {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          flex-wrap: wrap;
+        }
+
+        .audio-player-meta {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex: 1;
+          min-width: 200px;
+        }
+
+        .audio-wave-icon {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: rgba(15, 95, 89, 0.08);
+          color: var(--ui-teal);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.3s ease;
+        }
+
+        .audio-wave-icon.wave-playing {
+          background: var(--ui-teal);
+          color: #ffffff;
+          animation: audioPulse 1.5s infinite ease-in-out;
+        }
+
+        @keyframes audioPulse {
+          0% { box-shadow: 0 0 0 0 rgba(15, 95, 89, 0.4); }
+          70% { box-shadow: 0 0 0 6px rgba(15, 95, 89, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(15, 95, 89, 0); }
+        }
+
+        .audio-meta-text {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+          text-align: left;
+        }
+
+        .audio-meta-text strong {
+          font-size: 13px;
+          color: var(--ui-text);
+          font-weight: 700;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .audio-meta-text span {
+          font-size: 11px;
+          color: var(--ui-muted);
+        }
+
+        .audio-player-controls-section {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          flex: 2;
+          min-width: 280px;
+        }
+
+        .audio-playback-buttons {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .audio-playback-buttons button {
+          width: 28px;
+          height: 28px;
+          border: 1px solid rgba(24, 32, 35, 0.12);
+          background: #ffffff;
+          color: var(--ui-text);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          padding: 0;
+        }
+
+        .audio-playback-buttons button:hover:not(:disabled) {
+          border-color: var(--ui-teal);
+          color: var(--ui-teal);
+          background: var(--ui-surface-muted);
+        }
+
+        .audio-playback-buttons button:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+
+        .audio-playback-buttons .play-pause-toggle-btn {
+          width: 34px;
+          height: 34px;
+          background: var(--ui-teal);
+          color: #ffffff;
+          border-color: var(--ui-teal);
+        }
+
+        .audio-playback-buttons .play-pause-toggle-btn:hover {
+          background: var(--ui-teal-2);
+          color: #ffffff;
+        }
+
+        .audio-playback-buttons .stop-playback-btn:hover {
+          background: var(--ui-red);
+          color: #ffffff;
+          border-color: var(--ui-red);
+        }
+
+        .audio-timeline-container {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex: 1;
+        }
+
+        .time-label {
+          font-size: 11px;
+          color: var(--ui-muted);
+          font-family: monospace;
+          min-width: 34px;
+        }
+
+        .audio-seekbar {
+          flex: 1;
+          height: 4px;
+          border-radius: 2px;
+          background: rgba(24, 32, 35, 0.1);
+          outline: none;
+          -webkit-appearance: none;
+          accent-color: var(--ui-teal);
+          cursor: pointer;
+        }
+
+        .audio-seekbar::-webkit-slider-runnable-track {
+          width: 100%;
+          height: 4px;
+          cursor: pointer;
+        }
+
+        .audio-seekbar::-webkit-slider-thumb {
+          height: 12px;
+          width: 12px;
+          border-radius: 50%;
+          background: var(--ui-teal);
+          cursor: pointer;
+          -webkit-appearance: none;
+          margin-top: -4px;
+        }
+
+        .audio-history-switcher {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          border-top: 1px dashed rgba(24, 32, 35, 0.08);
+          padding-top: 8px;
+          margin-top: 2px;
+        }
+
+        .switcher-label {
+          font-size: 11px;
+          font-weight: 700;
+          color: var(--ui-teal);
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          flex-shrink: 0;
+        }
+
+        .history-chips-row {
+          display: flex;
+          gap: 8px;
+          overflow-x: auto;
+          padding-bottom: 2px;
+          flex: 1;
+        }
+
+        .history-chips-row::-webkit-scrollbar {
+          height: 3px;
+        }
+
+        .history-chips-row::-webkit-scrollbar-thumb {
+          background: rgba(24, 32, 35, 0.1);
+          border-radius: 99px;
+        }
+
+        .history-audio-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 4px 10px;
+          background: #ffffff;
+          border: 1px solid rgba(24, 32, 35, 0.08);
+          border-radius: 99px;
+          font-size: 11px;
+          color: var(--ui-text);
+          cursor: pointer;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+        }
+
+        .history-audio-chip:hover {
+          border-color: var(--ui-teal);
+          background: rgba(15, 95, 89, 0.04);
+        }
+
+        .history-audio-chip.active {
+          background: rgba(15, 95, 89, 0.08);
+          border-color: var(--ui-teal);
+          color: var(--ui-teal);
+          font-weight: 700;
+        }
+
+        .chip-num {
+          font-weight: 800;
+          color: var(--ui-muted);
+        }
+
+        .history-audio-chip.active .chip-num {
+          color: var(--ui-teal);
         }
 
         @media (prefers-reduced-motion: reduce) {

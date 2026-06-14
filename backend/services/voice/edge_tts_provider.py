@@ -49,21 +49,31 @@ class EdgeTTSProvider(BaseTTS):
             return b""
 
         try:
-            communicator = edge_tts.Communicate(
-                text=text,
-                voice=voice,
-                connect_timeout=3,
-                receive_timeout=10
-            )
-            audio_chunks = bytearray()
-            async for chunk in communicator.stream():
-                if chunk.get("type") == "audio" and "data" in chunk:
-                    audio_chunks.extend(chunk["data"])
+            # Chunking logic for long texts to avoid timeouts
+            chunks = self._split_text(text, max_chars=500)
+            combined_audio = bytearray()
 
-            audio_bytes = bytes(audio_chunks)
+            for chunk in chunks:
+                if not chunk.strip():
+                    continue
+                    
+                _LOGGER.info("Synthesizing chunk (%d chars): %s...", len(chunk), chunk[:30])
+                communicator = edge_tts.Communicate(
+                    text=chunk,
+                    voice=voice,
+                    connect_timeout=5,
+                    receive_timeout=15
+                )
+                
+                async for audio_chunk in communicator.stream():
+                    if audio_chunk.get("type") == "audio" and "data" in audio_chunk:
+                        combined_audio.extend(audio_chunk["data"])
+                
+                # Small pause between chunks if needed (optional)
+                # await asyncio.sleep(0.1)
+
+            audio_bytes = bytes(combined_audio)
         except asyncio.CancelledError:
-            # Orchestrator timeout cancelled us — NOT a network issue.
-            # Do NOT trip breaker; just return empty so frontend uses Web Speech.
             _LOGGER.info("Edge TTS synthesis cancelled by orchestrator timeout.")
             return b""
         except Exception as e:
@@ -80,6 +90,30 @@ class EdgeTTSProvider(BaseTTS):
                 _TTS_CACHE.pop(oldest_key, None)
             _TTS_CACHE[cache_key] = audio_bytes
         return audio_bytes
+
+    def _split_text(self, text: str, max_chars: int = 500) -> list[str]:
+        """Split text into chunks by sentence boundaries."""
+        if len(text) <= max_chars:
+            return [text]
+
+        import re
+        # Split by . ! ? while keeping the delimiter
+        sentences = re.split(r'(?<=[.!?])\s+', text)
+        chunks = []
+        current_chunk = ""
+
+        for sentence in sentences:
+            if len(current_chunk) + len(sentence) <= max_chars:
+                current_chunk += (" " if current_chunk else "") + sentence
+            else:
+                if current_chunk:
+                    chunks.append(current_chunk.strip())
+                current_chunk = sentence
+
+        if current_chunk:
+            chunks.append(current_chunk.strip())
+            
+        return chunks
 
     @staticmethod
     def _cache_key(text: str, lang: str, voice: str) -> str:

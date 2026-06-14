@@ -2,7 +2,7 @@
 
 ## 1. Cấu hình Môi trường (`.env`)
 
-Tạo file `.env` tại thư mục root (nếu chưa có) và cập nhật các cấu hình sau:
+Tạo file `.env` tại thư mục root (nếu chưa có) và cập nhật các cấu hình sau để khớp với logic mặc định của hệ thống:
 
 ```env
 ENVIRONMENT=development
@@ -17,20 +17,20 @@ DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/ai_tour_guide
 
 # ─── Cấu hình AI & LLM ────────────────────────────────────────────────────────
 LLM_PROVIDER_ORDER=gemini,groq
-GEMINI_TEXT_MODEL=gemini-2.5-flash
-GEMINI_VISION_MODEL=gemini-2.5-flash
+GEMINI_TEXT_MODEL=gemini-2.5-flash-lite
+GEMINI_VISION_MODEL=gemini-2.5-flash-lite
 GROQ_LLM_MODEL=llama-3.3-70b-versatile
 GROQ_STT_MODEL=whisper-large-v3
 
-# Cấu hình độ sáng tạo (đã tối ưu 0.6) và số lượng token cho các loại câu hỏi
-LLM_TEMPERATURE=0.6
+# Cấu hình độ sáng tạo (mặc định 0.7) và số lượng token cho các loại câu hỏi
+LLM_TEMPERATURE=0.7
 LLM_MAX_TOKENS=2048
 LLM_MAX_TOKENS_FOLLOWUP=800
 ```
 
 ## 2. Khởi động Cơ sở dữ liệu
 
-Sử dụng Docker để chạy PostgreSQL:
+Sử dụng Docker để chạy PostgreSQL (hỗ trợ pgvector cho tìm kiếm ngữ nghĩa):
 
 ```bash
 cd docker
@@ -41,21 +41,22 @@ cd ..
 ## 3. Thiết lập Backend
 
 ```bash
-cd backend
-# Tạo môi trường ảo
+# Tạo môi trường ảo (tại thư mục root)
 python -m venv .venv
 
-# Cài đặt thư viện (bao gồm networkx cho bản đồ)
-.venv\Scripts\python -m pip install -r requirements.txt
+# Cài đặt thư viện
+.venv\Scripts\python -m pip install -r backend/requirements.txt
 
-# Cập nhật Database Schema và nạp dữ liệu 16 công trình Kinh thành Huế (ở thư mục root)
-cd ..
-backend\.venv\Scripts\alembic upgrade head
-backend\.venv\Scripts\python scripts/seed_data.py
+# Cập nhật Database Schema và nạp dữ liệu 17 công trình Kinh thành Huế (từ thư mục root)
+.venv\Scripts\alembic upgrade head
+.venv\Scripts\python scripts/seed_data.py
+
+# (Tùy chọn) Xây dựng Knowledge Graph - Đồ thị tri thức (yêu cầu GROQ_API_KEY)
+.venv\Scripts\python scripts/build_graph.py
 
 # Chạy server Backend (Giữ terminal này chạy)
 cd backend
-.venv\Scripts\python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+..\.venv\Scripts\python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 ## 4. Thiết lập Frontend
@@ -63,35 +64,35 @@ cd backend
 ```bash
 cd frontend
 npm install
-# Lưu ý: map.png (bản đồ Kinh thành Huế) phải nằm trong thư mục frontend/public/
+# Lưu ý: Ứng dụng dùng HTTPS (self-signed) để hỗ trợ Camera/Microphone trên trình duyệt
 npm run dev
 ```
 
 ## 5. Hướng dẫn Sử dụng Tính năng Bản đồ (Kinh thành Huế)
 
-1.  **Truy cập:** Mở trình duyệt vào `https://localhost:5173`, nhấn nút **"Kinh thành Huế – Bắt đầu khám phá"**.
+1.  **Truy cập:** Mở trình duyệt vào `https://localhost:5173`, nhấn vào card **"Đại Nội Huế"** (có ghi chú 17 điểm tham quan).
 2.  **Xác định vị trí khởi đầu:** 
-    *   Một modal sẽ hiện ra cho phép bạn chọn 1 trong 2 cách:
+    *   Một modal sẽ hiện ra cho phép bạn chọn:
         *   **"Định vị GPS tự động"** – hệ thống lấy tọa độ GPS thật từ thiết bị.
-        *   **"Chọn vị trí trên bản đồ"** – chạm vào bản đồ để đặt vị trí hiện tại.
+        *   **"Chọn vị trí trên bản đồ"** – chạm vào bản đồ để đặt vị trí hiện tại của bạn.
     *   Bạn có thể thay đổi vị trí hiện tại bất kỳ lúc nào bằng các nút ở góc phải:
         *   🔵 Nút GPS (định vị lại GPS thực tế)
         *   📍 Nút Pin (chọn lại trên bản đồ)
         *   🔧 Nút Căn chỉnh (Bật/tắt chế độ căn chỉnh tọa độ thủ công)
 3.  **Chọn điểm tham quan & Chỉ đường:**
-    *   Nhấn vào các Marker (màu đỏ) đại diện cho 16 công trình trên bản đồ.
-    *   Mỗi popup có 2 nút:
-        *   **"Chỉ đường đến đây"** – tính toán lộ trình đi bộ thực tế qua OSRM, vẽ đường đi, tự động phát âm thanh đọc chỉ dẫn bằng giọng nói (TTS) và hiển thị thanh hướng dẫn đi dưới đáy.
-        *   **"Giới thiệu công trình"** – chuyển sang khung Chat để AI kể chuyện về công trình (đã sửa lỗi đồng bộ ID và tên di tích).
-4.  **Sử dụng Thanh chỉ đường từng bước:**
-    *   Khi đang dẫn đường, thanh ngang dưới đáy sẽ hiển thị hướng dẫn của bước hiện tại (VD: *Bước 1/4: Bắt đầu di chuyển...*).
-    *   Sử dụng nút lùi `<-` hoặc tiến `->` để xem và nghe đọc lại (nút `🔊`) chỉ dẫn từng bước.
-    *   Bấm **"Toàn bộ bước"** để mở rộng danh sách timeline đứng hiển thị tất cả các bước đi. Bấm vào bước bất kỳ để xem và nghe đọc bước đó.
+    *   Nhấn vào các Marker (màu đỏ) đại diện cho 17 công trình trên bản đồ.
+    *   Mỗi popup có các nút hành động:
+        *   **"Chỉ đường đến đây"** – tính toán lộ trình đi bộ thực tế qua OSRM, vẽ đường đi uốn lượn theo lối mòn, tự động phát âm thanh hướng dẫn (TTS).
+        *   **"Giới thiệu công trình"** – chuyển sang khung Chat để AI kể chuyện sâu sắc về công trình đó.
+4.  **Sử dụng Thanh hướng dẫn:**
+    *   Khi đang dẫn đường, thanh dưới đáy hiển thị hướng dẫn bước hiện tại.
+    *   Dùng nút `🔊` để nghe lại chỉ dẫn, hoặc dùng mũi tên `<-` `->` để xem các bước tiếp theo.
+    *   Bấm **"Toàn bộ bước"** để xem danh sách lộ trình đầy đủ.
 5.  **Đến nơi:**
-    *   Khi đã đi đến đích, nhấn nút **"ĐÃ ĐẾN NƠI – Giới thiệu địa điểm"**.
-    *   Hệ thống sẽ di chuyển chấm xanh của bạn đến đích và tự động kích hoạt AI thuyết minh về địa điểm đó trong phần Chat.
+    *   Khi đã đến đích, nhấn nút **"ĐÃ ĐẾN NƠI – Giới thiệu địa điểm"**.
+    *   Hệ thống sẽ cập nhật vị trí của bạn và kích hoạt AI thuyết minh về địa điểm đó.
 
-## 6. Danh sách 16 Công trình trong Bản đồ
+## 6. Danh sách 17 Công trình trong Bản đồ
 
 | # | Tên công trình | Tên tiếng Anh |
 |---|---------------|--------------|
@@ -111,30 +112,21 @@ npm run dev
 | 14 | Thái Miếu | Thai Mieu Temple |
 | 15 | Cửa Hiển Nhơn | Hien Nhon Gate |
 | 16 | Điện Long An (Bảo tàng Cổ vật) | Long An Palace (Museum) |
+| 17 | Ngọ Môn | Ngo Mon Gate (Meridian Gate) |
 
-## 7. Căn chỉnh Tọa độ & Bounds thủ công (Map Calibration Mode)
+## 7. Căn chỉnh Tọa độ (Map Calibration Mode)
 
-Nếu vị trí GPS của bạn hoặc các di tích hiển thị chưa chính xác trên ảnh `map.png`, bạn có thể tự căn chỉnh bằng tay cực kỳ dễ dàng:
-1.  Bấm vào nút **🔧 (Căn chỉnh)** ở góc trên bên phải bản đồ. Giao diện **Căn Chỉnh Bản Đồ** sẽ xuất hiện ở bên trái.
-2.  **Căn chỉnh vị trí di tích:** Dùng chuột kéo thả trực tiếp các Marker di tích (chấm màu đỏ) trên bản đồ đến đúng vị trí hình ảnh của nó trên sơ đồ.
-3.  **Co giãn/Dịch chuyển ảnh bản đồ:** Điều chỉnh các thông số toạ độ GPS của góc Tây Nam (SW) và Đông Bắc (NE) trong các ô nhập liệu. Sơ đồ `map.png` sẽ tự động co giãn và di chuyển theo thời gian thực để bạn đối chiếu với chấm GPS của mình.
-4.  **Xuất cấu hình:** 
-    *   Bảng bên trái tự động hiển thị dữ liệu tọa độ đã căn chỉnh dưới dạng file `toado.md` và mã mảng JS `HUE_ARTIFACTS`.
-    *   Chỉ cần copy nội dung trong ô văn bản và ghi đè vào file `toado.md` ở thư mục root, code trong `MapExplore.jsx`, và chạy lại seed database để cập nhật.
-5.  **Lưu ý kỹ thuật:** 
-    *   Ảnh bản đồ có độ xoay góc khoảng 37 độ so với hướng Bắc thật. Định vị GPS sẽ sử dụng thuật toán chiếu của Leaflet lên góc bounds để hiển thị chính xác tương đối.
-    *   Routing sử dụng dịch vụ đi bộ OSRM dựa trên dữ liệu đường đi của OpenStreetMap. Nếu xuất phát quá xa, hệ thống sẽ tự động vẽ đường thẳng (đường chim bay) và hiển thị cảnh báo hướng dẫn ghim vị trí bắt đầu gần Đại Nội.
+Nếu vị trí các di tích hiển thị chưa khớp trên ảnh bản đồ `map.jpg`, bạn có thể căn chỉnh:
+1.  Bấm vào nút **🔧 (Căn chỉnh)**.
+2.  **Kéo thả Marker:** Di chuyển các Marker đỏ đến vị trí chính xác trên sơ đồ.
+3.  **Co giãn bản đồ:** Điều chỉnh tọa độ GPS góc SW và NE để khớp chấm GPS của bạn với hình ảnh bản đồ.
+4.  **Lưu thay đổi:** 
+    *   Copy mã mảng `HUE_ARTIFACTS` được xuất ra ở bảng bên trái.
+    *   Ghi đè vào biến `HUE_ARTIFACTS` trong file `frontend/src/components/map/MapExplore.jsx`.
+    *   Cập nhật tọa độ trong `scripts/seed_data.py` và chạy lại lệnh seed để đồng bộ Database.
 
 ## 8. Nhật ký trích xuất dữ liệu RAG (RAG Debug Logging)
 
-Hệ thống cung cấp cơ chế ghi nhật ký gỡ lỗi tự động nhằm phục vụ việc kiểm tra và quan sát xem dữ liệu di tích từ Database đã được trích xuất chính xác và nạp vào prompt của AI hay chưa:
-
-- **Đường dẫn file nhật ký:** `backend/data/rag_debug_log.txt` (tự động tạo sau câu hỏi chatbot đầu tiên).
-- **Định dạng ghi nhận:**
-  ```text
-  câu hỏi: <câu hỏi người dùng nhập>
-  data lấy từ data của bạn: <dữ liệu RAG Context trích xuất từ database>
-  --------------------
-  ```
-- Mỗi lượt trao đổi đều được ngăn cách bằng chuỗi `--------------------` để bạn dễ dàng theo dõi.
-
+Kiểm tra dữ liệu AI sử dụng để trả lời tại:
+- **Đường dẫn:** `backend/data/rag_debug_log.txt`
+- Giúp bạn biết chính xác đoạn văn bản nào từ Database đã được nạp vào Prompt của AI cho mỗi câu hỏi.

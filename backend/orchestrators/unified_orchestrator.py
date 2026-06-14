@@ -914,7 +914,7 @@ class UnifiedOrchestrator:
         try:
             audio = await asyncio.wait_for(
                 tts.synthesize(text, lang),
-                timeout=30,
+                timeout=60,
             )
             if audio:
                 _evict_tts_cache()

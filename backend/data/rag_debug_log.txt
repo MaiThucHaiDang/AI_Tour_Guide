@@ -72,3 +72,19 @@ Location ID: 1
 === FULL DETAILED DESCRIPTION (use ALL of this in your response) ===
 Điện Thái Hòa là cung điện quan trọng nhất của triều Nguyễn, nơi diễn ra các buổi thiết triều và lễ nghi trọng đại. Được xây dựng lần đầu năm 1805 dưới triều vua Gia Long và trùng tu nhiều lần, điện nằm ngay sau Ngọ Môn trên trục chính của Hoàng thành. Điện có 80 cột gỗ lim sơn son thếp vàng, mái lợp ngói hoàng lưu ly. Nội thất trang trí rồng, mây và các biểu tượng hoàng gia. Đây là biểu tượng quyền lực tối cao của vương triều Nguyễn.
 ────────────────────────────────────────────────────────────
+[2026-06-15 17:14:05] (source: llm)
+Câu hỏi: lên lộ trình cho tôi đi tôi muốn di chuyến tầm 5 điểm
+Data lấy từ data của bạn: No matching artifact found in database.
+────────────────────────────────────────────────────────────
+[2026-06-15 17:14:58] (source: template)
+Câu hỏi: chào bạn
+Data lấy từ data của bạn: (không có)
+────────────────────────────────────────────────────────────
+[2026-06-15 17:22:55] (source: template)
+Câu hỏi: xin chào
+Data lấy từ data của bạn: (không có)
+────────────────────────────────────────────────────────────
+[2026-06-15 17:23:06] (source: llm)
+Câu hỏi: hướng dẫn lộ tình
+Data lấy từ data của bạn: No matching artifact found in database.
+────────────────────────────────────────────────────────────

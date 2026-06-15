@@ -219,7 +219,11 @@ const UnifiedChatPage = ({
   nextSuggestion = null,
   onRequestNextStop = null,
   onNavigateNextStop = null,
-  onPreviewNextStop = null
+  onPreviewNextStop = null,
+  onPassportCheckIn = null,
+  onPassportPhoto = null,
+  onPassportQuestion = null,
+  onPassportAudio = null
 }) => {
   const copy = COPY[language] || COPY.vi;
   const [messages, setMessages] = useState(() => [createWelcomeMessage(copy.greeting)]);
@@ -253,6 +257,7 @@ const UnifiedChatPage = ({
   const ttsCheckIntervalRef = useRef(null);
   const messagesRef = useRef(messages);
   const lastInitialArtifactKeyRef = useRef(null);
+  const activeAudioMsgIdRef = useRef(null);
 
   useEffect(() => {
     currentArtifactRef.current = currentArtifact;
@@ -261,6 +266,27 @@ const UnifiedChatPage = ({
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
+
+  useEffect(() => {
+    activeAudioMsgIdRef.current = activeAudioMsgId;
+  }, [activeAudioMsgId]);
+
+  const estimateSpeechSeconds = useCallback((text = '') => {
+    const words = String(text).trim().split(/\s+/).filter(Boolean).length;
+    if (!words) return 0;
+    return Math.max(6, Math.round(words / 2.4));
+  }, []);
+
+  const recordPassportAudio = useCallback((seconds, source = 'guide_audio') => {
+    const activeMsgId = activeAudioMsgIdRef.current;
+    const activeMsg = messagesRef.current.find(message => message.id === activeMsgId) || {};
+    onPassportAudio?.({
+      artifact: currentArtifactRef.current,
+      seconds,
+      title: activeMsg.content || '',
+      source
+    });
+  }, [onPassportAudio]);
 
   // Unified HTML5 Audio listeners setup
   useEffect(() => {
@@ -280,6 +306,7 @@ const UnifiedChatPage = ({
       setIsPlaying(false);
       setPlayingMsgId(null);
       setPausedMsgId(null);
+      recordPassportAudio(Math.round(audio.duration || audio.currentTime || 0), 'backend_audio');
       if (onNarrationFinished && currentArtifactRef.current) {
         onNarrationFinished(currentArtifactRef.current);
       }
@@ -309,7 +336,7 @@ const UnifiedChatPage = ({
       stopTTS();
       audio.pause();
     };
-  }, [onNarrationFinished]);
+  }, [onNarrationFinished, recordPassportAudio]);
 
   const {
     isRecording,
@@ -425,6 +452,9 @@ const UnifiedChatPage = ({
     setProcessingSteps([copy.processing]);
 
     let voiceMsgId = null;
+    let photoRecorded = false;
+    let questionRecorded = false;
+    const artifactBeforeRequest = currentArtifactRef.current;
     if (imageBase64) {
       setMessages(prev => [...prev, {
         id: `img-${Date.now()}`,
@@ -467,23 +497,59 @@ const UnifiedChatPage = ({
         artifactId: artifactId || currentArtifact?.id
       });
 
+      const responseArtifact = (response.artifactId || response.artifactName)
+        ? {
+            id: response.artifactId,
+            name: response.artifactName,
+            year: response.artifactYear,
+            author: response.artifactAuthor,
+            summary: response.artifactSummary,
+            source: response.answerSource
+          }
+        : null;
+
       if (voiceMsgId && response.transcript) {
         setMessages(prev => prev.map(message => (
           message.id === voiceMsgId
             ? { ...message, content: response.transcript }
             : message
         )));
+        onPassportQuestion?.({
+          text: response.transcript,
+          artifact: responseArtifact || artifactBeforeRequest,
+          inputType: 'voice',
+          hadImage: Boolean(imageBase64)
+        });
+        questionRecorded = true;
       }
 
-      if (response.artifactId || response.artifactName) {
-        setCurrentArtifact({
-          id: response.artifactId,
-          name: response.artifactName,
-          year: response.artifactYear,
-          author: response.artifactAuthor,
-          summary: response.artifactSummary,
-          source: response.answerSource,
+      if (responseArtifact) {
+        setCurrentArtifact(responseArtifact);
+        if (imageBase64) {
+          onPassportCheckIn?.(responseArtifact, {
+            method: 'scan',
+            source: 'image_recognition'
+          });
+        }
+      }
+
+      if (imageBase64) {
+        onPassportPhoto?.({
+          imageBase64,
+          artifact: responseArtifact || artifactBeforeRequest,
+          source: responseArtifact ? 'scan_match' : 'scan'
         });
+        photoRecorded = true;
+      }
+
+      if (text) {
+        onPassportQuestion?.({
+          text,
+          artifact: responseArtifact || artifactBeforeRequest,
+          inputType: 'text',
+          hadImage: Boolean(imageBase64)
+        });
+        questionRecorded = true;
       }
 
       setProcessingSteps(response.processingSteps || []);
@@ -511,6 +577,21 @@ const UnifiedChatPage = ({
         pollTTSAudio(response.ttsToken, aiMsgId);
       }
     } catch (error) {
+      if (imageBase64 && !photoRecorded) {
+        onPassportPhoto?.({
+          imageBase64,
+          artifact: artifactBeforeRequest,
+          source: 'scan'
+        });
+      }
+      if (text && !questionRecorded) {
+        onPassportQuestion?.({
+          text,
+          artifact: artifactBeforeRequest,
+          inputType: 'text',
+          hadImage: Boolean(imageBase64)
+        });
+      }
       addErrorMessage(error.message);
       setProcessingSteps([]);
     } finally {
@@ -803,6 +884,12 @@ const UnifiedChatPage = ({
               setPausedMsgId(null);
               setActiveAudioMsgId(null);
               setIsPlaying(false);
+              onPassportAudio?.({
+                artifact: currentArtifactRef.current,
+                seconds: estimateSpeechSeconds(msg.content),
+                title: msg.content,
+                source: 'web_speech'
+              });
               if (onNarrationFinished && currentArtifactRef.current) {
                 onNarrationFinished(currentArtifactRef.current);
               }
@@ -813,7 +900,7 @@ const UnifiedChatPage = ({
     };
     // Start polling after 2 seconds
     ttsCheckIntervalRef.current = setTimeout(poll, 2000);
-  }, [autoSpeak, language, onNarrationFinished]);
+  }, [autoSpeak, estimateSpeechSeconds, language, onNarrationFinished, onPassportAudio]);
 
 
 
@@ -875,6 +962,12 @@ const UnifiedChatPage = ({
         setPausedMsgId(null);
         setActiveAudioMsgId(null);
         setIsPlaying(false);
+        onPassportAudio?.({
+          artifact: currentArtifactRef.current,
+          seconds: estimateSpeechSeconds(message.content),
+          title: message.content,
+          source: 'web_speech'
+        });
         if (onNarrationFinished && currentArtifactRef.current) {
           onNarrationFinished(currentArtifactRef.current);
         }

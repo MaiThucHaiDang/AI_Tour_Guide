@@ -71,6 +71,24 @@ const normalizeArtifact = (artifact, language) => {
   };
 };
 
+const buildTourArtifact = (artifact, language, entryAction = 'context') => {
+  const normalized = normalizeArtifact(artifact, language);
+  if (!artifact || !normalized) return null;
+  return {
+    ...artifact,
+    id: normalized.id || artifact?.id,
+    name_vi: normalized.nameVi || normalized.name,
+    name_en: normalized.nameEn || normalized.name,
+    year: normalized.year,
+    author: normalized.author,
+    summary: normalized.summary,
+    lat: normalized.lat,
+    lng: normalized.lng,
+    entryAction,
+    selectedAt: Date.now()
+  };
+};
+
 const ArtifactDetailPanel = ({
   artifact,
   language,
@@ -93,8 +111,8 @@ const ArtifactDetailPanel = ({
         <h2>{isVi ? 'Chọn một điểm để bắt đầu.' : 'Choose a stop to begin.'}</h2>
         <p>
           {isVi
-            ? 'Chạm vào một marker trên bản đồ Đại Nội hoặc gửi ảnh liên quan để xem thông tin phù hợp tại đây.'
-            : 'Tap a marker on the Citadel map or send a related photo to see guide notes here.'}
+            ? 'Chạm vào một điểm trên bản đồ Đại Nội hoặc gửi ảnh liên quan để xem thông tin phù hợp tại đây.'
+            : 'Tap a stop on the Citadel map or send a related photo to see guide notes here.'}
         </p>
         <button className="tour-primary-action" onClick={onShowMap}>
           <MapIcon size={18} />
@@ -127,37 +145,20 @@ const ArtifactDetailPanel = ({
           <span>{isVi ? 'Triều đại / tác giả' : 'Dynasty / author'}</span>
           <strong>{artifact.author || (isVi ? 'Chưa có dữ liệu' : 'No data yet')}</strong>
         </div>
-        <div>
-          <span>ID</span>
-          <strong>{artifact.id || '-'}</strong>
-        </div>
-        {artifact.confidence !== null && (
-          <div>
-            <span>{isVi ? 'Độ tin cậy' : 'Confidence'}</span>
-            <strong>{Math.round(Number(artifact.confidence) * 100)}%</strong>
-          </div>
-        )}
       </div>
 
       <section className="artifact-summary-block">
         <span>{isVi ? 'Tóm tắt' : 'Summary'}</span>
         <p>
           {artifact.summary || (isVi
-            ? 'Thông tin chi tiết sẽ xuất hiện sau khi bạn yêu cầu AI giới thiệu hoặc đặt câu hỏi về điểm dừng này.'
-            : 'Details will appear after you ask the AI guide to introduce this stop or ask a related question.')}
+            ? 'Thông tin chi tiết sẽ xuất hiện sau khi bạn nghe giới thiệu hoặc đặt câu hỏi về điểm dừng này.'
+            : 'Details will appear after you hear an intro or ask a related question.')}
         </p>
       </section>
 
-      {artifact.source && (
-        <section className="artifact-summary-block">
-          <span>{isVi ? 'Nguồn trả lời' : 'Answer source'}</span>
-          <p>{artifact.source}</p>
-        </section>
-      )}
-
       {assistantSteps.length > 0 && (
         <section className="artifact-summary-block">
-          <span>{isVi ? 'Trạng thái AI' : 'AI status'}</span>
+          <span>{isVi ? 'Đang hỗ trợ' : 'Guide status'}</span>
           <ol className="artifact-step-list">
             {assistantSteps.map((step, index) => (
               <li key={`${step}-${index}`}>{step}</li>
@@ -243,33 +244,40 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
     }
   };
 
-  const handleNarrationFinished = useCallback(async (artifact) => {
-    if (!artifact || !artifact.id) return;
-    
-    // Add current artifact to visited list
-    setVisitedIds(prev => {
-      if (prev.includes(artifact.id)) return prev;
-      return [...prev, artifact.id];
-    });
+  const loadNextSuggestionForArtifact = useCallback(async (artifact) => {
+    const normalized = normalizeArtifact(artifact || currentArtifact, language);
+    if (!normalized?.id) return null;
+
+    const currentVisited = visitedIds.includes(normalized.id)
+      ? visitedIds
+      : [...visitedIds, normalized.id];
+
+    setVisitedIds(prev => (
+      prev.includes(normalized.id) ? prev : [...prev, normalized.id]
+    ));
 
     try {
-      const currentVisited = visitedIds.includes(artifact.id) ? visitedIds : [...visitedIds, artifact.id];
       const res = await getNextSuggestionAPI({
-        currentArtifactId: artifact.id,
+        currentArtifactId: normalized.id,
         visitedIds: currentVisited,
         lang: language
       });
-      
-      if (res.success && res.suggestions && res.suggestions.length > 0) {
-        setNextSuggestion(res.suggestions[0]);
-      } else {
-        setNextSuggestion(null);
-      }
+
+      const suggestion = res.success && res.suggestions?.length > 0
+        ? res.suggestions[0]
+        : null;
+      setNextSuggestion(suggestion);
+      return suggestion;
     } catch (err) {
       console.error("Failed to load next suggestion:", err);
       setNextSuggestion(null);
+      return null;
     }
-  }, [visitedIds, language]);
+  }, [currentArtifact, language, visitedIds]);
+
+  const handleNarrationFinished = useCallback(async (artifact) => {
+    await loadNextSuggestionForArtifact(artifact);
+  }, [loadNextSuggestionForArtifact]);
 
   useEffect(() => {
     const updateOnline = () => setIsOnline(true);
@@ -289,47 +297,57 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
 
   const tabs = [
     { key: 'map', label: isVi ? 'Bản đồ' : 'Map', icon: MapIcon },
-    { key: 'ask', label: isVi ? 'Hỏi AI' : 'Ask', icon: MessageSquare },
+    { key: 'ask', label: isVi ? 'Hỏi hướng dẫn' : 'Ask guide', icon: MessageSquare },
     { key: 'artifact', label: isVi ? 'Điểm dừng' : 'Stop', icon: Landmark }
   ];
 
   const handleArtifactFocus = useCallback((artifact) => {
-    setCurrentArtifact(artifact);
-  }, []);
+    const nextArtifact = buildTourArtifact(artifact, language, 'context') || artifact;
+    setCurrentArtifact(nextArtifact);
+  }, [language]);
 
-  const handleNavigateToStorytelling = (artifact) => {
+  const handleMapArtifactFocus = useCallback((artifact) => {
+    handleArtifactFocus(artifact);
+    setNextSuggestion(null);
+  }, [handleArtifactFocus]);
+
+  const openArtifactInGuide = useCallback((artifact, entryAction = 'intro') => {
     if (!artifact) return;
     UnifiedChatPage.preload();
-    const normalized = normalizeArtifact(artifact, language);
-    const nextArtifact = {
-      ...artifact,
-      id: normalized?.id || artifact?.id,
-      name_vi: normalized?.nameVi || normalized?.name,
-      name_en: normalized?.nameEn || normalized?.name,
-      selectedAt: Date.now()
-    };
+    const nextArtifact = buildTourArtifact(artifact, language, entryAction);
+    if (!nextArtifact) return;
     setCurrentArtifact(nextArtifact);
     setTargetArtifact(nextArtifact);
     setActiveTab('ask');
+  }, [language]);
+
+  const handleNavigateToStorytelling = (artifact) => {
+    openArtifactInGuide(artifact, 'intro');
   };
 
   const handleAskArtifact = (artifact) => {
-    if (!artifact) return;
-    UnifiedChatPage.preload();
-    const normalized = normalizeArtifact(artifact, language);
-    const nextArtifact = {
-      ...artifact,
-      id: normalized?.id || artifact?.id,
-      name_vi: normalized?.nameVi || normalized?.name,
-      name_en: normalized?.nameEn || normalized?.name,
-      selectedAt: Date.now()
-    };
-    setCurrentArtifact(nextArtifact);
-    setTargetArtifact(nextArtifact);
-    setActiveTab('ask');
+    openArtifactInGuide(artifact, 'intro');
   };
 
+  const handleOpenArtifactContext = (artifact) => {
+    openArtifactInGuide(artifact, 'context');
+  };
 
+  const handleUseNextSuggestion = useCallback((suggestion, mode = 'route') => {
+    if (!suggestion) return;
+    const nextArtifact = buildTourArtifact(suggestion, language, mode === 'intro' ? 'intro' : 'context');
+    if (!nextArtifact) return;
+    setNextSuggestion(null);
+    setCurrentArtifact(nextArtifact);
+    if (mode === 'intro') {
+      UnifiedChatPage.preload();
+      setTargetArtifact(nextArtifact);
+      setActiveTab('ask');
+      return;
+    }
+    setExternalNavigationTarget(nextArtifact);
+    setActiveTab('map');
+  }, [language]);
 
   const locationName = isVi
     ? (location.name_vi || DEFAULT_LOCATION.name_vi)
@@ -386,7 +404,8 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
         <section className={`tour-shell-panel map-panel ${activeTab === 'map' ? 'is-active' : ''}`}>
           <MapExplore
             onNavigateToStorytelling={handleNavigateToStorytelling}
-            onArtifactFocus={handleArtifactFocus}
+            onOpenArtifactContext={handleOpenArtifactContext}
+            onArtifactFocus={handleMapArtifactFocus}
             onRouteStatusChange={setRouteStatus}
             language={language}
             embedded
@@ -394,6 +413,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
             active={activeTab === 'map'}
             externalNavigationTarget={externalNavigationTarget}
             onExternalNavigationConsumed={() => setExternalNavigationTarget(null)}
+            focusedArtifactId={normalizedArtifact?.id || null}
           />
         </section>
 
@@ -408,6 +428,10 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
               onProcessingStepsUpdate={setAssistantSteps}
               embedded
               onNarrationFinished={handleNarrationFinished}
+              nextSuggestion={nextSuggestion}
+              onRequestNextStop={loadNextSuggestionForArtifact}
+              onNavigateNextStop={(suggestion) => handleUseNextSuggestion(suggestion, 'route')}
+              onPreviewNextStop={(suggestion) => handleUseNextSuggestion(suggestion, 'intro')}
             />
           </Suspense>
         </section>
@@ -425,7 +449,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
       </main>
 
       {/* Floating recommendation card after narration completes */}
-      {nextSuggestion && (
+      {nextSuggestion && activeTab !== 'ask' && (
         <div style={{
           position: 'absolute',
           bottom: '80px',
@@ -460,12 +484,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button 
-              onClick={() => {
-                const target = nextSuggestion;
-                setNextSuggestion(null);
-                setExternalNavigationTarget(target);
-                setActiveTab('map');
-              }}
+              onClick={() => handleUseNextSuggestion(nextSuggestion, 'route')}
               style={{
                 backgroundColor: '#0f5f59',
                 color: '#fff',
@@ -482,7 +501,26 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
               }}
             >
               <Navigation size={12} />
-              {isVi ? 'Khám phá' : 'Explore'}
+              {isVi ? 'Đường đi' : 'Route'}
+            </button>
+            <button 
+              onClick={() => handleUseNextSuggestion(nextSuggestion, 'intro')}
+              style={{
+                backgroundColor: '#fffaf0',
+                color: '#0f5f59',
+                border: '1px solid rgba(15, 95, 89, 0.22)',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                fontSize: '12px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              <Volume2 size={12} />
+              {isVi ? 'Nghe trước' : 'Preview'}
             </button>
             <button 
               onClick={() => setNextSuggestion(null)}

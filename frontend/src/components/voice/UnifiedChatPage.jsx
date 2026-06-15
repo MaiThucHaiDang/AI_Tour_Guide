@@ -10,6 +10,7 @@ import {
   Loader2,
   MapPin,
   Mic,
+  Navigation,
   Pause,
   Play,
   RotateCcw,
@@ -46,18 +47,17 @@ const AUDIO_HISTORY_MAX = 3;
 
 const COPY = {
   vi: {
-    title: 'AITourGuide',
+    title: 'Hướng dẫn Đại Nội',
     subtitle: 'Hướng dẫn viên số cho Đại Nội Huế',
     status: 'Sẵn sàng',
     back: 'Trang chủ',
     upload: 'Tải ảnh',
     camera: 'Chụp ảnh',
     askPlaceholder: 'Hỏi về Ngọ Môn, Điện Thái Hòa, Thế Miếu...',
-    greeting: 'Xin chào! Bạn có thể hỏi về một điểm dừng trong Đại Nội, tải ảnh hiện vật hoặc dùng giọng nói để nghe thuyết minh.',
+    greeting: 'Xin chào! Bạn có thể chọn một điểm trên bản đồ, tải ảnh hiện vật hoặc dùng giọng nói để nghe thuyết minh.',
     processing: 'Đang chuẩn bị câu trả lời',
     artifactPanel: 'Thông tin điểm dừng',
-    noArtifact: 'Chọn một marker trên bản đồ, tải ảnh hoặc đặt câu hỏi để nhận thông tin phù hợp.',
-    confidence: 'Độ tin cậy',
+    noArtifact: 'Chọn một điểm trên bản đồ, tải ảnh hoặc đặt câu hỏi để nhận thông tin phù hợp.',
     year: 'Năm',
     author: 'Tác giả/triều đại',
     summary: 'Tóm tắt',
@@ -79,6 +79,14 @@ const COPY = {
     send: 'Gửi câu hỏi',
     record: 'Ghi âm',
     latest: 'Tin nhắn mới nhất',
+    contextEyebrow: 'Đang hỏi về',
+    listenIntro: 'Nghe giới thiệu',
+    nextStopQuestion: 'Đi tiếp đâu?',
+    findingNextStop: 'Đang tìm điểm phù hợp tiếp theo...',
+    nextStopTitle: 'Điểm tiếp theo',
+    showRoute: 'Xem đường đi',
+    previewNext: 'Nghe trước',
+    noNextStop: 'Chưa tìm thấy điểm tiếp theo phù hợp. Bạn có thể chọn một điểm khác trên bản đồ.',
     quickPrompts: [
       'Điện Thái Hòa được xây năm nào?',
       'Kể ngắn về Thế Miếu và Cửu Đỉnh',
@@ -92,18 +100,17 @@ const COPY = {
     ]
   },
   en: {
-    title: 'AITourGuide',
+    title: 'Citadel Guide',
     subtitle: 'A digital guide for Hue Imperial City',
     status: 'Ready',
     back: 'Home',
     upload: 'Upload',
     camera: 'Capture',
     askPlaceholder: 'Ask about Ngo Mon Gate, Thai Hoa Palace, The Mieu...',
-    greeting: 'Hello! Ask about a Hue Imperial City stop, upload an artifact photo, or use voice to hear the guide.',
+    greeting: 'Hello! Choose a stop on the map, upload an artifact photo, or use voice to hear the guide.',
     processing: 'Preparing your answer',
     artifactPanel: 'Stop detail',
-    noArtifact: 'Choose a map marker, upload a photo, or ask a question to get relevant guidance.',
-    confidence: 'Confidence',
+    noArtifact: 'Choose a stop on the map, upload a photo, or ask a question to get relevant guidance.',
     year: 'Year',
     author: 'Author/dynasty',
     summary: 'Summary',
@@ -125,6 +132,14 @@ const COPY = {
     send: 'Send question',
     record: 'Record voice',
     latest: 'Latest messages',
+    contextEyebrow: 'Asking about',
+    listenIntro: 'Hear intro',
+    nextStopQuestion: 'Where next?',
+    findingNextStop: 'Finding a good next stop...',
+    nextStopTitle: 'Next stop',
+    showRoute: 'Show route',
+    previewNext: 'Preview',
+    noNextStop: 'No suitable next stop was found yet. You can choose another stop on the map.',
     quickPrompts: [
       'When was Thai Hoa Palace built?',
       'Tell me about The Mieu and the Nine Dynastic Urns',
@@ -148,6 +163,50 @@ const createWelcomeMessage = (greeting) => ({
   source: 'template'
 });
 
+const getArtifactDisplayName = (artifact, language) => {
+  if (!artifact) return '';
+  return artifact.name
+    || (language === 'vi' ? artifact.name_vi || artifact.nameVi : artifact.name_en || artifact.nameEn)
+    || artifact.artifact_name
+    || artifact.name_vi
+    || artifact.name_en
+    || artifact.nameVi
+    || artifact.nameEn
+    || '';
+};
+
+const toChatArtifact = (artifact, language) => ({
+  id: artifact?.id || artifact?.artifact_id || artifact?.artifactId || null,
+  name: getArtifactDisplayName(artifact, language),
+  year: artifact?.year || artifact?.artifactYear || null,
+  author: artifact?.author || artifact?.artifactAuthor || null,
+  summary: artifact?.summary || artifact?.artifactSummary || artifact?.summary_vi || artifact?.summary_en || '',
+  source: artifact?.source || artifact?.answerSource || ''
+});
+
+const getContextPrompts = (artifactName, language) => {
+  if (!artifactName) return [];
+  return language === 'vi'
+    ? [
+        `Nghe giới thiệu ngắn về ${artifactName}`,
+        `${artifactName} có gì đặc biệt?`,
+        `Tôi nên quan sát gì ở ${artifactName}?`,
+        `Đi tiếp đâu sau ${artifactName}?`
+      ]
+    : [
+        `Give me a short intro to ${artifactName}`,
+        `What is special about ${artifactName}?`,
+        `What should I notice at ${artifactName}?`,
+        `Where should I go after ${artifactName}?`
+      ];
+};
+
+const getSuggestionName = (suggestion, language) => (
+  language === 'vi'
+    ? suggestion?.name_vi || suggestion?.name || suggestion?.name_en || ''
+    : suggestion?.name_en || suggestion?.name || suggestion?.name_vi || ''
+);
+
 const UnifiedChatPage = ({
   onBack,
   language,
@@ -156,7 +215,11 @@ const UnifiedChatPage = ({
   onArtifactUpdate,
   onProcessingStepsUpdate,
   embedded = false,
-  onNarrationFinished = null
+  onNarrationFinished = null,
+  nextSuggestion = null,
+  onRequestNextStop = null,
+  onNavigateNextStop = null,
+  onPreviewNextStop = null
 }) => {
   const copy = COPY[language] || COPY.vi;
   const [messages, setMessages] = useState(() => [createWelcomeMessage(copy.greeting)]);
@@ -189,6 +252,7 @@ const UnifiedChatPage = ({
   const currentArtifactRef = useRef(null);
   const ttsCheckIntervalRef = useRef(null);
   const messagesRef = useRef(messages);
+  const lastInitialArtifactKeyRef = useRef(null);
 
   useEffect(() => {
     currentArtifactRef.current = currentArtifact;
@@ -270,19 +334,41 @@ const UnifiedChatPage = ({
 
   useEffect(() => {
     if (initialArtifact) {
-      const artName = language === 'vi' ? initialArtifact.name_vi : initialArtifact.name_en;
-      setCurrentArtifact({
-        id: initialArtifact.id,
-        name: artName,
-      });
-      const storytellingPrompt = language === 'vi' 
-        ? `Hướng dẫn viên: Giới thiệu ngắn gọn và hấp dẫn về ${artName}`
-        : `Tour guide: Give a short, engaging introduction to ${artName}`;
-      
-      // Delay to ensure setup is done
-      setTimeout(() => {
-        handleSendText(storytellingPrompt, initialArtifact.id);
-      }, 500);
+      const artifactForChat = toChatArtifact(initialArtifact, language);
+      const artifactKey = [
+        artifactForChat.id || artifactForChat.name,
+        initialArtifact.selectedAt || '',
+        initialArtifact.entryAction || 'intro'
+      ].join(':');
+
+      if (lastInitialArtifactKeyRef.current === artifactKey) return;
+      lastInitialArtifactKeyRef.current = artifactKey;
+
+      setCurrentArtifact(artifactForChat);
+      setMobileGuidePanel('detail');
+
+      if (initialArtifact.entryAction === 'context') {
+        shouldStickToBottomRef.current = true;
+        setMessages(prev => [...prev, {
+          id: `ctx-${Date.now()}`,
+          role: 'ai',
+          type: 'text',
+          content: language === 'vi'
+            ? `Mình đang theo điểm ${artifactForChat.name}. Bạn muốn nghe giới thiệu, hỏi thêm, hay xem điểm kế tiếp?`
+            : `I am following ${artifactForChat.name}. Would you like an intro, a deeper question, or the next stop?`,
+          timestamp: new Date(),
+          source: 'template'
+        }]);
+        return;
+      }
+
+      const storytellingPrompt = language === 'vi'
+        ? `Nghe giới thiệu ngắn về ${artifactForChat.name}`
+        : `Give me a short introduction to ${artifactForChat.name}`;
+
+      window.setTimeout(() => {
+        handleSendText(storytellingPrompt, artifactForChat.id);
+      }, 300);
     }
   }, [initialArtifact]);
 
@@ -488,6 +574,51 @@ const UnifiedChatPage = ({
     }]);
   };
 
+  const handleFindNextStop = async () => {
+    const artifact = currentArtifactRef.current;
+    if (!artifact?.id || !onRequestNextStop) {
+      addErrorMessage('no_next_stop');
+      return;
+    }
+
+    shouldStickToBottomRef.current = true;
+    setShowJumpToLatest(false);
+    setProcessingSteps([copy.findingNextStop]);
+    setMessages(prev => [...prev, {
+      id: `next-q-${Date.now()}`,
+      role: 'user',
+      type: 'text',
+      content: language === 'vi'
+        ? `Đi tiếp đâu sau ${artifact.name}?`
+        : `Where should I go after ${artifact.name}?`,
+      timestamp: new Date()
+    }]);
+
+    try {
+      const suggestion = await onRequestNextStop(artifact);
+      if (!suggestion) {
+        addErrorMessage('no_next_stop');
+        return;
+      }
+
+      const suggestionName = getSuggestionName(suggestion, language);
+      setMessages(prev => [...prev, {
+        id: `next-a-${Date.now()}`,
+        role: 'ai',
+        type: 'text',
+        content: language === 'vi'
+          ? `Sau ${artifact.name}, điểm hợp lý tiếp theo là ${suggestionName}. Bạn có thể xem đường đi hoặc nghe giới thiệu trước.`
+          : `After ${artifact.name}, a good next stop is ${suggestionName}. You can view the route or preview the intro first.`,
+        timestamp: new Date(),
+        source: 'template'
+      }]);
+    } catch (error) {
+      addErrorMessage(error.message);
+    } finally {
+      setProcessingSteps([]);
+    }
+  };
+
   const appendAssistantMessageProgressively = async (message) => {
     const fullContent = message.content || '';
     const streamId = message.id;
@@ -567,8 +698,11 @@ const UnifiedChatPage = ({
     }
     if (lower.includes('feedback_failed')) {
       return language === 'vi'
-        ? 'Chưa lưu được phản hồi của bạn. Hãy kiểm tra backend rồi thử lại.'
-        : 'Your feedback could not be saved. Check the backend, then try again.';
+        ? 'Chưa lưu được phản hồi của bạn. Hãy thử lại sau ít phút.'
+        : 'Your feedback could not be saved. Try again in a moment.';
+    }
+    if (lower.includes('no_next_stop')) {
+      return copy.noNextStop;
     }
     if (lower.includes('too large') || lower.includes('quá lớn')) {
       return language === 'vi'
@@ -577,8 +711,8 @@ const UnifiedChatPage = ({
     }
     if (lower.includes('timeout') || lower.includes('quá lâu')) {
       return language === 'vi'
-        ? 'Xử lý quá lâu. Hãy thử lại với câu hỏi ngắn hơn, hoặc kiểm tra backend nếu lỗi tái diễn.'
-        : 'Request timed out. Try a shorter question, or check the backend if this persists.';
+        ? 'Chuẩn bị quá lâu. Hãy thử lại với câu hỏi ngắn hơn.'
+        : 'This took too long. Try again with a shorter question.';
     }
     if (lower.includes('provider') || lower.includes('api key')) {
       return language === 'vi'
@@ -587,8 +721,8 @@ const UnifiedChatPage = ({
     }
     if (lower.includes('failed to fetch') || lower.includes('network') || lower.includes('load failed')) {
       return language === 'vi'
-        ? 'Chưa kết nối được backend. Hãy kiểm tra server FastAPI đang chạy rồi thử lại.'
-        : 'The backend is not reachable. Check that the FastAPI server is running, then try again.';
+        ? 'Chưa kết nối được hướng dẫn. Hãy kiểm tra mạng rồi thử lại.'
+        : 'The guide is not reachable. Check your connection and try again.';
     }
     return message || (language === 'vi'
       ? 'Mình chưa xử lý được yêu cầu này. Hãy thử hỏi ngắn hơn hoặc gửi ảnh rõ hơn.'
@@ -804,6 +938,7 @@ const UnifiedChatPage = ({
     const newId = `chat-${Date.now()}-${Math.random().toString(16).slice(2)}`;
     sessionIdRef.current = newId;
     sessionStorage.setItem('unified_chat_session_id', newId);
+    lastInitialArtifactKeyRef.current = null;
     setMessages([createWelcomeMessage(copy.greeting)]);
     setPendingImage(null);
     setCurrentArtifact(null);
@@ -870,8 +1005,31 @@ const UnifiedChatPage = ({
     { key: 'prompts', label: language === 'vi' ? 'Gợi ý' : 'Prompts', icon: Sparkles },
     { key: 'places', label: language === 'vi' ? 'Nhóm điểm' : 'Stops', icon: MapPin },
     { key: 'detail', label: language === 'vi' ? 'Chi tiết' : 'Detail', icon: FileText },
-    { key: 'status', label: language === 'vi' ? 'Xử lý' : 'Status', icon: CheckCircle2 }
+    { key: 'status', label: language === 'vi' ? 'Chuẩn bị' : 'Preparing', icon: CheckCircle2 }
   ];
+
+  const activePrompts = currentArtifact?.name
+    ? getContextPrompts(currentArtifact.name, language)
+    : copy.quickPrompts;
+
+  const nextSuggestionName = getSuggestionName(nextSuggestion, language);
+  const nextSuggestionMeta = nextSuggestion
+    ? [
+        nextSuggestion.reason,
+        nextSuggestion.distance ? `${Math.round(nextSuggestion.distance)}m` : '',
+        nextSuggestion.walk_duration_min
+          ? `${Math.ceil(nextSuggestion.walk_duration_min)} ${language === 'vi' ? 'phút đi bộ' : 'min walk'}`
+          : ''
+      ].filter(Boolean).join(' · ')
+    : '';
+
+  const handlePromptClick = (prompt) => {
+    if (currentArtifact?.name && prompt === activePrompts[activePrompts.length - 1]) {
+      handleFindNextStop();
+      return;
+    }
+    handleSendText(prompt);
+  };
 
   return (
     <div className={`tour-workspace ${embedded ? 'embedded-mode' : ''}`} ref={workspaceRef} onPointerMove={handleWorkspacePointerMove}>
@@ -883,7 +1041,7 @@ const UnifiedChatPage = ({
             <span>{copy.back}</span>
           </button>
           <div className="brand-block">
-            <div className="brand-mark"><span>AI</span></div>
+            <div className="brand-mark"><Landmark size={20} /></div>
             <div>
               <h1>{copy.title}</h1>
               <p>{copy.subtitle}</p>
@@ -942,8 +1100,8 @@ const UnifiedChatPage = ({
                 <h2>{copy.explore}</h2>
               </div>
               <div className="quick-actions">
-                {copy.quickPrompts.map((prompt) => (
-                  <button key={prompt} onClick={() => handleSendText(prompt)}>
+                {activePrompts.map((prompt) => (
+                  <button key={prompt} onClick={() => handlePromptClick(prompt)}>
                     {prompt}
                   </button>
                 ))}
@@ -996,6 +1154,24 @@ const UnifiedChatPage = ({
             </div>
           </div>
 
+          {currentArtifact?.name && (
+            <div className="conversation-context-strip">
+              <MapPin size={15} />
+              <span>{copy.contextEyebrow}</span>
+              <strong>{currentArtifact.name}</strong>
+              <button onClick={() => handleSendText(activePrompts[0], currentArtifact.id)}>
+                <Volume2 size={14} />
+                {copy.listenIntro}
+              </button>
+              {onRequestNextStop && (
+                <button onClick={handleFindNextStop}>
+                  <Navigation size={14} />
+                  {copy.nextStopQuestion}
+                </button>
+              )}
+            </div>
+          )}
+
           {embedded && (
             <section className="mobile-guide-panel" aria-label={language === 'vi' ? 'Công cụ hướng dẫn' : 'Guide tools'}>
               <div className="mobile-guide-tabs">
@@ -1013,10 +1189,30 @@ const UnifiedChatPage = ({
               </div>
 
               <div className="mobile-guide-content">
+                {nextSuggestion && (
+                  <div className="guide-next-card">
+                    <div>
+                      <span>{copy.nextStopTitle}</span>
+                      <strong>{nextSuggestionName}</strong>
+                      {nextSuggestionMeta && <small>{nextSuggestionMeta}</small>}
+                    </div>
+                    <div className="guide-next-actions">
+                      <button onClick={() => onNavigateNextStop?.(nextSuggestion)}>
+                        <Navigation size={14} />
+                        {copy.showRoute}
+                      </button>
+                      <button onClick={() => onPreviewNextStop?.(nextSuggestion)}>
+                        <Volume2 size={14} />
+                        {copy.previewNext}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {mobileGuidePanel === 'prompts' && (
                   <div className="mobile-prompt-row">
-                    {copy.quickPrompts.map((prompt) => (
-                      <button key={prompt} onClick={() => handleSendText(prompt)}>
+                    {activePrompts.map((prompt) => (
+                      <button key={prompt} onClick={() => handlePromptClick(prompt)}>
                         {prompt}
                       </button>
                     ))}
@@ -1057,15 +1253,8 @@ const UnifiedChatPage = ({
                           <span>{copy.author}</span>
                           <strong>{currentArtifact.author || '-'}</strong>
                         </div>
-                        <div>
-                          <span>ID</span>
-                          <strong>{currentArtifact.id || '-'}</strong>
-                        </div>
                       </div>
                       <p>{currentArtifact.summary || copy.detailEmpty}</p>
-                      {currentArtifact.source && (
-                        <small>{currentArtifact.source}</small>
-                      )}
                     </div>
                   ) : (
                     <div className="mobile-empty-note">
@@ -1185,7 +1374,7 @@ const UnifiedChatPage = ({
                     </div>
                     <div className="audio-meta-text">
                       <strong>{displayTitle}</strong>
-                      <span>{isWebSpeech ? (language === 'vi' ? 'Giọng đọc Web Speech' : 'Web Speech voice') : (language === 'vi' ? 'Âm thanh di sản' : 'Heritage Audio')}</span>
+                      <span>{isWebSpeech ? (language === 'vi' ? 'Giọng đọc trên thiết bị' : 'Device voice') : (language === 'vi' ? 'Giọng thuyết minh' : 'Narration voice')}</span>
                     </div>
                   </div>
 
@@ -1339,10 +1528,6 @@ const UnifiedChatPage = ({
                       <span>{copy.author}</span>
                       <strong>{currentArtifact.author || '-'}</strong>
                     </div>
-                    <div>
-                      <span>ID</span>
-                      <strong>{currentArtifact.id || '-'}</strong>
-                    </div>
                   </div>
                   <div className="summary-block">
                     <span>{copy.summary}</span>
@@ -1379,8 +1564,8 @@ const UnifiedChatPage = ({
                 <h2>{copy.suggestions}</h2>
               </div>
               <div className="quick-actions">
-                {copy.quickPrompts.slice(0, 3).map((prompt) => (
-                  <button key={prompt} onClick={() => handleSendText(prompt)}>
+                {activePrompts.slice(0, 3).map((prompt) => (
+                  <button key={prompt} onClick={() => handlePromptClick(prompt)}>
                     {prompt}
                   </button>
                 ))}
@@ -1768,6 +1953,61 @@ const UnifiedChatPage = ({
           gap: 8px;
           flex-wrap: wrap;
           justify-content: flex-end;
+        }
+
+        .conversation-context-strip {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          min-height: 42px;
+          padding: 8px 12px;
+          color: var(--ui-text);
+          background: #f3fbf8;
+          border-bottom: 1px solid rgba(15, 95, 89, 0.16);
+        }
+
+        .conversation-context-strip > svg {
+          flex: 0 0 auto;
+          color: var(--ui-teal);
+        }
+
+        .conversation-context-strip span {
+          color: var(--ui-muted);
+          font-size: 11px;
+          font-weight: 900;
+          text-transform: uppercase;
+          white-space: nowrap;
+        }
+
+        .conversation-context-strip strong {
+          flex: 1;
+          min-width: 0;
+          overflow: hidden;
+          color: var(--ui-text);
+          font-size: 13px;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .conversation-context-strip button {
+          flex: 0 0 auto;
+          min-height: 30px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 5px;
+          border: 1px solid rgba(15, 95, 89, 0.18);
+          border-radius: 8px;
+          color: var(--ui-teal);
+          background: #ffffff;
+          padding: 6px 9px;
+          font-size: 11px;
+          font-weight: 900;
+        }
+
+        .conversation-context-strip button:hover {
+          background: var(--ui-teal);
+          color: #fffdf6;
         }
 
         .message-list {
@@ -2377,6 +2617,19 @@ const UnifiedChatPage = ({
             flex-direction: column;
           }
 
+          .conversation-context-strip {
+            flex-wrap: wrap;
+            align-items: flex-start;
+          }
+
+          .conversation-context-strip strong {
+            flex-basis: calc(100% - 92px);
+          }
+
+          .conversation-context-strip button {
+            flex: 1 1 128px;
+          }
+
           .conversation-tools {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -2482,6 +2735,70 @@ const UnifiedChatPage = ({
           overflow-y: auto;
           overscroll-behavior: contain;
           padding-bottom: 1px;
+        }
+
+        .guide-next-card {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr);
+          gap: 9px;
+          margin-bottom: 9px;
+          border: 1px solid rgba(15, 95, 89, 0.18);
+          border-radius: 8px;
+          background: #ffffff;
+          padding: 11px;
+          box-shadow: 0 8px 20px rgba(15, 95, 89, 0.08);
+        }
+
+        .guide-next-card span {
+          display: block;
+          color: var(--ui-teal);
+          font-size: 10.5px;
+          font-weight: 900;
+          text-transform: uppercase;
+        }
+
+        .guide-next-card strong {
+          display: block;
+          margin-top: 2px;
+          color: var(--ui-text);
+          font-size: 14px;
+          line-height: 1.2;
+        }
+
+        .guide-next-card small {
+          display: block;
+          margin-top: 4px;
+          color: var(--ui-muted);
+          font-size: 11.5px;
+          line-height: 1.35;
+        }
+
+        .guide-next-actions {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 7px;
+        }
+
+        .guide-next-actions button {
+          min-width: 0;
+          min-height: 38px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          border: 1px solid rgba(15, 95, 89, 0.18);
+          border-radius: 8px;
+          color: var(--ui-teal);
+          background: #f7faf8;
+          padding: 8px;
+          font-size: 12px;
+          font-weight: 900;
+        }
+
+        .guide-next-actions button:first-child {
+          color: #fffdf6;
+          background: var(--ui-teal);
+          border-color: var(--ui-teal);
         }
 
         .mobile-guide-content::-webkit-scrollbar,
@@ -2592,7 +2909,7 @@ const UnifiedChatPage = ({
 
         .artifact-mini-grid {
           display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+          grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 7px;
           margin-bottom: 10px;
         }

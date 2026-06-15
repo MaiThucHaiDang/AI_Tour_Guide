@@ -139,7 +139,7 @@ const IMPERIAL_CITY_BOUNDARY = [
 ];
 
 // Kinh thành Huế: 17 công trình
-const HUE_ARTIFACTS = [
+export const HUE_ARTIFACTS = [
   { id: 1,  name_vi: "Cửa Hòa Bình",                    name_en: "Hoa Binh Gate",              lat: 16.4721279, lng: 107.5762716 },
   { id: 2,  name_vi: "Điện Kiến Trung",                  name_en: "Kien Trung Palace",          lat: 16.4710479, lng: 107.5765559 },
   { id: 3,  name_vi: "Cung Trường Sanh",                 name_en: "Truong Sanh Palace",         lat: 16.469725,  lng: 107.574694  },

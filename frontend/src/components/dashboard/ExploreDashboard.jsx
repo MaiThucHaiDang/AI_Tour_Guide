@@ -1,7 +1,9 @@
 import React, { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeft,
+  BookOpen,
   Compass,
+  Flag,
   Landmark,
   Map as MapIcon,
   MessageSquare,
@@ -12,9 +14,21 @@ import {
   Gamepad2,
   Loader2
 } from 'lucide-react';
-import MapExplore from '../map/MapExplore';
+import MapExplore, { HUE_ARTIFACTS } from '../map/MapExplore';
 import LanguageToggle from '../shared/LanguageToggle';
-import { getNextSuggestionAPI, createGameRoomAPI } from '../../services/apiService';
+import TripCompletionScreen from '../passport/TripCompletionScreen';
+import { getNextSuggestionAPI, createGameRoomAPI, getMapConfigAPI } from '../../services/apiService';
+import {
+  buildTourSummary,
+  completeTourMemory,
+  loadTourMemory,
+  normalizeArtifactForPassport,
+  recordAudio,
+  recordCheckIn,
+  recordPhoto,
+  recordQuestion,
+  resetTourMemory
+} from '../../services/tourMemoryService';
 
 const lazyWithPreload = (factory) => {
   let modulePromise;
@@ -35,6 +49,12 @@ const DEFAULT_LOCATION = {
   name_vi: 'Kinh thành Huế (Đại Nội)',
   name_en: 'Hue Imperial City'
 };
+
+const DASHBOARD_TABS = new Set(['map', 'ask', 'artifact']);
+
+const normalizeDashboardTab = (tab, fallback = 'map') => (
+  DASHBOARD_TABS.has(tab) ? tab : fallback
+);
 
 const PanelLoader = ({ language }) => {
   const isVi = language === 'vi';
@@ -197,7 +217,10 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
   const isVi = language === 'vi';
   const location = initialLocation || DEFAULT_LOCATION;
   const initialArtifact = location.initialArtifact || null;
-  const [activeTab, setActiveTab] = useState(location.initialTab || 'map');
+  const [activeTab, setActiveTab] = useState(() => {
+    const requestedTab = new URLSearchParams(window.location.search).get('tab');
+    return normalizeDashboardTab(location.initialTab || requestedTab, 'map');
+  });
   const [targetArtifact, setTargetArtifact] = useState(() => (
     location.initialTab === 'ask' ? initialArtifact : null
   ));
@@ -217,13 +240,97 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
   const [activeRoomCode, setActiveRoomCode] = useState(null);
   const [loadingGame, setLoadingGame] = useState(false);
   const [gameMinimized, setGameMinimized] = useState(false);
+  const [passportCatalog, setPassportCatalog] = useState(HUE_ARTIFACTS);
+  const [passportMemory, setPassportMemory] = useState(() => loadTourMemory());
+  const [passportToast, setPassportToast] = useState(null);
+  const [showTripCompletion, setShowTripCompletion] = useState(() => (
+    new URLSearchParams(window.location.search).get('trip') === 'complete'
+  ));
 
   useEffect(() => {
     if (!location.initialArtifact) return;
+    const nextTab = normalizeDashboardTab(location.initialTab, 'artifact');
     setCurrentArtifact(location.initialArtifact);
-    setTargetArtifact(location.initialTab === 'ask' ? location.initialArtifact : null);
-    setActiveTab(location.initialTab || 'artifact');
+    setTargetArtifact(nextTab === 'ask' ? location.initialArtifact : null);
+    setActiveTab(nextTab);
   }, [location.initialArtifact, location.initialTab]);
+
+  useEffect(() => {
+    let mounted = true;
+    getMapConfigAPI()
+      .then((data) => {
+        if (mounted && data.success && data.artifacts?.length) {
+          setPassportCatalog(data.artifacts);
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to load passport catalog:', error);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const storedIds = Object.keys(passportMemory.checkIns || {})
+      .map((id) => Number(id))
+      .filter(Number.isFinite);
+    if (storedIds.length === 0) return;
+    setVisitedIds(prev => Array.from(new Set([...prev, ...storedIds])));
+  }, [passportMemory.checkIns]);
+
+  const showPassportToast = useCallback((message) => {
+    setPassportToast(message);
+    window.clearTimeout(showPassportToast.timeoutId);
+    showPassportToast.timeoutId = window.setTimeout(() => {
+      setPassportToast(null);
+    }, 3400);
+  }, []);
+
+  const handlePassportCheckIn = useCallback((artifact, details = {}) => {
+    const normalized = normalizeArtifactForPassport(artifact);
+    if (!normalized?.id) return;
+
+    const wasChecked = Boolean(passportMemory.checkIns?.[String(normalized.id)]);
+    setPassportMemory(prev => recordCheckIn(prev, normalized, details));
+    setVisitedIds(prev => (
+      prev.includes(normalized.id) ? prev : [...prev, normalized.id]
+    ));
+
+    if (!wasChecked) {
+      const name = isVi
+        ? normalized.name_vi || normalized.name_en
+        : normalized.name_en || normalized.name_vi;
+      showPassportToast(isVi
+        ? `Đã đóng dấu ${name} vào hộ chiếu.`
+        : `${name} was stamped in your passport.`);
+    }
+  }, [isVi, passportMemory.checkIns, showPassportToast]);
+
+  const handlePassportPhoto = useCallback((payload = {}) => {
+    setPassportMemory(prev => recordPhoto(prev, payload));
+  }, []);
+
+  const handlePassportQuestion = useCallback((payload = {}) => {
+    setPassportMemory(prev => recordQuestion(prev, payload));
+  }, []);
+
+  const handlePassportAudio = useCallback((payload = {}) => {
+    setPassportMemory(prev => recordAudio(prev, payload));
+  }, []);
+
+  const handleResetPassport = useCallback(() => {
+    const next = resetTourMemory();
+    setPassportMemory(next);
+    setVisitedIds([]);
+    setShowTripCompletion(false);
+    showPassportToast(isVi ? 'Đã làm mới hộ chiếu tham quan.' : 'Passport reset.');
+  }, [isVi, showPassportToast]);
+
+  const handleEndTrip = useCallback(() => {
+    setPassportMemory(prev => completeTourMemory(prev));
+    setShowTripCompletion(true);
+  }, []);
 
   const handleCreateGame = async () => {
     if (visitedIds.length < 2) return;
@@ -293,6 +400,11 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
   const normalizedArtifact = useMemo(
     () => normalizeArtifact(currentArtifact, language),
     [currentArtifact, language]
+  );
+
+  const passportSummary = useMemo(
+    () => buildTourSummary(passportMemory, passportCatalog, language),
+    [passportMemory, passportCatalog, language]
   );
 
   const tabs = [
@@ -373,6 +485,24 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
         </div>
 
         <div className="tour-shell-actions">
+          <div
+            className="tour-passport-pill"
+            title={isVi ? 'Tiến độ hộ chiếu tham quan' : 'Passport progress'}
+            aria-label={isVi ? 'Tiến độ hộ chiếu tham quan' : 'Passport progress'}
+          >
+            <BookOpen size={13} />
+            <span>{passportSummary.completedCount}/{passportSummary.totalCount}</span>
+          </div>
+
+          <button
+            className="tour-end-button"
+            onClick={handleEndTrip}
+            title={isVi ? 'Kết thúc chuyến đi' : 'End trip'}
+          >
+            <Flag size={13} />
+            <span>{isVi ? 'Kết thúc' : 'End trip'}</span>
+          </button>
+
           <button
             className="tour-quiz-button"
             onClick={handleCreateGame}
@@ -400,6 +530,13 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
         </div>
       )}
 
+      {passportToast && (
+        <div className="passport-toast" role="status" aria-live="polite">
+          <BookOpen size={16} />
+          <span>{passportToast}</span>
+        </div>
+      )}
+
       <main className="tour-shell-stage" aria-label={isVi ? 'Không gian tham quan' : 'Tour workspace'}>
         <section className={`tour-shell-panel map-panel ${activeTab === 'map' ? 'is-active' : ''}`}>
           <MapExplore
@@ -407,6 +544,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
             onOpenArtifactContext={handleOpenArtifactContext}
             onArtifactFocus={handleMapArtifactFocus}
             onRouteStatusChange={setRouteStatus}
+            onPassportCheckIn={handlePassportCheckIn}
             language={language}
             embedded
             visitorMode
@@ -432,6 +570,10 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
               onRequestNextStop={loadNextSuggestionForArtifact}
               onNavigateNextStop={(suggestion) => handleUseNextSuggestion(suggestion, 'route')}
               onPreviewNextStop={(suggestion) => handleUseNextSuggestion(suggestion, 'intro')}
+              onPassportCheckIn={handlePassportCheckIn}
+              onPassportPhoto={handlePassportPhoto}
+              onPassportQuestion={handlePassportQuestion}
+              onPassportAudio={handlePassportAudio}
             />
           </Suspense>
         </section>
@@ -447,6 +589,17 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           />
         </section>
       </main>
+
+      {showTripCompletion && (
+        <TripCompletionScreen
+          language={language}
+          catalog={passportCatalog}
+          memory={passportMemory}
+          onBackToTour={() => setShowTripCompletion(false)}
+          onBackHome={onBack}
+          onResetMemory={handleResetPassport}
+        />
+      )}
 
       {/* Floating recommendation card after narration completes */}
       {nextSuggestion && activeTab !== 'ask' && (

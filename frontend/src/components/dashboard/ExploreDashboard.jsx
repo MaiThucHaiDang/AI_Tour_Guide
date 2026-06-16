@@ -233,7 +233,6 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
   
   // Next stop recommendation and navigation states
   const [nextSuggestion, setNextSuggestion] = useState(null);
-  const [visitedIds, setVisitedIds] = useState([]);
   const [externalNavigationTarget, setExternalNavigationTarget] = useState(null);
   
   // Game states
@@ -246,6 +245,12 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
   const [showTripCompletion, setShowTripCompletion] = useState(() => (
     new URLSearchParams(window.location.search).get('trip') === 'complete'
   ));
+
+  const visitedIds = useMemo(() => {
+    return Object.keys(passportMemory.checkIns || {})
+      .map(Number)
+      .filter(Number.isFinite);
+  }, [passportMemory.checkIns]);
 
   useEffect(() => {
     if (!location.initialArtifact) return;
@@ -276,7 +281,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
       .map((id) => Number(id))
       .filter(Number.isFinite);
     if (storedIds.length === 0) return;
-    setVisitedIds(prev => Array.from(new Set([...prev, ...storedIds])));
+    // visitedIds is derived dynamically.
   }, [passportMemory.checkIns]);
 
   const showPassportToast = useCallback((message) => {
@@ -293,9 +298,6 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
 
     const wasChecked = Boolean(passportMemory.checkIns?.[String(normalized.id)]);
     setPassportMemory(prev => recordCheckIn(prev, normalized, details));
-    setVisitedIds(prev => (
-      prev.includes(normalized.id) ? prev : [...prev, normalized.id]
-    ));
 
     if (!wasChecked) {
       const name = isVi
@@ -322,7 +324,6 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
   const handleResetPassport = useCallback(() => {
     const next = resetTourMemory();
     setPassportMemory(next);
-    setVisitedIds([]);
     setShowTripCompletion(false);
     showPassportToast(isVi ? 'Đã làm mới hộ chiếu tham quan.' : 'Passport reset.');
   }, [isVi, showPassportToast]);
@@ -355,13 +356,11 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
     const normalized = normalizeArtifact(artifact || currentArtifact, language);
     if (!normalized?.id) return null;
 
+    handlePassportCheckIn(normalized, { method: 'manual', source: 'next_suggestion' });
+
     const currentVisited = visitedIds.includes(normalized.id)
       ? visitedIds
       : [...visitedIds, normalized.id];
-
-    setVisitedIds(prev => (
-      prev.includes(normalized.id) ? prev : [...prev, normalized.id]
-    ));
 
     try {
       const res = await getNextSuggestionAPI({
@@ -380,7 +379,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
       setNextSuggestion(null);
       return null;
     }
-  }, [currentArtifact, language, visitedIds]);
+  }, [currentArtifact, language, visitedIds, handlePassportCheckIn]);
 
   const handleNarrationFinished = useCallback(async (artifact) => {
     await loadNextSuggestionForArtifact(artifact);

@@ -823,15 +823,46 @@ class UnifiedOrchestrator:
     def _format_artifact_context(artifact: ArtifactInfo, lang_code: str) -> str:
         name = artifact.name_vi if lang_code == "vi" else artifact.name_en
         history = artifact.history_text_vi if lang_code == "vi" else artifact.history_text_en
+        
+        # Select bilingual content based on lang_code
+        if lang_code == "vi":
+            visit_highlights = getattr(artifact, "visit_highlights_vi", None)
+            visit_route = getattr(artifact, "visit_route_vi", None)
+            nearby_context = getattr(artifact, "nearby_context_vi", None)
+            notable_objects = getattr(artifact, "notable_objects_vi", None)
+            photo_spots = getattr(artifact, "photo_spots_vi", None)
+        else:
+            visit_highlights = getattr(artifact, "visit_highlights_en", None)
+            visit_route = getattr(artifact, "visit_route_en", None)
+            nearby_context = getattr(artifact, "nearby_context_en", None)
+            notable_objects = getattr(artifact, "notable_objects_en", None)
+            photo_spots = getattr(artifact, "photo_spots_en", None)
+            
         facts = [
             f"Name: {name}",
             f"Year: {artifact.year or 'unknown'}",
             f"Author: {artifact.author or 'unknown'}",
             f"Location ID: {artifact.loc_id}",
             "",
-            "=== FULL DETAILED DESCRIPTION (use ALL of this in your response) ===",
+            "=== HISTORY ===",
             history,
         ]
+        
+        if visit_highlights and visit_highlights.strip():
+            facts.extend(["", "=== VISIBLE HIGHLIGHTS ===", visit_highlights.strip()])
+            
+        if visit_route and visit_route.strip():
+            facts.extend(["", "=== SUGGESTED VISIT FLOW ===", visit_route.strip()])
+            
+        if nearby_context and nearby_context.strip():
+            facts.extend(["", "=== NEARBY CONTEXT ===", nearby_context.strip()])
+            
+        if notable_objects and notable_objects.strip():
+            facts.extend(["", "=== NOTABLE OBJECTS ===", notable_objects.strip()])
+            
+        if photo_spots and photo_spots.strip():
+            facts.extend(["", "=== PHOTO SPOTS ===", photo_spots.strip()])
+            
         return "\n".join(facts)
 
     @staticmethod

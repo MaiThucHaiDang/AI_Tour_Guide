@@ -23,10 +23,28 @@ from core.config import settings
 from models.artifact import Artifact
 from models.location import Location
 from models.graph import ArtifactFAQ, ArtifactRelation
+from models.bilingual_content import BilingualContent
 from schemas.vision import ArtifactInfo
 from services.ai.embedding_service import EmbeddingService
 
 _LOGGER = logging.getLogger(__name__)
+
+async def _fetch_bilingual_fields(session: AsyncSession, artifact_id: int) -> dict[str, str]:
+    """Fetch extra bilingual fields for an artifact and map them to schema suffixes."""
+    fields = {}
+    try:
+        stmt = select(BilingualContent).where(BilingualContent.artifact_id == artifact_id)
+        result = await session.execute(stmt)
+        rows = result.scalars().all()
+        for row in rows:
+            lang = row.lang.strip().lower()
+            ctype = row.content_type.strip().lower()
+            val = row.content_text
+            field_name = f"{ctype}_{lang}"
+            fields[field_name] = val
+    except Exception as exc:
+        _LOGGER.warning("Failed to fetch bilingual content for artifact %s: %s", artifact_id, exc)
+    return fields
 
 # ─── Graph-Augmented Retrieval ──────────────────────────────────────────────
 
@@ -80,18 +98,32 @@ async def graph_augmented_search(query: str, top_k: int = 3) -> List[ArtifactInf
             final_result = await session.execute(final_stmt)
             rows = final_result.scalars().all()
             
-            return [
-                ArtifactInfo(
-                    art_id=str(row.art_id),
-                    loc_id=str(row.loc_id),
-                    name_vi=row.name_vi,
-                    name_en=row.name_en,
-                    history_text_vi=row.history_text_vi,
-                    history_text_en=row.history_text_en,
-                    author=row.author,
-                    year=row.year,
-                ) for row in rows
-            ]
+            results = []
+            for row in rows:
+                extra = await _fetch_bilingual_fields(session, row.art_id)
+                results.append(
+                    ArtifactInfo(
+                        art_id=str(row.art_id),
+                        loc_id=str(row.loc_id),
+                        name_vi=row.name_vi,
+                        name_en=row.name_en,
+                        history_text_vi=row.history_text_vi,
+                        history_text_en=row.history_text_en,
+                        author=row.author,
+                        year=row.year,
+                        visit_route_vi=extra.get("visit_route_vi"),
+                        visit_route_en=extra.get("visit_route_en"),
+                        visit_highlights_vi=extra.get("visit_highlights_vi"),
+                        visit_highlights_en=extra.get("visit_highlights_en"),
+                        nearby_context_vi=extra.get("nearby_context_vi"),
+                        nearby_context_en=extra.get("nearby_context_en"),
+                        notable_objects_vi=extra.get("notable_objects_vi"),
+                        notable_objects_en=extra.get("notable_objects_en"),
+                        photo_spots_vi=extra.get("photo_spots_vi"),
+                        photo_spots_en=extra.get("photo_spots_en"),
+                    )
+                )
+            return results
 
     except Exception as exc:
         _LOGGER.error("Graph-Augmented search failed: %s", exc)
@@ -129,6 +161,7 @@ async def get_artifact_by_id(artifact_id: str) -> Optional[ArtifactInfo]:
         if row is None:
             return None
 
+        extra = await _fetch_bilingual_fields(session, row.art_id)
         return ArtifactInfo(
             art_id=str(row.art_id),
             loc_id=str(row.loc_id),
@@ -138,6 +171,16 @@ async def get_artifact_by_id(artifact_id: str) -> Optional[ArtifactInfo]:
             history_text_en=row.history_text_en,
             author=row.author,
             year=row.year,
+            visit_route_vi=extra.get("visit_route_vi"),
+            visit_route_en=extra.get("visit_route_en"),
+            visit_highlights_vi=extra.get("visit_highlights_vi"),
+            visit_highlights_en=extra.get("visit_highlights_en"),
+            nearby_context_vi=extra.get("nearby_context_vi"),
+            nearby_context_en=extra.get("nearby_context_en"),
+            notable_objects_vi=extra.get("notable_objects_vi"),
+            notable_objects_en=extra.get("notable_objects_en"),
+            photo_spots_vi=extra.get("photo_spots_vi"),
+            photo_spots_en=extra.get("photo_spots_en"),
         )
 
 
@@ -296,6 +339,7 @@ async def find_artifact_by_name(name: str, lat: float = None, lng: float = None)
                         except Exception:
                             continue
 
+            extra = await _fetch_bilingual_fields(session, best_row.art_id)
             return ArtifactInfo(
                 art_id=str(best_row.art_id),
                 loc_id=str(best_row.loc_id),
@@ -305,6 +349,16 @@ async def find_artifact_by_name(name: str, lat: float = None, lng: float = None)
                 history_text_en=best_row.history_text_en,
                 author=best_row.author,
                 year=best_row.year,
+                visit_route_vi=extra.get("visit_route_vi"),
+                visit_route_en=extra.get("visit_route_en"),
+                visit_highlights_vi=extra.get("visit_highlights_vi"),
+                visit_highlights_en=extra.get("visit_highlights_en"),
+                nearby_context_vi=extra.get("nearby_context_vi"),
+                nearby_context_en=extra.get("nearby_context_en"),
+                notable_objects_vi=extra.get("notable_objects_vi"),
+                notable_objects_en=extra.get("notable_objects_en"),
+                photo_spots_vi=extra.get("photo_spots_vi"),
+                photo_spots_en=extra.get("photo_spots_en"),
             )
     except Exception as exc:
         _LOGGER.warning("Database lookup by name failed: %s", exc)

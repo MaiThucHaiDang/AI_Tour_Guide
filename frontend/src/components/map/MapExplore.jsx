@@ -182,6 +182,7 @@ const MapExplore = ({
   onOpenArtifactContext,
   onArtifactFocus,
   onRouteStatusChange,
+  onPassportCheckIn,
   language,
   embedded = false,
   visitorMode = false,
@@ -285,9 +286,9 @@ const MapExplore = ({
     }
   }, [getArtifactName, isVi, language]);
 
-  // GPS watch tracking effect
+  // GPS watch tracking effect (runs when GPS is enabled, handles both routing and passport check-in)
   useEffect(() => {
-    if (!isNavigatingStarted || !useGPS || !targetLocation) return;
+    if (!useGPS) return;
 
     let watchId = null;
     if ("geolocation" in navigator) {
@@ -297,9 +298,22 @@ const MapExplore = ({
           setCurrentLocation(loc);
           setMapCenter([loc.lat, loc.lng]);
 
-          const dist = getDistance(loc, lastRouteStartRef.current);
-          if (dist > 8) {
-            calculateRoute(loc, targetLocation);
+          // 1. Auto Check-in Logic (Proximity < 30m)
+          if (onPassportCheckIn) {
+            HUE_ARTIFACTS.forEach(artifact => {
+              const dist = getDistance(loc, artifact);
+              if (dist < 30) {
+                onPassportCheckIn(artifact, { method: 'gps', distanceMeters: dist });
+              }
+            });
+          }
+
+          // 2. Route Recalculation Logic
+          if (isNavigatingStarted && targetLocation) {
+            const distFromLastStart = getDistance(loc, lastRouteStartRef.current);
+            if (distFromLastStart > 8) {
+              calculateRoute(loc, targetLocation);
+            }
           }
         },
         (error) => {
@@ -314,7 +328,7 @@ const MapExplore = ({
         navigator.geolocation.clearWatch(watchId);
       }
     };
-  }, [calculateRoute, isNavigatingStarted, targetLocation, useGPS]);
+  }, [calculateRoute, isNavigatingStarted, targetLocation, useGPS, onPassportCheckIn]);
 
   useEffect(() => {
     if (!onRouteStatusChange) return;

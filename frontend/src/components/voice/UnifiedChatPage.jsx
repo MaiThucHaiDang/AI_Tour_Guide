@@ -525,12 +525,10 @@ const UnifiedChatPage = ({
 
       if (responseArtifact) {
         setCurrentArtifact(responseArtifact);
-        if (imageBase64) {
-          onPassportCheckIn?.(responseArtifact, {
-            method: 'scan',
-            source: 'image_recognition'
-          });
-        }
+        onPassportCheckIn?.(responseArtifact, {
+          method: imageBase64 ? 'scan' : 'chat',
+          source: imageBase64 ? 'image_recognition' : (voiceMsgId ? 'voice_chat' : 'text_chat')
+        });
       }
 
       if (imageBase64) {

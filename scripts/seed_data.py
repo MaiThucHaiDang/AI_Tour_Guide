@@ -13,6 +13,7 @@ from pathlib import Path
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "backend"))
 
+from sqlalchemy import select, and_
 from core.database import async_session_factory
 from models.location import Location
 from models.artifact import Artifact
@@ -838,5 +839,860 @@ ARTIFACTS = [
 ]
 
 PRECOMPUTED_AUDIO = []
-BILINGUAL_CONTENT = []
+
+# ─── Bilingual Content ─────────────────────────────────────────────────────────
+# Each entry references artifact by name_vi (resolved at seed time) and provides
+# language-specific blocks for: visit_highlights, visit_route, nearby_context,
+# notable_objects, photo_spots.
+# Schema: (artifact_name_vi, lang, content_type, content_text)
+BILINGUAL_CONTENT_RAW = [
+
+    # ── 1. Cửa Hòa Bình ──────────────────────────────────────────────────────
+    ("Cửa Hòa Bình", "vi", "visit_highlights",
+        "Phần đài bên dưới: nền gạch đá hình thang vững chãi, bốn bức tường phủ rêu phong cổ kính. "
+        "Lầu canh hai tầng bên trên: mái ngói cong uyển chuyển, đường chạm khắc hoa lá trên gỗ. "
+        "Hướng Bắc nhìn ra dòng sông Hương thơ mộng qua cổng. "
+        "Khoảng sân nhỏ trong lòng cổng: không gian chuyển giao giữa nội và ngoại thành."
+    ),
+    ("Cửa Hòa Bình", "vi", "visit_route",
+        "Bắt đầu từ phía ngoài, quan sát tổng thể phần đài bằng gạch đá và hai cánh cổng gỗ. "
+        "Bước qua ngưỡng cửa, chú ý tấm đá lát bên dưới đã mòn sau hàng thế kỷ. "
+        "Đứng trong lòng cổng nhìn lên hệ thống mái lầu hai tầng — quan sát đầu đao và hoa văn trên nóc. "
+        "Ra phía trong, quay lại nhìn toàn bộ mặt Nam cổng — bố cục đối xứng hoàn hảo. "
+        "Từ đây có thể đi về phía Đông tới Điện Kiến Trung hoặc phía Tây tới Cung Trường Sanh."
+    ),
+    ("Cửa Hòa Bình", "vi", "nearby_context",
+        "Ngay phía Nam cổng: đường lớn nội thành dẫn về Điện Thái Hòa và Ngọ Môn. "
+        "Phía Tây: Cung Trường Sanh — nơi nghỉ ngơi của các Hoàng thái hậu. "
+        "Phía Đông: Điện Kiến Trung — cung điện cuối cùng thời Nguyễn, vừa được phục dựng năm 2024."
+    ),
+    ("Cửa Hòa Bình", "en", "visit_highlights",
+        "The lower platform: solid trapezoidal brick-and-stone base with moss-covered walls. "
+        "The two-story watchtower above: gracefully curved tiled roofs, intricate wood carvings of floral motifs. "
+        "Northward view toward the poetic Perfume River through the gate. "
+        "The small courtyard inside the gate: a transitional space between the inner and outer city."
+    ),
+    ("Cửa Hòa Bình", "en", "visit_route",
+        "Start from outside: take in the full view of the brick platform and wooden gate panels. "
+        "Step through the threshold — notice the worn stone pavement, polished by centuries of feet. "
+        "Stand inside the gate and look up at the two-tier roof structure — observe the upturned eaves and ridge carvings. "
+        "Step inside the city, then turn back to admire the symmetrical south-facing facade of the gate. "
+        "From here you can head east to Kien Trung Palace or west to Truong Sanh Palace."
+    ),
+    ("Cửa Hòa Bình", "en", "nearby_context",
+        "Just south of the gate: the main inner-city road leading to Thai Hoa Palace and Ngo Mon. "
+        "To the west: Truong Sanh Palace — the Queen Mothers' retreat. "
+        "To the east: Kien Trung Palace — the last Nguyen-era palace, just restored in 2024."
+    ),
+
+    # ── 2. Điện Kiến Trung ────────────────────────────────────────────────────
+    ("Điện Kiến Trung", "vi", "visit_highlights",
+        "Mặt tiền Đông – Tây khảm gốm sứ đa màu sắc — điểm nhấn kiến trúc Đông Dương độc đáo. "
+        "Ba cầu thang rồng đắp nổi uốn lượn dẫn lên thềm điện. "
+        "Tầng một: 13 cửa hiên vòm Baroque, ban công tầng hai lan can trang trí Việt Nam. "
+        "Nội thất: bàn làm việc phòng của vua Bảo Đại được phục dựng, bản đồ toàn quốc treo tường. "
+        "Sân thượng tầng hai: view nhìn xuống toàn bộ Tử Cấm Thành về phía Nam."
+    ),
+    ("Điện Kiến Trung", "vi", "visit_route",
+        "Tiếp cận từ phía Nam qua sân vườn với ba cầu thang rồng. "
+        "Chiêm ngưỡng toàn bộ mặt tiền trước khi bước lên — chú ý mảnh sứ khảm và cột đèn kiểu Pháp. "
+        "Bước vào tầng một: quan sát khu vực phòng khách, không gian làm việc và cầu thang rộng giữa nhà. "
+        "Lên tầng hai: phòng ngủ hoàng gia và ban công nhìn ra vườn phía trước. "
+        "Ra phía sân thượng để ngắm tổng thể Tử Cấm Thành từ trên cao — hướng về Điện Thái Hòa ở phía Nam."
+    ),
+    ("Điện Kiến Trung", "vi", "nearby_context",
+        "Phía Nam: Điện Thái Hòa và sân Đại triều nghi nổi tiếng. "
+        "Phía Bắc: Cửa Hòa Bình và hướng ra sông Hương. "
+        "Gần đó: Duyệt Thị Đường — nhà hát cung đình còn nguyên vẹn nhất Việt Nam."
+    ),
+    ("Điện Kiến Trung", "vi", "notable_objects",
+        "Bộ gốm sứ khảm mặt tiền: hàng trăm mảnh ghép tạo thành những bức tranh phong cảnh. "
+        "Cầu thang rồng: đá đắp nổi hình rồng uốn lượn — biểu tượng quyền uy. "
+        "Đèn chùm pha lê phòng đón khách: di vật thời Khải Định — Bảo Đại. "
+        "Bản đồ Đông Dương và phòng làm việc của vua Bảo Đại: tái hiện chính xác theo tư liệu lịch sử."
+    ),
+    ("Điện Kiến Trung", "en", "visit_highlights",
+        "East-West facade inlaid with multi-colored ceramic mosaics — the hallmark of Indochinese architecture. "
+        "Three dragon-carved staircases with raised relief sweeping up to the main hall. "
+        "Ground floor: 13 arched Baroque-style windows; second-floor balcony with Vietnamese-style railings. "
+        "Interior: Emperor Bao Dai's restored office and a full map of Indochina on the wall. "
+        "Second-floor terrace: panoramic view over the entire Forbidden Purple City to the south."
+    ),
+    ("Điện Kiến Trung", "en", "visit_route",
+        "Approach from the south through the garden with the three dragon staircases. "
+        "Admire the full facade before ascending — note the ceramic inlays and French-style lampposts. "
+        "Enter the ground floor: observe the reception room, workspace, and the wide central staircase. "
+        "Head to the second floor: the royal bedroom and balcony overlooking the front garden. "
+        "Step onto the terrace to see the full sweep of the Forbidden Purple City — facing Thai Hoa Palace to the south."
+    ),
+    ("Điện Kiến Trung", "en", "nearby_context",
+        "To the south: Thai Hoa Palace and the famous Great Court Yard. "
+        "To the north: Hoa Binh Gate and the road toward the Perfume River. "
+        "Nearby: Duyet Thi Duong Theater — Vietnam's best-preserved royal theater."
+    ),
+    ("Điện Kiến Trung", "en", "notable_objects",
+        "The ceramic mosaic facade: hundreds of shards forming landscape paintings. "
+        "Dragon staircases: raised-relief stone carvings symbolizing imperial power. "
+        "Crystal chandeliers in the reception room: artifacts from the Khai Dinh – Bao Dai era. "
+        "Map of Indochina and Bao Dai's office: historically accurate recreation."
+    ),
+
+    # ── 3. Cung Trường Sanh ───────────────────────────────────────────────────
+    ("Cung Trường Sanh", "vi", "visit_highlights",
+        "Cổng Trường An môn kiểu tam quan, trang trí hoa lá ngũ sắc rực rỡ. "
+        "Lạch Đào Nguyên nhân tạo uốn lượn quanh cung — bắc qua những cây cầu đỏ duyên dáng. "
+        "Hồ Tân Nguyệt và các non bộ giả sơn mang tên Bảo Sơn, Kình Ngư, Hổ Tôn. "
+        "Điện Thọ Khang ở trung tâm: nơi Hoàng thái hậu tiếp khách và sống thường nhật. "
+        "Lầu Vạn Phước phía sau: tầm nhìn ra khu vườn và khoảng trời phía Bắc."
+    ),
+    ("Cung Trường Sanh", "vi", "visit_route",
+        "Vào từ cổng Trường An môn phía Đông — quan sát hoa văn ngũ sắc trên mặt tiền cổng. "
+        "Đi vòng theo lạch Đào Nguyên, dừng lại trên cây cầu đỏ để nhìn xuống lạch nước. "
+        "Ghé thăm các non bộ giả sơn — từ đây nhìn lại Điện Thọ Khang sẽ thấy rõ bố cục chữ Vương. "
+        "Vào Điện Thọ Khang xem nội thất và hệ thống hành lang có mái che kết nối các khu. "
+        "Ra phía sau thăm lầu Vạn Phước và hồ Tân Nguyệt trước khi rời cung."
+    ),
+    ("Cung Trường Sanh", "vi", "nearby_context",
+        "Phía Đông: Cung Diên Thọ — không gian thâm cung của các bà Hoàng thái hậu lớn hơn. "
+        "Phía Bắc: Cửa Hòa Bình và khu vực Điện Kiến Trung. "
+        "Phía Nam: Cửa Chương Đức dẫn ra phố thị phía Tây."
+    ),
+    ("Cung Trường Sanh", "en", "visit_highlights",
+        "Truong An Mon triple-arched gate, decorated with vibrant five-color floral motifs. "
+        "The artificial Peach Spring stream winding through the grounds — crossed by elegant red bridges. "
+        "Tan Nguyet Lake and the rockery mountains named Bao Son, Kinh Ngu, and Ho Ton. "
+        "Tho Khang Hall at the center: the Queen Mother's reception and daily living quarters. "
+        "Van Phuoc Tower at the rear: views over the garden and the northern sky."
+    ),
+    ("Cung Trường Sanh", "en", "visit_route",
+        "Enter through Truong An Mon gate on the east — observe the five-color floral patterns on the facade. "
+        "Walk along the Peach Spring stream and pause on the red bridge to look down at the water. "
+        "Visit the rockery mountains — from here, looking back at Tho Khang Hall reveals the King-character layout. "
+        "Enter Tho Khang Hall to see the interior and the covered corridor system connecting all sections. "
+        "Head to the rear to visit Van Phuoc Tower and Tan Nguyet Lake before leaving."
+    ),
+    ("Cung Trường Sanh", "en", "nearby_context",
+        "To the east: Dien Tho Palace — the larger inner sanctum of the Queen Mothers. "
+        "To the north: Hoa Binh Gate and the Kien Trung Palace area. "
+        "To the south: Chuong Duc Gate leading out to the western streets."
+    ),
+
+    # ── 4. Cung Diên Thọ ──────────────────────────────────────────────────────
+    ("Cung Diên Thọ", "vi", "visit_highlights",
+        "Chính điện Diên Thọ: 80 cột gỗ lim sơn đen, mái lưu ly vàng — uy nghiêm mà ấm áp. "
+        "Tạ Trường Du: ngôi nhà tạ xây trên hồ, 16 cột, mái ngói men xanh thanh thoát. "
+        "Lầu Tịnh Minh: tầng cao nhất trong cụm, nhìn bao quát toàn khu. "
+        "Các Khương Ninh: không gian thờ Phật và nghệ thuật hát bội duy nhất còn sót lại. "
+        "Hệ thống hành lang mái men xanh kết nối tất cả công trình — dài nhất Hoàng thành Huế."
+    ),
+    ("Cung Diên Thọ", "vi", "visit_route",
+        "Vào từ cửa chính phía Nam — quan sát bình phong khắc hình long phụng trước sân. "
+        "Bước vào chính điện Diên Thọ: đếm 80 cột lim sơn đen, ngắm ngai Hoàng thái hậu. "
+        "Đi qua hành lang men xanh sang tạ Trường Du — đứng trên tạ nhìn xuống mặt hồ. "
+        "Thăm lầu Tịnh Minh từ hành lang phía Tây — leo cầu thang gỗ lên tầng trên. "
+        "Kết thúc ở các Khương Ninh phía Đông — chiêm ngưỡng ba pho tượng Tam Thế Phật bằng gang mạ vàng."
+    ),
+    ("Cung Diên Thọ", "vi", "nearby_context",
+        "Ngay phía Tây: Cung Trường Sanh — cung điện khác của Hoàng thái hậu. "
+        "Phía Nam: Cửa Chương Đức dẫn ra phố. "
+        "Phía Đông: Hưng Miếu và Thế Miếu — hệ thống miếu thờ triều Nguyễn."
+    ),
+    ("Cung Diên Thọ", "vi", "notable_objects",
+        "Ngai Hoàng thái hậu: sơn son thếp vàng, đặt trong hậu cung chính điện. "
+        "Bộ tượng Tam Thế Phật gang mạ vàng: được đánh giá đẹp nhất thời Nguyễn. "
+        "Binh phong trước cửa: chạm khắc long phụng, bảo vệ phong thủy cho chính điện. "
+        "Giếng vuông cổ kính trong sân: nguồn nước sinh hoạt của cung xưa."
+    ),
+    ("Cung Diên Thọ", "en", "visit_highlights",
+        "Dien Tho Main Hall: 80 black-lacquered ironwood columns, yellow-glazed roof — majestic yet warm. "
+        "Truong Du Pavilion: a pavilion built on a lake, 16 columns, graceful blue-glazed tile roof. "
+        "Tinh Minh Tower: the tallest structure in the complex, with panoramic views. "
+        "Khuong Ninh Hall: the only surviving space for Buddhist worship and royal opera tradition. "
+        "Blue-glazed corridor system connecting all structures — the longest in the Imperial City."
+    ),
+    ("Cung Diên Thọ", "en", "visit_route",
+        "Enter through the south gate — observe the screen wall carved with dragon-phoenix motifs. "
+        "Step into the Dien Tho Main Hall: count the 80 black columns, admire the Queen Mother's throne. "
+        "Walk through the blue-glazed corridor to Truong Du Pavilion — stand on the pavilion and look down at the lake. "
+        "Visit Tinh Minh Tower from the west corridor — climb the wooden staircase to the upper level. "
+        "Finish at Khuong Ninh Hall to the east — admire the three gilded cast-iron Buddha statues."
+    ),
+    ("Cung Diên Thọ", "en", "nearby_context",
+        "Immediately to the west: Truong Sanh Palace — another Queen Mother's palace. "
+        "To the south: Chuong Duc Gate leading to the streets. "
+        "To the east: Hung Mieu and The Mieu — the Nguyen ancestral temple complex."
+    ),
+    ("Cung Diên Thọ", "en", "notable_objects",
+        "Queen Mother's throne: red-lacquered and gold-gilded, placed in the main hall's inner chamber. "
+        "Three gilded cast-iron Buddhas: considered the most beautiful Buddhist statues of the Nguyen era. "
+        "Screen wall at the gate: carved with dragons and phoenixes to protect feng shui. "
+        "Ancient square well in the courtyard: the palace's historic water source."
+    ),
+
+    # ── 5. Cửa Chương Đức ────────────────────────────────────────────────────
+    ("Cửa Chương Đức", "vi", "visit_highlights",
+        "Lầu canh hai tầng: mái ngói cong cong, gờ mái đắp rồng uốn lượn mềm mại. "
+        "Nền đài cao bằng gạch vồ và đá thanh: biểu tượng sức mạnh phòng thủ của Hoàng thành. "
+        "Trục đường Tây: nhìn từ cổng thấy thẳng vào khu vực cung Diên Thọ và Trường Sanh."
+    ),
+    ("Cửa Chương Đức", "vi", "visit_route",
+        "Quan sát mặt Tây ngoài thành trước — nhìn bốn bức tường rêu phong và hào nước. "
+        "Bước qua cổng vào trong, chú ý lối đi chính giữa rộng hơn hai lối phụ hai bên. "
+        "Nhìn lên phía lầu canh để thấy hoa văn chạm khắc trên gỗ và gờ mái. "
+        "Từ trong cổng, theo trục đường chính đi thẳng vào khu Cung Diên Thọ."
+    ),
+    ("Cửa Chương Đức", "vi", "nearby_context",
+        "Phía Đông: Cung Diên Thọ và Cung Trường Sanh. "
+        "Đối xứng phía Đông thành: Cửa Hiển Nhơn — đối xứng với cổng này theo trục Đông-Tây."
+    ),
+    ("Cửa Chương Đức", "en", "visit_highlights",
+        "Two-story watchtower: curved tiled roofs, roof ridges adorned with gracefully curved dragon motifs. "
+        "High platform made of large baked bricks and Thanh stone: a symbol of the Imperial City's defensive strength. "
+        "Western road axis: looking from the gate you can see straight to Dien Tho and Truong Sanh Palaces."
+    ),
+    ("Cửa Chương Đức", "en", "visit_route",
+        "Observe the exterior west face first — the moss-covered walls and moat. "
+        "Pass through the gate: notice the wider central passage versus the two narrower side passages. "
+        "Look up at the watchtower to see the carved wood carvings and roof ridges. "
+        "From inside the gate, follow the main road straight into the Dien Tho Palace area."
+    ),
+    ("Cửa Chương Đức", "en", "nearby_context",
+        "To the east: Dien Tho Palace and Truong Sanh Palace. "
+        "Symmetrically on the east wall: Hien Nhon Gate — its mirror counterpart on the east-west axis."
+    ),
+
+    # ── 6. Hưng Miếu ─────────────────────────────────────────────────────────
+    ("Hưng Miếu (Hưng Tổ Miếu)", "vi", "visit_highlights",
+        "Chính điện gỗ lim trùng diêm: mái lợp ngói âm dương men vàng, các chi tiết chạm trổ hoa lá tinh xảo. "
+        "Đường thần đạo: đá Thanh rộng 2,15m dẫn từ bậc thềm ra miếu môn thẳng tắp. "
+        "Thần Khố phía Đông và Thần Trù phía Tây: hai nhà phụ trợ cho nghi lễ tế tự. "
+        "Sân lát gạch Bát Tràng: hình chữ nhật, hai bên có lư hương đá và chậu sứ cổ kính."
+    ),
+    ("Hưng Miếu (Hưng Tổ Miếu)", "vi", "visit_route",
+        "Vào từ miếu môn phía Nam — đi theo đường thần đạo đá Thanh lên thềm. "
+        "Dừng trước bậc thềm quan sát toàn bộ mặt tiền chính điện — kiến trúc gỗ trùng diêm 3 gian 2 chái. "
+        "Vào bên trong chiêm ngưỡng bàn thờ và các hiện vật thờ phụng. "
+        "Ghé Thần Khố bên Đông và Thần Trù bên Tây — hiểu rõ quy trình tổ chức lễ tế. "
+        "Bước ra sân, quan sát kỹ các lư hương đá và hệ thống cổng rào bằng đá."
+    ),
+    ("Hưng Miếu (Hưng Tổ Miếu)", "vi", "nearby_context",
+        "Ngay phía Bắc: Thế Miếu — nơi thờ các vua Nguyễn với Cửu Đỉnh đồng nổi tiếng. "
+        "Phía Đông: Triệu Miếu và Thái Miếu. "
+        "Cả khu này tạo thành tổ hợp miếu thờ triều Nguyễn ở góc Tây Nam Hoàng thành."
+    ),
+    ("Hưng Miếu (Hưng Tổ Miếu)", "en", "visit_highlights",
+        "Double-eaved ironwood main hall: yellow-glazed yin-yang tiles, exquisitely carved floral details. "
+        "Spirit path: 2.15-meter-wide Thanh stone walkway leading straight from the steps to the gate. "
+        "God's Treasury on the east and God's Kitchen on the west: two ritual support buildings. "
+        "Bat Trang brick courtyard: rectangular layout, flanked by stone incense burners and antique ceramic pots."
+    ),
+    ("Hưng Miếu (Hưng Tổ Miếu)", "en", "visit_route",
+        "Enter through the south gate — walk along the Thanh stone spirit path up to the steps. "
+        "Pause before the steps to take in the full facade — a 3-bay double-eaved wooden hall. "
+        "Step inside to view the altar and ceremonial objects. "
+        "Visit the God's Treasury (east) and God's Kitchen (west) to understand ceremonial preparation. "
+        "Return to the courtyard to examine the stone incense burners and stone fence system."
+    ),
+    ("Hưng Miếu (Hưng Tổ Miếu)", "en", "nearby_context",
+        "Just to the north: The Mieu — where Nguyen emperors are enshrined with the famous Nine Dynastic Urns. "
+        "To the east: Trieu Mieu and Thai Mieu. "
+        "Together these temples form the Nguyen ancestral worship complex in the southwest corner of the Imperial City."
+    ),
+
+    # ── 7. Thế Miếu ──────────────────────────────────────────────────────────
+    ("Thế Miếu (Thế Tổ Miếu)", "vi", "visit_highlights",
+        "Cửu Đỉnh (9 đỉnh đồng): mỗi đỉnh khoảng 2 tấn, chạm 17 hình ảnh đặc trưng Việt Nam — bảo vật quốc gia. "
+        "Hiển Lâm các 3 tầng: ngọn tháp gỗ cao nhất Hoàng thành, nhìn thấy từ xa. "
+        "Chính điện 9 gian 2 chái kép: bên trong 10 bàn thờ vua Nguyễn xếp theo lối tả chiêu hữu mục. "
+        "Cây thông cổ thụ hơn 200 năm phía Tây tường — tương truyền trồng từ ngày dựng miếu. "
+        "Lầu chuông, lầu trống hai bên Hiển Lâm các: âm thanh lễ tế xưa còn vang vọng."
+    ),
+    ("Thế Miếu (Thế Tổ Miếu)", "vi", "visit_route",
+        "Vào từ phía Nam qua Tuấn Liệt môn hoặc Sùng Công môn — hai cổng hai bên Hiển Lâm các. "
+        "Dừng trước Cửu Đỉnh: đi dọc theo hàng 9 đỉnh, tìm những hình ảnh quen thuộc như mặt trời, biển cả. "
+        "Ngước nhìn Hiển Lâm các từ phía trước — ba tầng mái ngói chồng lên nhau tạo cảm giác kỳ vĩ. "
+        "Vào chính điện để chiêm bái 10 bàn thờ vua Nguyễn — không khí trang nghiêm và u tịch. "
+        "Trước khi ra, ghé cây thông cổ thụ phía Tây — đặt tay lên thân cây cảm nhận chiều dài lịch sử."
+    ),
+    ("Thế Miếu (Thế Tổ Miếu)", "vi", "nearby_context",
+        "Ngay phía Nam: Hưng Miếu — thờ thân phụ vua Gia Long. "
+        "Phía Đông: Triệu Miếu và Thái Miếu. "
+        "Cả khu tạo thành tổ hợp miếu lớn nhất Hoàng thành, nên dành ít nhất 45 phút để tham quan đầy đủ."
+    ),
+    ("Thế Miếu (Thế Tổ Miếu)", "vi", "notable_objects",
+        "Cửu Đỉnh: 9 đỉnh đồng đúc năm 1836 thời Minh Mạng, bảo vật quốc gia Việt Nam. "
+        "Ngai thờ và long vị: sơn son thếp vàng, ghi danh hiệu từng vua Nguyễn. "
+        "Lầu Chuông và Lầu Trống: chuông đồng và trống lớn dùng trong lễ tế hàng năm."
+    ),
+    ("Thế Miếu (Thế Tổ Miếu)", "en", "visit_highlights",
+        "Nine Dynastic Urns (Cuu Dinh): each about 2 tons, engraved with 17 images of Vietnam — national treasures. "
+        "Three-story Hien Lam Pavilion: the tallest wooden tower in the Imperial City, visible from afar. "
+        "Main hall with 9 double-side bays: inside, 10 imperial shrines arranged by the ancient 'left-right' principle. "
+        "Ancient pine tree over 200 years old by the west wall — said to have been planted when the temple was founded. "
+        "Bell and drum towers flanking Hien Lam: echoes of centuries of ceremonial sound."
+    ),
+    ("Thế Miếu (Thế Tổ Miếu)", "en", "visit_route",
+        "Enter from the south through Tuan Liet Mon or Sung Cong Mon — the two gates flanking Hien Lam. "
+        "Stop at the Nine Dynastic Urns: walk along the row of 9 urns, seek out familiar images like the sun, sea, mountains. "
+        "Look up at Hien Lam Pavilion from the front — three stacked roof tiers create a sense of grandeur. "
+        "Enter the main hall to pay respects at the 10 imperial shrines — the atmosphere is solemn and still. "
+        "Before leaving, visit the ancient pine to the west — place your hand on the trunk and feel centuries of history."
+    ),
+    ("Thế Miếu (Thế Tổ Miếu)", "en", "nearby_context",
+        "Just to the south: Hung Mieu — honoring Emperor Gia Long's father. "
+        "To the east: Trieu Mieu and Thai Mieu. "
+        "Together they form the largest temple complex in the Imperial City — allow at least 45 minutes."
+    ),
+    ("Thế Miếu (Thế Tổ Miếu)", "en", "notable_objects",
+        "Nine Dynastic Urns: cast in 1836 under Emperor Minh Mang, designated as Vietnamese national treasures. "
+        "Shrines and spirit tablets: red-lacquered and gold-gilded, inscribed with each emperor's reign name. "
+        "Bell Tower and Drum Tower: bronze bell and large drum used in annual ceremonial rites."
+    ),
+
+    # ── 8. Điện Thái Hòa ─────────────────────────────────────────────────────
+    ("Điện Thái Hòa", "vi", "visit_highlights",
+        "Mái chồng diêm ba tầng: ngói hoàng lưu ly chất thành tầng tầng lớp lớp — nhìn từ sân lên thấy rõ hiệu ứng. "
+        "Dải cổ diêm quanh bốn mặt: 197 bài thơ trên pháp lam theo lối nhất thi nhất họa. "
+        "80 cột gỗ lim sơn son thếp vàng: mỗi cột đều chạm hình rồng vờn mây. "
+        "Ngai vàng trong cùng: sơn son thếp vàng, đặt trên bệ cao, nhìn ra cửa Ngọ Môn. "
+        "Hai hàng đá đánh dấu vị trí bá quan văn võ trên sân Đại triều nghi."
+    ),
+    ("Điện Thái Hòa", "vi", "visit_route",
+        "Đứng ở sân Đại triều nghi — tưởng tượng hàng trăm quan văn võ đứng hai bên theo phẩm trật. "
+        "Bước dần lên 9 bậc thềm trước cửa — chú ý từng bậc đều bằng đá nguyên khối. "
+        "Vào bên trong nhìn lên trần nhà: hệ thống xà gỗ chạm khắc tinh vi và màu sắc rực rỡ. "
+        "Chiêm ngưỡng ngai vàng từ khoảng cách vừa phải — hướng mắt từ ngai ra cửa chính nhìn về Ngọ Môn. "
+        "Đi ra hai bên hành lang để xem chi tiết cổ diêm và pháp lam ở tầm gần."
+    ),
+    ("Điện Thái Hòa", "vi", "nearby_context",
+        "Phía Nam: sân Đại triều nghi và Ngọ Môn — đây là trục thần đạo chính của Hoàng thành. "
+        "Phía Bắc: Nền điện Cần Chánh — nơi vua làm việc hàng ngày (trung tâm hành chính). "
+        "Hai bên: Tả Vu và Hữu Vu — nơi quan chờ thiết triều."
+    ),
+    ("Điện Thái Hòa", "vi", "notable_objects",
+        "Ngai vàng: sơn son thếp vàng, bảo vật quốc gia, đặt trên bệ đá cao 3 cấp. "
+        "Bảo tán vàng: lọng vàng treo trên ngai, biểu tượng quyền lực tối cao. "
+        "Long đèn: đèn chùm hình rồng treo trên trần điện, thắp sáng trong các buổi thiết triều. "
+        "Pháp lam: 197 bài thơ trên men màu — kỹ thuật điêu luyện thời Nguyễn."
+    ),
+    ("Điện Thái Hòa", "en", "visit_highlights",
+        "Three-tier stacked roof: yellow-glazed tiles in ascending layers — most striking when viewed from the courtyard. "
+        "Decorative frieze encircling all four sides: 197 enamel poems in the 'one poem, one painting' style. "
+        "80 gold-gilded red-lacquered ironwood columns: each carved with dragons dancing among clouds. "
+        "Golden throne in the innermost chamber: elevated on a three-step stone base, facing Ngo Mon. "
+        "Two rows of stone markers in the Great Court Yard: the positions of civil and military mandarins."
+    ),
+    ("Điện Thái Hòa", "en", "visit_route",
+        "Stand in the Great Court Yard — imagine hundreds of ranked mandarins standing on either side. "
+        "Ascend the 9 stone steps to the main entrance — each step is carved from a single stone block. "
+        "Step inside and look up: the intricately carved and vibrantly colored wooden beam system. "
+        "View the golden throne from a respectful distance — trace the sight line from throne to Ngo Mon Gate. "
+        "Walk along the side galleries to examine the enamel frieze and patterned carvings up close."
+    ),
+    ("Điện Thái Hòa", "en", "nearby_context",
+        "To the south: the Great Court Yard and Ngo Mon Gate — the main spirit axis of the Imperial City. "
+        "To the north: the Can Chanh Palace Foundation — the emperor's daily workspace. "
+        "On both sides: Ta Vu and Huu Vu halls — where officials waited for court audiences."
+    ),
+    ("Điện Thái Hòa", "en", "notable_objects",
+        "Golden throne: red-lacquered and gold-gilded national treasure, on a three-step stone pedestal. "
+        "Royal canopy: a gilded ceremonial parasol above the throne, symbol of supreme power. "
+        "Dragon lanterns: dragon-shaped chandeliers hanging from the ceiling, lit during court audiences. "
+        "Enamel plaques: 197 poems in polychrome enamel — a pinnacle of Nguyen craftsmanship."
+    ),
+    ("Điện Thái Hòa", "en", "photo_spots",
+        "Best shot: stand at the south edge of the Great Court Yard, align the two rows of stone markers with the palace entrance. "
+        "Close-up: the golden throne through the main doorframe. "
+        "Wide view: from the top of the 9 steps looking back down the court yard toward Ngo Mon."
+    ),
+    ("Điện Thái Hòa", "vi", "photo_spots",
+        "Góc chụp đẹp nhất: đứng cuối sân Đại triều nghi, căn hai hàng đá đánh dấu bá quan với cửa điện làm trung tâm. "
+        "Chụp cận: ngai vàng qua khung cửa chính. "
+        "Góc rộng: từ đỉnh 9 bậc thềm nhìn ngược lại sân về phía Ngọ Môn."
+    ),
+
+    # ── 9. Nền điện Cần Chánh ─────────────────────────────────────────────────
+    ("Nền điện Cần Chánh", "vi", "visit_highlights",
+        "Nền móng đá Thanh: hệ thống bệ đá và móng tường phác thảo rõ bố cục nguyên bản điện 9 gian 2 chái. "
+        "Cột đá chân tảng: các viên đá kê cột còn nguyên vị trí, cho thấy quy mô của điện xưa. "
+        "Bảng thuyết minh phục dựng 3D: hình ảnh mô phỏng điện khi còn nguyên vẹn trước năm 1947."
+    ),
+    ("Nền điện Cần Chánh", "vi", "visit_route",
+        "Từ Điện Thái Hòa đi thẳng về hướng Bắc — Nền điện Cần Chánh nằm ngay trên trục thần đạo chính. "
+        "Đứng ở rìa phía Nam nền nhìn vào trong để nhận ra bố cục gian và chái qua hệ thống chân cột. "
+        "Di chuyển dọc theo rìa nền để quan sát toàn bộ chu vi — chu vi rộng hơn nhiều so với tưởng tượng. "
+        "Đọc các biển giải thích về chức năng từng khu vực: hậu đường nơi vua nghỉ, tiền đường nơi thiết triều nhỏ."
+    ),
+    ("Nền điện Cần Chánh", "vi", "nearby_context",
+        "Ngay phía Nam: Điện Thái Hòa — biểu tượng quyền lực nghi lễ. "
+        "Phía Bắc trên trục thần đạo: Điện Kiến Trung — nơi ở của vua. "
+        "Hai bên: Tả Vu Hữu Vu và các công trình Tử Cấm Thành."
+    ),
+    ("Nền điện Cần Chánh", "en", "visit_highlights",
+        "Thanh stone foundation: the system of stone bases and wall footings outlines the original 9-bay 2-wing layout. "
+        "Column base stones: the original stone column pads still in place, showing the scale of the former palace. "
+        "3D restoration panels: visual reconstructions of how the palace looked before its destruction in 1947."
+    ),
+    ("Nền điện Cần Chánh", "en", "visit_route",
+        "From Thai Hoa Palace, walk straight north — Can Chanh Foundation lies directly on the main spirit axis. "
+        "Stand at the south edge of the foundation and look inward to trace the bay-and-wing layout from the column bases. "
+        "Walk around the perimeter to understand the full scale — it is much larger than expected. "
+        "Read the interpretation panels for each zone: the rear hall where the emperor rested, the front hall for small audiences."
+    ),
+    ("Nền điện Cần Chánh", "en", "nearby_context",
+        "Just to the south: Thai Hoa Palace — the ceremonial power center. "
+        "To the north on the spirit axis: Kien Trung Palace — the emperor's residence. "
+        "On both sides: Ta Vu, Huu Vu, and the other Forbidden Purple City structures."
+    ),
+
+    # ── 10. Duyệt Thị Đường ───────────────────────────────────────────────────
+    ("Duyệt Thị Đường", "vi", "visit_highlights",
+        "Sân khấu Nhã nhạc cung đình: khu biểu diễn chính với rèm nhung và đèn chùm cổ điển. "
+        "Nội thất sơn son thếp vàng tầng một: hệ thống cột gỗ lim chạm rồng phượng. "
+        "Khu ngồi dành cho hoàng gia tầng hai: ban công gỗ nhìn xuống sân khấu — chỉ vua và hoàng gia được ngồi đây. "
+        "Hành lang và tiền sảnh tầng một: nơi quan lại chờ đợi và chuẩn bị."
+    ),
+    ("Duyệt Thị Đường", "vi", "visit_route",
+        "Vào từ cổng chính phía Nam — quan sát tổng thể mặt tiền nhà hát với mái ngói và trụ cột. "
+        "Bước vào tiền sảnh: chiêm ngưỡng bộ cột gỗ lim sơn son và hệ thống vì kèo. "
+        "Tiến vào khu khán phòng: quan sát sân khấu từ dưới lên, nhìn lên khu ngồi hoàng gia tầng hai. "
+        "Leo cầu thang lên tầng hai — ngồi vào vị trí hoàng gia nhìn xuống sân khấu. "
+        "Sau đó thăm phòng trưng bày về Nhã nhạc UNESCO và các hiện vật nhạc cụ cung đình."
+    ),
+    ("Duyệt Thị Đường", "vi", "nearby_context",
+        "Ngay phía Tây: Điện Kiến Trung. "
+        "Phía Nam trên trục thần đạo: Điện Thái Hòa. "
+        "Phía Đông Bắc: Phủ Nội Vụ — kho lưu trữ vật phẩm hoàng gia."
+    ),
+    ("Duyệt Thị Đường", "vi", "notable_objects",
+        "Đàn Nguyệt và Đàn Tranh: nhạc cụ dây cung đình trưng bày trong nhà hát. "
+        "Trống Nhã nhạc: bộ trống lớn dùng trong các buổi biểu diễn Nhã nhạc hoàng cung. "
+        "Trang phục biểu diễn: áo dài cung đình thêu rồng phượng tái hiện tại phòng trưng bày."
+    ),
+    ("Duyệt Thị Đường", "en", "visit_highlights",
+        "Royal music performance stage: the main performance area with classical curtains and chandeliers. "
+        "Ground-floor interior with red-lacquered and gold-gilded finish: ironwood columns carved with dragon and phoenix. "
+        "Royal seating on the second floor: wooden balcony overlooking the stage — reserved for the emperor and royal family only. "
+        "Ground-floor corridor and foyer: where officials waited and performers prepared."
+    ),
+    ("Duyệt Thị Đường", "en", "visit_route",
+        "Enter through the south gate — take in the full facade with its tiled roofs and columns. "
+        "Step into the foyer: admire the red-lacquered ironwood columns and the roof truss system. "
+        "Move into the main hall: view the stage from the floor, look up at the royal balcony. "
+        "Climb to the second floor — sit in the royal viewing position and look down at the stage. "
+        "Then visit the UNESCO Nha Nhac exhibition room and the court instrument collection."
+    ),
+    ("Duyệt Thị Đường", "en", "nearby_context",
+        "Immediately to the west: Kien Trung Palace. "
+        "To the south on the spirit axis: Thai Hoa Palace. "
+        "To the northeast: Phu Noi Vu — the Imperial Household Department storehouse."
+    ),
+    ("Duyệt Thị Đường", "en", "notable_objects",
+        "Dan Nguyet and Dan Tranh: string instruments on display in the theater. "
+        "Nha Nhac drums: large drums used in royal Nha Nhac performances. "
+        "Performance costumes: embroidered court robes with dragon and phoenix motifs on display."
+    ),
+
+    # ── 11. Phủ Nội Vụ ───────────────────────────────────────────────────────
+    ("Phủ Nội Vụ", "vi", "visit_highlights",
+        "Khuôn viên rộng lớn: tổ hợp nhiều kho và công trình lưu trữ — trung tâm hậu cần hoàng cung. "
+        "Cổng Phủ Nội Vụ: kiến trúc cổng lầu kiểu Nguyễn, mái lưu ly xanh. "
+        "Các kho đồ nội thất và hiện vật triều đình còn được trưng bày một phần."
+    ),
+    ("Phủ Nội Vụ", "vi", "visit_route",
+        "Tiếp cận từ phía Nam — nhìn tổng thể cổng trước khi vào. "
+        "Tham quan khu nhà kho chính, quan sát cách bố trí không gian lưu trữ xưa. "
+        "Đọc biển thuyết minh về vai trò quản lý tài sản hoàng gia của Phủ Nội Vụ."
+    ),
+    ("Phủ Nội Vụ", "vi", "nearby_context",
+        "Phía Tây: Duyệt Thị Đường — nhà hát cung đình. "
+        "Phía Nam: Điện Kiến Trung và trục thần đạo chính. "
+        "Đây là khu vực Đông Bắc Tử Cấm Thành — ít du khách lui tới nhất nhưng giá trị lịch sử cao."
+    ),
+    ("Phủ Nội Vụ", "en", "visit_highlights",
+        "Expansive compound: a complex of storehouses and archives — the logistics hub of the royal court. "
+        "Main gate: Nguyen-style gatehouse with blue-glazed tile roof. "
+        "Partial display of court furniture and imperial objects."
+    ),
+    ("Phủ Nội Vụ", "en", "visit_route",
+        "Approach from the south — observe the gatehouse before entering. "
+        "Tour the main storehouse block, noting the spatial arrangement of historic storage areas. "
+        "Read the interpretation panels about the Phu Noi Vu's role managing imperial assets."
+    ),
+    ("Phủ Nội Vụ", "en", "nearby_context",
+        "To the west: Duyet Thi Duong Theater — the royal theater. "
+        "To the south: Kien Trung Palace and the main spirit axis. "
+        "This northeast zone of the Forbidden City is the least visited but historically very rich."
+    ),
+
+    # ── 12. Vườn Cơ Hạ ───────────────────────────────────────────────────────
+    ("Vườn Cơ Hạ", "vi", "visit_highlights",
+        "Minh Hồ: hồ bán nguyệt trung tâm có đình Quang Biểu nổi trên mặt nước. "
+        "Lầu Thưởng Thắng: nhìn bao quát toàn khu vườn — từng là nơi vua và hoàng gia ngắm cảnh. "
+        "Cầu Kim Nghi: cây cầu có mái che dẫn qua hồ — kiến trúc thủy đình độc đáo. "
+        "Điện Kham Văn: công trình chính trên trục trung tâm, nơi vua đọc sách và thưởng thơ."
+    ),
+    ("Vườn Cơ Hạ", "vi", "visit_route",
+        "Vào từ cổng phía Nam — tổng thể vườn theo bố cục 'tiền thủy hậu sơn'. "
+        "Đi theo đường dọc bờ hồ Minh Hồ, dừng nhìn đình Quang Biểu phản chiếu trên mặt nước. "
+        "Đi qua cầu Kim Nghi có mái che — chiêm ngưỡng cầu từ phía hồ. "
+        "Leo lên lầu Thưởng Thắng để nhìn tổng thể vườn từ trên cao. "
+        "Kết thúc tại Điện Kham Văn — không gian yên tĩnh và thanh cao nhất trong vườn."
+    ),
+    ("Vườn Cơ Hạ", "vi", "nearby_context",
+        "Phía Tây Nam: khu vực Duyệt Thị Đường và Điện Kiến Trung. "
+        "Phía Đông: khu vực Phủ Nội Vụ. "
+        "Khu vườn là nơi lý tưởng để nghỉ ngơi và chiêm ngưỡng bố cục phong thủy trước khi tiếp tục tham quan."
+    ),
+    ("Vườn Cơ Hạ", "vi", "photo_spots",
+        "Góc đẹp: đứng trên cầu Kim Nghi nhìn về phía đình Quang Biểu giữa hồ Minh Hồ. "
+        "Góc hoàng hôn: lầu Thưởng Thắng nhìn về hướng Tây khi mặt trời lặn."
+    ),
+    ("Vườn Cơ Hạ", "en", "visit_highlights",
+        "Minh Ho Lake: the central crescent-shaped lake with Quang Bieu Pavilion floating on it. "
+        "Thuong Thang Tower: overlooks the entire garden — once where the emperor and royals watched the scenery. "
+        "Kim Nghi Bridge: a covered bridge crossing the lake — a unique waterfront architectural feature. "
+        "Kham Van Hall: the main structure on the central axis, where the emperor read and composed poetry."
+    ),
+    ("Vườn Cơ Hạ", "en", "visit_route",
+        "Enter from the south gate — the garden follows the 'front water, rear mountain' feng shui layout. "
+        "Walk along the shore of Minh Ho Lake, pausing to see Quang Bieu Pavilion reflected in the water. "
+        "Cross the covered Kim Nghi Bridge — admire it from the lakeside perspective. "
+        "Climb Thuong Thang Tower for a bird's-eye view of the full garden layout. "
+        "Finish at Kham Van Hall — the quietest and most refined space in the garden."
+    ),
+    ("Vườn Cơ Hạ", "en", "nearby_context",
+        "To the southwest: Duyet Thi Duong Theater and Kien Trung Palace area. "
+        "To the east: Phu Noi Vu zone. "
+        "This garden is an ideal rest stop to enjoy feng shui scenery before continuing your tour."
+    ),
+    ("Vườn Cơ Hạ", "en", "photo_spots",
+        "Best shot: stand on Kim Nghi Bridge looking toward Quang Bieu Pavilion on Minh Ho Lake. "
+        "Sunset angle: Thuong Thang Tower facing west at dusk."
+    ),
+
+    # ── 13. Triệu Miếu ────────────────────────────────────────────────────────
+    ("Triệu Miếu (Triệu Tổ Miếu)", "vi", "visit_highlights",
+        "Chính đường 3 gian 2 chái: mái ngói âm dương hoàng lưu ly, cấu kiện gỗ sơn son thếp vàng. "
+        "Phù điêu mảnh sành sứ trên bờ mái và cổ diêm: kỹ thuật trang trí đặc trưng thời Nguyễn. "
+        "Thần Khố phía Đông và Thần Trù phía Tây: công trình phụ trợ lễ tế. "
+        "Sân và đường thần đạo: không gian trang nghiêm, trầm lắng."
+    ),
+    ("Triệu Miếu (Triệu Tổ Miếu)", "vi", "visit_route",
+        "Vào từ cổng phía Nam — quan sát cổng tam quan và tường bao kiên cố. "
+        "Đi theo đường thần đạo vào sân trước, nhìn toàn bộ mặt tiền chính đường. "
+        "Vào chính đường thắp hương và chiêm bái bàn thờ Nguyễn Kim. "
+        "Ghé thăm Thần Khố và Thần Trù hai bên để hiểu quy trình lễ tế ngày xưa."
+    ),
+    ("Triệu Miếu (Triệu Tổ Miếu)", "vi", "nearby_context",
+        "Ngay phía Nam: Thái Miếu — thờ 9 chúa Nguyễn cùng chỗ từ năm 1989. "
+        "Phía Tây: Hưng Miếu và Thế Miếu. "
+        "Cả khu phía Đông Nam này là vùng miếu thờ ít du khách ghé nhất — thích hợp để chiêm nghiệm yên tĩnh."
+    ),
+    ("Triệu Miếu (Triệu Tổ Miếu)", "en", "visit_highlights",
+        "3-bay main hall: yellow-glazed yin-yang tiles, red-lacquered gold-gilded wooden components. "
+        "Ceramic shard relief on roof ridges and frieze: a signature decorative technique of the Nguyen era. "
+        "God's Treasury (east) and God's Kitchen (west): ritual support structures. "
+        "Courtyard and spirit path: a solemn, contemplative space."
+    ),
+    ("Triệu Miếu (Triệu Tổ Miếu)", "en", "visit_route",
+        "Enter through the south triple-arch gate — observe the gate and surrounding enclosure wall. "
+        "Walk the spirit path into the front yard, taking in the full main hall facade. "
+        "Step inside to light incense and pay respects at Nguyen Kim's altar. "
+        "Visit the God's Treasury and Kitchen on each side to understand the ceremonial preparation process."
+    ),
+    ("Triệu Miếu (Triệu Tổ Miếu)", "en", "nearby_context",
+        "Just to the south: Thai Mieu — also housing the 9 Nguyen Lords' shrines since 1989. "
+        "To the west: Hung Mieu and The Mieu. "
+        "This southeast temple zone is the least visited — perfect for quiet reflection."
+    ),
+
+    # ── 14. Thái Miếu ─────────────────────────────────────────────────────────
+    ("Thái Miếu (Thái Tổ Miếu)", "vi", "visit_highlights",
+        "Tuy Thành Các 3 tầng: điểm nhấn trục trung tâm, tương tự Hiển Lâm Các ở Thế Miếu. "
+        "Chính điện lớn nhất thời Nguyễn: 13 gian 2 chái kép, quy mô vượt cả Thế Miếu. "
+        "Tả Tùng Tự và Hữu Tùng Tự: nơi thờ công thần triều Nguyễn, hai bên phía Nam. "
+        "Hệ thống tường gạch bao bọc 5 cổng: không gian thành quách kín đáo."
+    ),
+    ("Thái Miếu (Thái Tổ Miếu)", "vi", "visit_route",
+        "Vào từ cổng phía Nam — nhìn thẳng vào Tuy Thành Các nổi bật trên trục chính. "
+        "Dừng trước Tuy Thành Các — ngắm nhìn kiến trúc ba tầng trước khi tiếp tục. "
+        "Vào chính điện đang trong quá trình phục dựng — đọc các biển về lịch sử và dự án trùng tu 2024-2028. "
+        "Ghé thăm Tả Tùng Tự và Hữu Tùng Tự phía Nam để tìm hiểu về các công thần được thờ."
+    ),
+    ("Thái Miếu (Thái Tổ Miếu)", "vi", "nearby_context",
+        "Ngay phía Bắc: Triệu Miếu. "
+        "Phía Tây: Hưng Miếu và Thế Miếu. "
+        "Đây là khu Đông Nam Hoàng thành — khu miếu thờ lớn nhất, đang được đầu tư phục hồi."
+    ),
+    ("Thái Miếu (Thái Tổ Miếu)", "en", "visit_highlights",
+        "Three-story Tuy Thanh Pavilion: the focal point of the central axis, similar to Hien Lam at The Mieu. "
+        "The largest main hall of the Nguyen era: 13 double-side bays, exceeding even The Mieu in scale. "
+        "Ta Tung Tu and Huu Tung Tu: shrines for meritorious Nguyen officials, on either side to the south. "
+        "Brick enclosure walls with 5 gates: a self-contained sacred precinct."
+    ),
+    ("Thái Miếu (Thái Tổ Miếu)", "en", "visit_route",
+        "Enter from the south gate — look straight toward Tuy Thanh Pavilion on the central axis. "
+        "Pause before Tuy Thanh Pavilion — admire the three-tier architecture before continuing. "
+        "Visit the main hall currently under restoration — read the panels about the 2024-2028 renovation project. "
+        "Visit Ta Tung Tu and Huu Tung Tu to the south to learn about the meritorious officials enshrined here."
+    ),
+    ("Thái Miếu (Thái Tổ Miếu)", "en", "nearby_context",
+        "Just to the north: Trieu Mieu. "
+        "To the west: Hung Mieu and The Mieu. "
+        "This southeast zone is the Imperial City's largest ancestral complex, currently being actively restored."
+    ),
+
+    # ── 15. Cửa Hiển Nhơn ─────────────────────────────────────────────────────
+    ("Cửa Hiển Nhơn", "vi", "visit_highlights",
+        "Lầu canh hai tầng: mái ngói lưu ly xanh, gờ mái đắp rồng uốn lượn mềm mại. "
+        "Phần đài cao bằng gạch vồ và đá Thanh: kiến trúc phòng thủ kiên cố. "
+        "Hướng Đông mở ra khu phố cổ Huế — đây là ranh giới giữa nội và ngoại thành."
+    ),
+    ("Cửa Hiển Nhơn", "vi", "visit_route",
+        "Quan sát mặt Đông ngoài thành — tường rêu phong và phố thị bên ngoài. "
+        "Bước qua cổng vào trong — nhìn lên lầu canh, quan sát hoa văn chạm khắc. "
+        "Từ trong nhìn ngược ra Đông — cảm nhận sự chuyển giao giữa không gian cung đình và phố thị. "
+        "Từ cổng này có thể đi bộ về phía Tây tới khu Thái Miếu và Triệu Miếu."
+    ),
+    ("Cửa Hiển Nhơn", "vi", "nearby_context",
+        "Phía Tây bên trong thành: khu Thái Miếu và Triệu Miếu. "
+        "Đối xứng phía Tây thành: Cửa Chương Đức. "
+        "Phía Bắc ngoài thành: khu phố cổ Gia Hội và sông Hương."
+    ),
+    ("Cửa Hiển Nhơn", "en", "visit_highlights",
+        "Two-story watchtower: blue-glazed tile roof, roof ridges with graceful dragon motifs. "
+        "High platform of large baked bricks and Thanh stone: solid defensive architecture. "
+        "Eastward opening onto Hue's ancient quarter — the boundary between inner palace and outer city."
+    ),
+    ("Cửa Hiển Nhơn", "en", "visit_route",
+        "Observe the east exterior — moss-covered walls and the bustling streets beyond. "
+        "Step through the gate inward — look up at the watchtower and examine the carved patterns. "
+        "Looking east from inside — feel the threshold between royal court and city life. "
+        "From this gate you can walk west to the Thai Mieu and Trieu Mieu temple complex."
+    ),
+    ("Cửa Hiển Nhơn", "en", "nearby_context",
+        "To the west inside the wall: Thai Mieu and Trieu Mieu temple complex. "
+        "Symmetrical to the west wall: Chuong Duc Gate. "
+        "North outside the wall: Gia Hoi old quarter and the Perfume River."
+    ),
+
+    # ── 16. Điện Long An ──────────────────────────────────────────────────────
+    ("Điện Long An (Bảo tàng Cổ vật Cung đình Huế)", "vi", "visit_highlights",
+        "Hệ thống 128 cột gỗ lim để mộc: không sơn son thếp vàng — kỹ thuật chạm trổ tinh hoa thay cho màu sắc. "
+        "Hai bài thơ hồi văn kiêm liên hoàn 56 chữ của vua Thiệu Trị: đọc xuôi ngược thành 64 bài khác nhau. "
+        "Bộ sưu tập đầu hồ — trò chơi cung đình xưa — và tranh gương hơn 150 năm tuổi. "
+        "Hơn 10.000 hiện vật: vàng, sứ, trang phục hoàng gia, nhạc khí, cổ vật Chăm."
+    ),
+    ("Điện Long An (Bảo tàng Cổ vật Cung đình Huế)", "vi", "visit_route",
+        "Vào từ cổng phía Nam — quan sát tổng thể nhà chữ nhật 35,7m × 28m. "
+        "Đứng trước hiên điện, nhìn lên hệ thống vì kèo và cột gỗ để mộc — khác hẳn các điện khác trong Hoàng thành. "
+        "Vào bên trong: tham quan phòng trưng bày đồ vàng và sứ Hoàng gia tầng một. "
+        "Tìm hai bài thơ hồi văn trên vách điện — đọc thử theo hướng dẫn. "
+        "Tầng hai (nếu mở): khu trưng bày nhạc khí cung đình và trang phục."
+    ),
+    ("Điện Long An (Bảo tàng Cổ vật Cung đình Huế)", "vi", "nearby_context",
+        "Phía Bắc: Cửa Hiển Nhơn — cổng phía Đông Hoàng thành. "
+        "Phía Tây: Thái Miếu và Triệu Miếu. "
+        "Đây là bảo tàng cổ vật lớn nhất Việt Nam về triều đại phong kiến — nên dành ít nhất 1 giờ."
+    ),
+    ("Điện Long An (Bảo tàng Cổ vật Cung đình Huế)", "vi", "notable_objects",
+        "Bộ ấn vàng triều Nguyễn: ấn vàng hoàng đế được trưng bày trong tủ kính an ninh cao. "
+        "Tranh gương: bộ tranh trên kính hơn 150 năm tuổi — kỹ thuật hiếm của thời Nguyễn. "
+        "Bộ đầu hồ: gồm bình đồng và tên bằng gỗ — trò chơi phong lưu của quý tộc hoàng gia. "
+        "Nhạc cụ Nhã nhạc: đàn bầu, đàn tranh, sáo trúc, trống cung đình nguyên bản."
+    ),
+    ("Điện Long An (Bảo tàng Cổ vật Cung đình Huế)", "en", "visit_highlights",
+        "128 unpainted ironwood columns: no lacquer or gilt — intricate carving replaces color as the art form. "
+        "Two palindrome-chain poems of 56 characters by Emperor Thieu Tri: readable in any direction to form 64 distinct poems. "
+        "Dau Ho collection — an ancient court game — and mirror paintings over 150 years old. "
+        "Over 10,000 artifacts: gold, porcelain, royal costumes, court instruments, Cham antiquities."
+    ),
+    ("Điện Long An (Bảo tàng Cổ vật Cung đình Huế)", "en", "visit_route",
+        "Enter from the south gate — observe the full rectangular structure (35.7m × 28m). "
+        "Stand before the portico and look up at the unpainted woodwork system — notably different from other palaces. "
+        "Go inside: tour the ground-floor display of imperial gold and porcelain. "
+        "Find the two palindrome poems on the interior walls — try reading them as guided. "
+        "Upper floor (if open): court musical instrument and royal costume exhibition."
+    ),
+    ("Điện Long An (Bảo tàng Cổ vật Cung đình Huế)", "en", "nearby_context",
+        "To the north: Hien Nhon Gate — the eastern gate of the Imperial City. "
+        "To the west: Thai Mieu and Trieu Mieu. "
+        "This is Vietnam's largest museum of a single feudal dynasty — allow at least 1 hour."
+    ),
+    ("Điện Long An (Bảo tàng Cổ vật Cung đình Huế)", "en", "notable_objects",
+        "Nguyen imperial gold seals: displayed in high-security glass cases. "
+        "Mirror paintings: glass artworks over 150 years old — a rare Nguyen-era technique. "
+        "Dau Ho set: bronze vase and wooden darts — the refined game of the Nguyen nobility. "
+        "Nha Nhac instruments: original dan bau, dan tranh, bamboo flute, and court drums."
+    ),
+
+    # ── 17. Ngọ Môn ───────────────────────────────────────────────────────────
+    ("Ngọ Môn", "vi", "visit_highlights",
+        "Đài nền hình chữ U: cao gần 5m, dài 57,77m, trổ 5 lối đi — mỗi lối dành cho một tầng lớp khác nhau. "
+        "Lầu Ngũ Phụng: 100 cột gỗ lim, mái vàng trung tâm và 8 mái xanh xung quanh — biểu tượng phượng hoàng. "
+        "Bốn tòa nhà phụ Đông, Tây dực lâu hai bên: tạo thành quần thể hoàn chỉnh nhìn từ sân. "
+        "Sân Đại triều nghi phía Bắc: chứng kiến lễ thoái vị của vua Bảo Đại ngày 30/8/1945."
+    ),
+    ("Ngọ Môn", "vi", "visit_route",
+        "Đứng ở phía Nam Ngọ Môn — quan sát tổng thể đài hình chữ U và 5 lối đi, đếm thử số cửa. "
+        "Tiếp cận gần: nhìn kỹ vật liệu xây dựng đài — gạch vồ, đá Thanh, và những lớp rêu phong. "
+        "Bước qua cửa chính giữa (cửa Ngọ Môn) vào sân — đây là lối dành cho vua xưa. "
+        "Đứng dưới chân lầu Ngũ Phụng nhìn lên — đếm hoa văn phụng trang trí trên bờ nóc. "
+        "Leo lên lầu Ngũ Phụng (nếu mở): nhìn xuống sân Ngọ Môn và toàn cảnh phía Nam Hoàng thành. "
+        "Nhìn ra phía Bắc để thấy trục thần đạo chính dẫn thẳng vào Điện Thái Hòa."
+    ),
+    ("Ngọ Môn", "vi", "nearby_context",
+        "Phía Bắc ngay sau cổng: sân Đại triều nghi và Điện Thái Hòa. "
+        "Phía Nam: Hồ Thái Dịch và quảng trường trước Ngọ Môn — nơi du khách thường chụp ảnh. "
+        "Đây là điểm bắt đầu lý tưởng cho hành trình khám phá Hoàng thành theo trục Bắc-Nam."
+    ),
+    ("Ngọ Môn", "vi", "notable_objects",
+        "5 lối đi đài Ngọ Môn: Cửa Ngọ, Tả Giáp, Hữu Giáp, Tả Dịch, Hữu Dịch — phân tầng theo phẩm trật. "
+        "Lầu Ngũ Phụng: 100 cột gỗ lim, biểu tượng 5 con phụng — đặc trưng kiến trúc quan trọng nhất. "
+        "Mái ngói hoàng lưu ly và thanh lưu ly: màu vàng tượng trưng cho đế vương, màu xanh cho quan lại."
+    ),
+    ("Ngọ Môn", "vi", "photo_spots",
+        "Góc kinh điển: đứng phía Nam hồ Thái Dịch nhìn vào Ngọ Môn với hồ làm tiền cảnh phản chiếu. "
+        "Góc từ lầu Ngũ Phụng: nhìn xuống sân Đại triều nghi — thấy cả Điện Thái Hòa ở phía Bắc. "
+        "Góc hoàng hôn: mặt Tây của Ngọ Môn khi ánh chiều tà nhuộm vàng các mái ngói."
+    ),
+    ("Ngọ Môn", "en", "visit_highlights",
+        "U-shaped stone platform: nearly 5m high, 57.77m long, with 5 passageways — each reserved for a different rank. "
+        "Five Phoenix Pavilion: 100 ironwood columns, yellow-glazed central roof and 8 blue-glazed roofs — the phoenix motif. "
+        "Four auxiliary buildings on the east and west wings: completing the ensemble viewed from the court. "
+        "The Great Court to the north: witnessed Emperor Bao Dai's abdication on August 30, 1945."
+    ),
+    ("Ngọ Môn", "en", "visit_route",
+        "Stand south of Ngo Mon — take in the full U-shaped platform with 5 passageways; try to count the gates. "
+        "Approach closely: examine the construction materials — large baked bricks, Thanh stone, moss-covered with age. "
+        "Walk through the central passage (Ngo Mon proper) into the court — the path once reserved for the emperor. "
+        "Stand beneath the Five Phoenix Pavilion and look up — count the phoenix carvings along the ridge. "
+        "Climb the Five Phoenix Pavilion (if open): look down at the Ngo Mon courtyard and the southern panorama. "
+        "Look north to see the main spirit axis running straight to Thai Hoa Palace."
+    ),
+    ("Ngọ Môn", "en", "nearby_context",
+        "Directly north: the Great Court Yard and Thai Hoa Palace. "
+        "To the south: Thai Dich Lake and the plaza in front of Ngo Mon — the most popular photo spot. "
+        "This is the ideal starting point for exploring the Imperial City along the north-south spirit axis."
+    ),
+    ("Ngọ Môn", "en", "notable_objects",
+        "The 5 passageways: Ngo Mon (emperor), Ta Giap, Huu Giap (mandarins), Ta Dich, Huu Dich (soldiers) — ranked hierarchy in stone. "
+        "Five Phoenix Pavilion: 100 ironwood columns, the phoenix symbol of imperial grace — the most important architectural feature. "
+        "Yellow and blue-glazed roof tiles: yellow symbolizing the emperor, blue symbolizing the mandarins."
+    ),
+    ("Ngọ Môn", "en", "photo_spots",
+        "Classic shot: stand south of Thai Dich Lake looking toward Ngo Mon with the lake as a reflecting foreground. "
+        "From the Five Phoenix Pavilion: look down at the Great Court Yard — Thai Hoa Palace visible to the north. "
+        "Sunset angle: the west face of Ngo Mon when the late afternoon light gilds the tile roofs."
+    ),
+]
+
 ARTIFACT_RELATIONS = []
+
+
+# ─── Seeding Functions ─────────────────────────────────────────────────────────
+
+async def seed_locations(session):
+    """Upsert all locations."""
+    for loc_data in LOCATIONS:
+        existing = await session.execute(
+            select(Location).where(Location.name_vi == loc_data["name_vi"])
+        )
+        obj = existing.scalar_one_or_none()
+        if not obj:
+            obj = Location(**loc_data)
+            session.add(obj)
+            logger.info("  [+] Location: %s", loc_data["name_vi"])
+        else:
+            for k, v in loc_data.items():
+                setattr(obj, k, v)
+            logger.info("  [~] Updated location: %s", loc_data["name_vi"])
+    await session.flush()
+
+
+async def seed_artifacts(session) -> dict[str, int]:
+    """Upsert all artifacts. Returns {name_vi: art_id} mapping."""
+    name_to_id: dict[str, int] = {}
+    for art_data in ARTIFACTS:
+        existing = await session.execute(
+            select(Artifact).where(Artifact.name_vi == art_data["name_vi"])
+        )
+        obj = existing.scalar_one_or_none()
+        if not obj:
+            obj = Artifact(**art_data)
+            session.add(obj)
+            await session.flush()
+            logger.info("  [+] Artifact: %s (id=%s)", art_data["name_vi"], obj.art_id)
+        else:
+            for k, v in art_data.items():
+                setattr(obj, k, v)
+            await session.flush()
+            logger.info("  [~] Updated artifact: %s (id=%s)", art_data["name_vi"], obj.art_id)
+        name_to_id[art_data["name_vi"]] = obj.art_id
+    return name_to_id
+
+
+async def seed_bilingual_content(session, name_to_id: dict[str, int]):
+    """Upsert bilingual_content rows from BILINGUAL_CONTENT_RAW."""
+    inserted = 0
+    updated = 0
+    skipped = 0
+    for (artifact_name_vi, lang, content_type, content_text) in BILINGUAL_CONTENT_RAW:
+        art_id = name_to_id.get(artifact_name_vi)
+        if art_id is None:
+            logger.warning("  [!] Skipped bilingual for unknown artifact: %s", artifact_name_vi)
+            skipped += 1
+            continue
+
+        existing = await session.execute(
+            select(BilingualContent).where(
+                and_(
+                    BilingualContent.artifact_id == art_id,
+                    BilingualContent.lang == lang,
+                    BilingualContent.content_type == content_type,
+                )
+            )
+        )
+        obj = existing.scalar_one_or_none()
+        if not obj:
+            obj = BilingualContent(
+                artifact_id=art_id,
+                lang=lang,
+                content_type=content_type,
+                content_text=content_text,
+            )
+            session.add(obj)
+            inserted += 1
+        else:
+            obj.content_text = content_text
+            updated += 1
+    logger.info(
+        "  Bilingual content: %d inserted, %d updated, %d skipped.",
+        inserted, updated, skipped
+    )
+
+
+async def main():
+    """Run all seeding steps."""
+    logger.info("=== Starting AI Tour Guide Database Seed ===")
+
+    async with async_session_factory() as session:
+        async with session.begin():
+            logger.info("[1/3] Seeding Locations...")
+            await seed_locations(session)
+
+            logger.info("[2/3] Seeding Artifacts...")
+            name_to_id = await seed_artifacts(session)
+
+            logger.info("[3/3] Seeding Bilingual Content...")
+            await seed_bilingual_content(session, name_to_id)
+
+    logger.info("=== Seed complete! ===")
+    logger.info("Artifacts seeded: %d", len(ARTIFACTS))
+    logger.info("Bilingual content rows: %d", len(BILINGUAL_CONTENT_RAW))
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+

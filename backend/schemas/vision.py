@@ -30,6 +30,16 @@ class ArtifactInfo(BaseModel):
     author: Optional[str] = None
     year: Optional[int] = None
     loc_id: str
+    visit_route_vi: Optional[str] = None
+    visit_route_en: Optional[str] = None
+    visit_highlights_vi: Optional[str] = None
+    visit_highlights_en: Optional[str] = None
+    nearby_context_vi: Optional[str] = None
+    nearby_context_en: Optional[str] = None
+    notable_objects_vi: Optional[str] = None
+    notable_objects_en: Optional[str] = None
+    photo_spots_vi: Optional[str] = None
+    photo_spots_en: Optional[str] = None
 
 
 class VisionResult(BaseModel):

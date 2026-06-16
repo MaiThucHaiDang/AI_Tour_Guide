@@ -88,3 +88,471 @@ Data lấy từ data của bạn: (không có)
 Câu hỏi: hướng dẫn lộ tình
 Data lấy từ data của bạn: No matching artifact found in database.
 ────────────────────────────────────────────────────────────
+[2026-06-16 12:38:25] (source: template)
+Câu hỏi: Chao ban
+Data lấy từ data của bạn: (không có)
+────────────────────────────────────────────────────────────
+[2026-06-16 12:38:25] (source: template)
+Câu hỏi: 
+Data lấy từ data của bạn: (không có)
+────────────────────────────────────────────────────────────
+[2026-06-16 12:38:32] (source: template)
+Câu hỏi: Chào bạn
+Data lấy từ data của bạn: (không có)
+────────────────────────────────────────────────────────────
+[2026-06-16 12:38:32] (source: llm)
+Câu hỏi: [User sent an image of Ngọ Môn]
+Data lấy từ data của bạn: Dữ liệu Ngọ Môn từ DB
+────────────────────────────────────────────────────────────
+[2026-06-16 12:38:32] (source: llm)
+Câu hỏi: Cái này xây năm nào?
+Data lấy từ data của bạn: Dữ liệu Ngọ Môn từ DB
+────────────────────────────────────────────────────────────
+[2026-06-16 12:38:32] (source: llm)
+Câu hỏi: Tôi là Nam
+Data lấy từ data của bạn: No matching artifact found in database.
+────────────────────────────────────────────────────────────
+[2026-06-16 12:38:32] (source: llm)
+Câu hỏi: Tên tôi là gì?
+Data lấy từ data của bạn: No matching artifact found in database.
+────────────────────────────────────────────────────────────
+[2026-06-16 12:38:33] (source: llm)
+Câu hỏi: Hãy kể về một hiện vật chưa có trong dữ liệu
+Data lấy từ data của bạn: No matching artifact found in database.
+────────────────────────────────────────────────────────────
+[2026-06-16 12:38:33] (source: llm)
+Câu hỏi: Ngọ Môn được xây năm nào?
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Minh Mang Emperor
+Location ID: 1
+
+=== FULL DETAILED DESCRIPTION (use ALL of this in your response) ===
+Ngọ Môn là cổng chính phía nam của Hoàng thành Huế. Công trình gắn với nhiều nghi lễ quan trọng của triều Nguyễn.
+────────────────────────────────────────────────────────────
+[2026-06-16 12:38:33] (source: llm)
+Câu hỏi: Ý nghĩa lịch sử của Ngọ Môn là gì?
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Minh Mang Emperor
+Location ID: 1
+
+=== FULL DETAILED DESCRIPTION (use ALL of this in your response) ===
+Ngọ Môn là cổng chính phía nam của Hoàng thành Huế. Công trình gắn với nhiều nghi lễ quan trọng của triều Nguyễn.
+────────────────────────────────────────────────────────────
+[2026-06-16 12:38:33] (source: llm)
+Câu hỏi: Ngọ Môn với Điện Kiến Trung cái nào xây trước?
+Data lấy từ data của bạn: Name: Điện Kiến Trung
+Year: 1923
+Author: Khải Định Emperor
+Location ID: 2
+
+=== FULL DETAILED DESCRIPTION (use ALL of this in your response) ===
+Dữ liệu Điện Kiến Trung.
+────────────────────────────────────────────────────────────
+[2026-06-16 12:38:33] (source: llm)
+Câu hỏi: Dẫn tôi tới Điện Kiến Trung đi
+Data lấy từ data của bạn: Name: Điện Kiến Trung
+Year: 1923
+Author: Khải Định Emperor
+Location ID: 2
+
+=== FULL DETAILED DESCRIPTION (use ALL of this in your response) ===
+Dữ liệu Điện Kiến Trung.
+────────────────────────────────────────────────────────────
+[2026-06-16 12:42:14] (source: template)
+Câu hỏi: Chao ban
+Data lấy từ data của bạn: (không có)
+────────────────────────────────────────────────────────────
+[2026-06-16 12:42:15] (source: template)
+Câu hỏi: 
+Data lấy từ data của bạn: (không có)
+────────────────────────────────────────────────────────────
+[2026-06-16 12:42:21] (source: template)
+Câu hỏi: Chào bạn
+Data lấy từ data của bạn: (không có)
+────────────────────────────────────────────────────────────
+[2026-06-16 12:42:21] (source: llm)
+Câu hỏi: [User sent an image of Ngọ Môn]
+Data lấy từ data của bạn: Dữ liệu Ngọ Môn từ DB
+────────────────────────────────────────────────────────────
+[2026-06-16 12:42:21] (source: llm)
+Câu hỏi: Cái này xây năm nào?
+Data lấy từ data của bạn: Dữ liệu Ngọ Môn từ DB
+────────────────────────────────────────────────────────────
+[2026-06-16 12:42:21] (source: llm)
+Câu hỏi: Tôi là Nam
+Data lấy từ data của bạn: No matching artifact found in database.
+────────────────────────────────────────────────────────────
+[2026-06-16 12:42:21] (source: llm)
+Câu hỏi: Tên tôi là gì?
+Data lấy từ data của bạn: No matching artifact found in database.
+────────────────────────────────────────────────────────────
+[2026-06-16 12:42:22] (source: llm)
+Câu hỏi: Hãy kể về một hiện vật chưa có trong dữ liệu
+Data lấy từ data của bạn: No matching artifact found in database.
+────────────────────────────────────────────────────────────
+[2026-06-16 12:42:22] (source: llm)
+Câu hỏi: Ngọ Môn được xây năm nào?
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Minh Mang Emperor
+Location ID: 1
+
+=== FULL DETAILED DESCRIPTION (use ALL of this in your response) ===
+Ngọ Môn là cổng chính phía nam của Hoàng thành Huế. Công trình gắn với nhiều nghi lễ quan trọng của triều Nguyễn.
+────────────────────────────────────────────────────────────
+[2026-06-16 12:42:22] (source: llm)
+Câu hỏi: Ý nghĩa lịch sử của Ngọ Môn là gì?
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Minh Mang Emperor
+Location ID: 1
+
+=== FULL DETAILED DESCRIPTION (use ALL of this in your response) ===
+Ngọ Môn là cổng chính phía nam của Hoàng thành Huế. Công trình gắn với nhiều nghi lễ quan trọng của triều Nguyễn.
+────────────────────────────────────────────────────────────
+[2026-06-16 12:42:22] (source: llm)
+Câu hỏi: Ngọ Môn với Điện Kiến Trung cái nào xây trước?
+Data lấy từ data của bạn: Name: Điện Kiến Trung
+Year: 1923
+Author: Khải Định Emperor
+Location ID: 2
+
+=== FULL DETAILED DESCRIPTION (use ALL of this in your response) ===
+Dữ liệu Điện Kiến Trung.
+────────────────────────────────────────────────────────────
+[2026-06-16 12:42:22] (source: llm)
+Câu hỏi: Dẫn tôi tới Điện Kiến Trung đi
+Data lấy từ data của bạn: Name: Điện Kiến Trung
+Year: 1923
+Author: Khải Định Emperor
+Location ID: 2
+
+=== FULL DETAILED DESCRIPTION (use ALL of this in your response) ===
+Dữ liệu Điện Kiến Trung.
+────────────────────────────────────────────────────────────
+[2026-06-16 12:42:23] (source: llm)
+Câu hỏi: Kể về Tháp Eiffel ở Pháp
+Data lấy từ data của bạn: No matching artifact
+────────────────────────────────────────────────────────────
+[2026-06-16 12:45:04] (source: template)
+Câu hỏi: Chao ban
+Data lấy từ data của bạn: (không có)
+────────────────────────────────────────────────────────────
+[2026-06-16 12:45:04] (source: template)
+Câu hỏi: 
+Data lấy từ data của bạn: (không có)
+────────────────────────────────────────────────────────────
+[2026-06-16 12:45:11] (source: template)
+Câu hỏi: Chào bạn
+Data lấy từ data của bạn: (không có)
+────────────────────────────────────────────────────────────
+[2026-06-16 12:45:11] (source: llm)
+Câu hỏi: [User sent an image of Ngọ Môn]
+Data lấy từ data của bạn: Dữ liệu Ngọ Môn từ DB
+────────────────────────────────────────────────────────────
+[2026-06-16 12:45:11] (source: llm)
+Câu hỏi: Cái này xây năm nào?
+Data lấy từ data của bạn: Dữ liệu Ngọ Môn từ DB
+────────────────────────────────────────────────────────────
+[2026-06-16 12:45:11] (source: llm)
+Câu hỏi: Tôi là Nam
+Data lấy từ data của bạn: No matching artifact found in database.
+────────────────────────────────────────────────────────────
+[2026-06-16 12:45:11] (source: llm)
+Câu hỏi: Tên tôi là gì?
+Data lấy từ data của bạn: No matching artifact found in database.
+────────────────────────────────────────────────────────────
+[2026-06-16 12:45:11] (source: llm)
+Câu hỏi: Hãy kể về một hiện vật chưa có trong dữ liệu
+Data lấy từ data của bạn: No matching artifact found in database.
+────────────────────────────────────────────────────────────
+[2026-06-16 12:45:11] (source: llm)
+Câu hỏi: Ngọ Môn được xây năm nào?
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Minh Mang Emperor
+Location ID: 1
+
+=== FULL DETAILED DESCRIPTION (use ALL of this in your response) ===
+Ngọ Môn là cổng chính phía nam của Hoàng thành Huế. Công trình gắn với nhiều nghi lễ quan trọng của triều Nguyễn.
+────────────────────────────────────────────────────────────
+[2026-06-16 12:45:12] (source: llm)
+Câu hỏi: Ý nghĩa lịch sử của Ngọ Môn là gì?
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Minh Mang Emperor
+Location ID: 1
+
+=== FULL DETAILED DESCRIPTION (use ALL of this in your response) ===
+Ngọ Môn là cổng chính phía nam của Hoàng thành Huế. Công trình gắn với nhiều nghi lễ quan trọng của triều Nguyễn.
+────────────────────────────────────────────────────────────
+[2026-06-16 12:45:12] (source: llm)
+Câu hỏi: Ngọ Môn với Điện Kiến Trung cái nào xây trước?
+Data lấy từ data của bạn: DB_CONTEXT_PRIMARY (Ngọ Môn):
+Name: Ngọ Môn
+Year: 1833
+Author: Minh Mang Emperor
+Location ID: 1
+
+=== FULL DETAILED DESCRIPTION (use ALL of this in your response) ===
+Ngọ Môn là cổng chính phía nam của Hoàng thành Huế. Công trình gắn với nhiều nghi lễ quan trọng của triều Nguyễn.
+
+DB_CONTEXT_COMPARATIVE (Điện Kiến Trung):
+Name: Điện Kiến Trung
+Year: 1923
+Author: Khải Định Emperor
+Location ID: 2
+
+=== FULL DETAILED DESCRIPTION (use ALL of this in your response) ===
+Dữ liệu Điện Kiến Trung.
+────────────────────────────────────────────────────────────
+[2026-06-16 12:45:12] (source: llm)
+Câu hỏi: Dẫn tôi tới Điện Kiến Trung đi
+Data lấy từ data của bạn: Name: Điện Kiến Trung
+Year: 1923
+Author: Khải Định Emperor
+Location ID: 2
+
+=== FULL DETAILED DESCRIPTION (use ALL of this in your response) ===
+Dữ liệu Điện Kiến Trung.
+────────────────────────────────────────────────────────────
+[2026-06-16 12:45:13] (source: llm)
+Câu hỏi: Kể về Tháp Eiffel ở Pháp
+Data lấy từ data của bạn: No matching artifact
+────────────────────────────────────────────────────────────
+[2026-06-16 13:37:56] (source: template)
+Câu hỏi: Chao ban
+Data lấy từ data của bạn: (không có)
+────────────────────────────────────────────────────────────
+[2026-06-16 13:37:56] (source: template)
+Câu hỏi: 
+Data lấy từ data của bạn: (không có)
+────────────────────────────────────────────────────────────
+[2026-06-16 13:38:04] (source: template)
+Câu hỏi: Chào bạn
+Data lấy từ data của bạn: (không có)
+────────────────────────────────────────────────────────────
+[2026-06-16 13:38:04] (source: llm)
+Câu hỏi: [User sent an image of Ngọ Môn]
+Data lấy từ data của bạn: Dữ liệu Ngọ Môn từ DB
+────────────────────────────────────────────────────────────
+[2026-06-16 13:38:04] (source: llm)
+Câu hỏi: Cái này xây năm nào?
+Data lấy từ data của bạn: Dữ liệu Ngọ Môn từ DB
+────────────────────────────────────────────────────────────
+[2026-06-16 13:38:04] (source: llm)
+Câu hỏi: Tôi là Nam
+Data lấy từ data của bạn: No matching artifact found in database.
+────────────────────────────────────────────────────────────
+[2026-06-16 13:38:04] (source: llm)
+Câu hỏi: Tên tôi là gì?
+Data lấy từ data của bạn: No matching artifact found in database.
+────────────────────────────────────────────────────────────
+[2026-06-16 13:38:04] (source: llm)
+Câu hỏi: Hãy kể về một hiện vật chưa có trong dữ liệu
+Data lấy từ data của bạn: No matching artifact found in database.
+────────────────────────────────────────────────────────────
+[2026-06-16 13:38:04] (source: llm)
+Câu hỏi: Ngọ Môn được xây năm nào?
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Minh Mang Emperor
+Location ID: 1
+
+=== HISTORY ===
+Ngọ Môn là cổng chính phía nam của Hoàng thành Huế. Công trình gắn với nhiều nghi lễ quan trọng của triều Nguyễn.
+────────────────────────────────────────────────────────────
+[2026-06-16 13:38:04] (source: llm)
+Câu hỏi: Ý nghĩa lịch sử của Ngọ Môn là gì?
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Minh Mang Emperor
+Location ID: 1
+
+=== HISTORY ===
+Ngọ Môn là cổng chính phía nam của Hoàng thành Huế. Công trình gắn với nhiều nghi lễ quan trọng của triều Nguyễn.
+────────────────────────────────────────────────────────────
+[2026-06-16 13:38:04] (source: llm)
+Câu hỏi: Ngọ Môn với Điện Kiến Trung cái nào xây trước?
+Data lấy từ data của bạn: DB_CONTEXT_PRIMARY (Ngọ Môn):
+Name: Ngọ Môn
+Year: 1833
+Author: Minh Mang Emperor
+Location ID: 1
+
+=== HISTORY ===
+Ngọ Môn là cổng chính phía nam của Hoàng thành Huế. Công trình gắn với nhiều nghi lễ quan trọng của triều Nguyễn.
+
+DB_CONTEXT_COMPARATIVE (Điện Kiến Trung):
+Name: Điện Kiến Trung
+Year: 1923
+Author: Khải Định Emperor
+Location ID: 2
+
+=== HISTORY ===
+Dữ liệu Điện Kiến Trung.
+────────────────────────────────────────────────────────────
+[2026-06-16 13:38:04] (source: llm)
+Câu hỏi: Dẫn tôi tới Điện Kiến Trung đi
+Data lấy từ data của bạn: Name: Điện Kiến Trung
+Year: 1923
+Author: Khải Định Emperor
+Location ID: 2
+
+=== HISTORY ===
+Dữ liệu Điện Kiến Trung.
+────────────────────────────────────────────────────────────
+[2026-06-16 13:38:06] (source: llm)
+Câu hỏi: Kể về Tháp Eiffel ở Pháp
+Data lấy từ data của bạn: No matching artifact
+────────────────────────────────────────────────────────────
+[2026-06-16 14:15:05] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Ngọ Môn
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Triều Nguyễn / Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Ngọ Môn là cổng chính phía Nam của Hoàng thành Huế — bộ mặt của cả một triều đại và là cổng lớn nhất trong bốn cổng chính. Được xây dựng vào năm 1833 dưới triều vua Minh Mạng, Ngọ Môn thay thế cho Nam Khuyết Đài thời Gia Long. Tên gọi 'Ngọ Môn' có nghĩa là 'cổng hướng về phương Ngọ' — tức phương Nam, hướng mà bậc thiên tử quay mặt để cai trị thiên hạ theo quan niệm 'Thánh nhân Nam diện nhi thính thiên hạ'. Kiến trúc Ngọ Môn gồm hai phần chính: phần đài cổng hình chữ U vững chãi và phần lầu Ngũ Phụng thanh thoát phía trên. Đài cao gần 5m, diện tích hơn 1.560m², đáy dài 57,77m, trổ 5 lối đi. Lối chính giữa (Ngọ Môn) dành riêng cho vua, hai lối bên (Tả Giáp Môn và Hữu Giáp Môn) cho quan văn võ, hai lối ngoài cùng (Tả Dịch Môn và Hữu Dịch Môn) cho binh lính và voi ngựa. Lầu Ngũ Phụng có hai tầng, kết cấu hoàn toàn bằng gỗ lim với chẵn 100 cây cột, mái chính giữa lợp ngói lưu ly vàng, tám mái còn lại lợp ngói xanh, với nhiều hình chim phụng trang trí ở bờ nóc và bờ quyết. Ngoài ra còn có 4 tòa nhà nhỏ phụ trợ hai bên Đông, Tây dực lâu. Ngọ Môn chứng kiến nhiều sự kiện lịch sử trọng đại: lễ Ban Sóc (ban lịch mới), lễ Truyền Lô (tuyên đọc tên tiến sĩ), và đặc biệt là ngày 30 tháng 8 năm 1945, vua Bảo Đại đọc Tuyên ngôn Thoái vị, trao chính quyền lại cho Chính phủ Lâm thời, khép lại chế độ quân chủ hơn 143 năm. Năm 1968, Ngọ Môn bị hư hại nặng trong trận Mậu Thân và được trùng tu với kinh phí 80 tỷ đồng, hoàn thành năm 2019. Câu ca dao xưa nhắc: 'Ngọ Môn 5 cửa 9 lầu, 1 lầu vàng 8 lầu xanh, 3 cửa thẳng 2 cửa quanh' — hãy tự mình kiểm tra xem có đúng không nhé!
+
+=== VISIBLE HIGHLIGHTS ===
+Đài nền hình chữ U: cao gần 5m, dài 57,77m, trổ 5 lối đi — mỗi lối dành cho một tầng lớp khác nhau. Lầu Ngũ Phụng: 100 cột gỗ lim, mái vàng trung tâm và 8 mái xanh xung quanh — biểu tượng phượng hoàng. Bốn tòa nhà phụ Đông, Tây dực lâu hai bên: tạo thành quần thể hoàn chỉnh nhìn từ sân. Sân Đại triều nghi phía Bắc: chứng kiến lễ thoái vị của vua Bảo Đại ngày 30/8/1945.
+
+=== SUGGESTED VISIT FLOW ===
+Đứng ở phía Nam Ngọ Môn — quan sát tổng thể đài hình chữ U và 5 lối đi, đếm thử số cửa. Tiếp cận gần: nhìn kỹ vật liệu xây dựng đài — gạch vồ, đá Thanh, và những lớp rêu phong. Bước qua cửa chính giữa (cửa Ngọ Môn) vào sân — đây là lối dành cho vua xưa. Đứng dưới chân lầu Ngũ Phụng nhìn lên — đếm hoa văn phụng trang trí trên bờ nóc. Leo lên lầu Ngũ Phụng (nếu mở): nhìn xuống sân Ngọ Môn và toàn cảnh phía Nam Hoàng thành. Nhìn ra phía Bắc để thấy trục thần đạo chính dẫn thẳng vào Điện Thái Hòa.
+
+=== NEARBY CONTEXT ===
+Phía Bắc ngay sau cổng: sân Đại triều nghi và Điện Thái Hòa. Phía Nam: Hồ Thái Dịch và quảng trường trước Ngọ Môn — nơi du khách thường chụp ảnh. Đây là điểm bắt đầu lý tưởng cho hành trình khám phá Hoàng thành theo trục Bắc-Nam.
+
+=== NOTABLE OBJECTS ===
+5 lối đi đài Ngọ Môn: Cửa Ngọ, Tả Giáp, Hữu Giáp, Tả Dịch, Hữu Dịch — phân tầng theo phẩm trật. Lầu Ngũ Phụng: 100 cột gỗ lim, biểu tượng 5 con phụng — đặc trưng kiến trúc quan trọng nhất. Mái ngói hoàng lưu ly và thanh lưu ly: màu vàng tượng trưng cho đế vương, màu xanh cho quan lại.
+
+=== PHOTO SPOTS ===
+Góc kinh điển: đứng phía Nam hồ Thái Dịch nhìn vào Ngọ Môn với hồ làm tiền cảnh phản chiếu. Góc từ lầu Ngũ Phụng: nhìn xuống sân Đại triều nghi — thấy cả Điện Thái Hòa ở phía Bắc. Góc hoàng hôn: mặt Tây của Ngọ Môn khi ánh chiều tà nhuộm vàng các mái ngói.
+────────────────────────────────────────────────────────────
+[2026-06-16 14:15:28] (source: llm)
+Câu hỏi: ngoài ngọ môn thì các cổng của kinh thành huế
+Data lấy từ data của bạn: DB_CONTEXT_PRIMARY (Ngọ Môn):
+Name: Ngọ Môn
+Year: 1833
+Author: Triều Nguyễn / Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Ngọ Môn là cổng chính phía Nam của Hoàng thành Huế — bộ mặt của cả một triều đại và là cổng lớn nhất trong bốn cổng chính. Được xây dựng vào năm 1833 dưới triều vua Minh Mạng, Ngọ Môn thay thế cho Nam Khuyết Đài thời Gia Long. Tên gọi 'Ngọ Môn' có nghĩa là 'cổng hướng về phương Ngọ' — tức phương Nam, hướng mà bậc thiên tử quay mặt để cai trị thiên hạ theo quan niệm 'Thánh nhân Nam diện nhi thính thiên hạ'. Kiến trúc Ngọ Môn gồm hai phần chính: phần đài cổng hình chữ U vững chãi và phần lầu Ngũ Phụng thanh thoát phía trên. Đài cao gần 5m, diện tích hơn 1.560m², đáy dài 57,77m, trổ 5 lối đi. Lối chính giữa (Ngọ Môn) dành riêng cho vua, hai lối bên (Tả Giáp Môn và Hữu Giáp Môn) cho quan văn võ, hai lối ngoài cùng (Tả Dịch Môn và Hữu Dịch Môn) cho binh lính và voi ngựa. Lầu Ngũ Phụng có hai tầng, kết cấu hoàn toàn bằng gỗ lim với chẵn 100 cây cột, mái chính giữa lợp ngói lưu ly vàng, tám mái còn lại lợp ngói xanh, với nhiều hình chim phụng trang trí ở bờ nóc và bờ quyết. Ngoài ra còn có 4 tòa nhà nhỏ phụ trợ hai bên Đông, Tây dực lâu. Ngọ Môn chứng kiến nhiều sự kiện lịch sử trọng đại: lễ Ban Sóc (ban lịch mới), lễ Truyền Lô (tuyên đọc tên tiến sĩ), và đặc biệt là ngày 30 tháng 8 năm 1945, vua Bảo Đại đọc Tuyên ngôn Thoái vị, trao chính quyền lại cho Chính phủ Lâm thời, khép lại chế độ quân chủ hơn 143 năm. Năm 1968, Ngọ Môn bị hư hại nặng trong trận Mậu Thân và được trùng tu với kinh phí 80 tỷ đồng, hoàn thành năm 2019. Câu ca dao xưa nhắc: 'Ngọ Môn 5 cửa 9 lầu, 1 lầu vàng 8 lầu xanh, 3 cửa thẳng 2 cửa quanh' — hãy tự mình kiểm tra xem có đúng không nhé!
+
+=== VISIBLE HIGHLIGHTS ===
+Đài nền hình chữ U: cao gần 5m, dài 57,77m, trổ 5 lối đi — mỗi lối dành cho một tầng lớp khác nhau. Lầu Ngũ Phụng: 100 cột gỗ lim, mái vàng trung tâm và 8 mái xanh xung quanh — biểu tượng phượng hoàng. Bốn tòa nhà phụ Đông, Tây dực lâu hai bên: tạo thành quần thể hoàn chỉnh nhìn từ sân. Sân Đại triều nghi phía Bắc: chứng kiến lễ thoái vị của vua Bảo Đại ngày 30/8/1945.
+
+=== SUGGESTED VISIT FLOW ===
+Đứng ở phía Nam Ngọ Môn — quan sát tổng thể đài hình chữ U và 5 lối đi, đếm thử số cửa. Tiếp cận gần: nhìn kỹ vật liệu xây dựng đài — gạch vồ, đá Thanh, và những lớp rêu phong. Bước qua cửa chính giữa (cửa Ngọ Môn) vào sân — đây là lối dành cho vua xưa. Đứng dưới chân lầu Ngũ Phụng nhìn lên — đếm hoa văn phụng trang trí trên bờ nóc. Leo lên lầu Ngũ Phụng (nếu mở): nhìn xuống sân Ngọ Môn và toàn cảnh phía Nam Hoàng thành. Nhìn ra phía Bắc để thấy trục thần đạo chính dẫn thẳng vào Điện Thái Hòa.
+
+=== NEARBY CONTEXT ===
+Phía Bắc ngay sau cổng: sân Đại triều nghi và Điện Thái Hòa. Phía Nam: Hồ Thái Dịch và quảng trường trước Ngọ Môn — nơi du khách thường chụp ảnh. Đây là điểm bắt đầu lý tưởng cho hành trình khám phá Hoàng thành theo trục Bắc-Nam.
+
+=== NOTABLE OBJECTS ===
+5 lối đi đài Ngọ Môn: Cửa Ngọ, Tả Giáp, Hữu Giáp, Tả Dịch, Hữu Dịch — phân tầng theo phẩm trật. Lầu Ngũ Phụng: 100 cột gỗ lim, biểu tượng 5 con phụng — đặc trưng kiến trúc quan trọng nhất. Mái ngói hoàng lưu ly và thanh lưu ly: màu vàng tượng trưng cho đế vương, màu xanh cho quan lại.
+
+=== PHOTO SPOTS ===
+Góc kinh điển: đứng phía Nam hồ Thái Dịch nhìn vào Ngọ Môn với hồ làm tiền cảnh phản chiếu. Góc từ lầu Ngũ Phụng: nhìn xuống sân Đại triều nghi — thấy cả Điện Thái Hòa ở phía Bắc. Góc hoàng hôn: mặt Tây của Ngọ Môn khi ánh chiều tà nhuộm vàng các mái ngói.
+
+DB_CONTEXT_COMPARATIVE (Kinh thành Huế (Đại Nội)):
+Name: Kinh thành Huế (Đại Nội)
+Year: unknown
+Author: Unknown
+Location ID: 1
+
+=== HISTORY ===
+Địa điểm Kinh thành Huế (Đại Nội). Các hiện vật nổi bật tại đây bao gồm:
+- Cửa Hòa Bình: Cửa Hòa Bình là cánh cổng phía Bắc của Hoàng thành Huế, lặng lẽ nép mình bên dòng sông Hương thơ mộng. Dưới thời vua Gia Long, cửa mang tên Củng Thần — một cái tên đầy vẻ thần bí và uy nghi, gợi nhắc về chốn thâm nghiêm của hoàng cung.
+- Điện Kiến Trung: Điện Kiến Trung tọa lạc ở điểm cực Bắc của trục thần đạo xuyên suốt Tử Cấm Thành, được vua Khải Định cho xây dựng từ năm 1921 đến 1923. Trước khi có điện này, nơi đây từng là lầu Minh Viễn thời Minh Mạng (1827-1876) rồi lầu Du Cửu thời Đồng Khánh (1913-1916), nhưng vua Khải Định đã cho triệt giải hoàn toàn để xây một tòa cung điện mới, làm nơi sinh hoạt và làm việc của mình.
+- Cung Trường Sanh: Cung Trường Sanh tọa lạc ở phía Tây Bắc Hoàng thành, được xây dựng năm 1821 dưới triều vua Minh Mạng với tên gọi ban đầu là Cung Trường Ninh. Với tổng diện tích lên đến 11.400m², nơi đây là một quần thể kiến trúc gồm nhiều tòa nhà, hồ nước và vườn cảnh hài hòa.
+────────────────────────────────────────────────────────────
+[2026-06-16 15:14:29] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Ngọ Môn
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Triều Nguyễn / Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Ngọ Môn là cổng chính phía Nam của Hoàng thành Huế — bộ mặt của cả một triều đại và là cổng lớn nhất trong bốn cổng chính. Được xây dựng vào năm 1833 dưới triều vua Minh Mạng, Ngọ Môn thay thế cho Nam Khuyết Đài thời Gia Long. Tên gọi 'Ngọ Môn' có nghĩa là 'cổng hướng về phương Ngọ' — tức phương Nam, hướng mà bậc thiên tử quay mặt để cai trị thiên hạ theo quan niệm 'Thánh nhân Nam diện nhi thính thiên hạ'. Kiến trúc Ngọ Môn gồm hai phần chính: phần đài cổng hình chữ U vững chãi và phần lầu Ngũ Phụng thanh thoát phía trên. Đài cao gần 5m, diện tích hơn 1.560m², đáy dài 57,77m, trổ 5 lối đi. Lối chính giữa (Ngọ Môn) dành riêng cho vua, hai lối bên (Tả Giáp Môn và Hữu Giáp Môn) cho quan văn võ, hai lối ngoài cùng (Tả Dịch Môn và Hữu Dịch Môn) cho binh lính và voi ngựa. Lầu Ngũ Phụng có hai tầng, kết cấu hoàn toàn bằng gỗ lim với chẵn 100 cây cột, mái chính giữa lợp ngói lưu ly vàng, tám mái còn lại lợp ngói xanh, với nhiều hình chim phụng trang trí ở bờ nóc và bờ quyết. Ngoài ra còn có 4 tòa nhà nhỏ phụ trợ hai bên Đông, Tây dực lâu. Ngọ Môn chứng kiến nhiều sự kiện lịch sử trọng đại: lễ Ban Sóc (ban lịch mới), lễ Truyền Lô (tuyên đọc tên tiến sĩ), và đặc biệt là ngày 30 tháng 8 năm 1945, vua Bảo Đại đọc Tuyên ngôn Thoái vị, trao chính quyền lại cho Chính phủ Lâm thời, khép lại chế độ quân chủ hơn 143 năm. Năm 1968, Ngọ Môn bị hư hại nặng trong trận Mậu Thân và được trùng tu với kinh phí 80 tỷ đồng, hoàn thành năm 2019. Câu ca dao xưa nhắc: 'Ngọ Môn 5 cửa 9 lầu, 1 lầu vàng 8 lầu xanh, 3 cửa thẳng 2 cửa quanh' — hãy tự mình kiểm tra xem có đúng không nhé!
+
+=== VISIBLE HIGHLIGHTS ===
+Đài nền hình chữ U: cao gần 5m, dài 57,77m, trổ 5 lối đi — mỗi lối dành cho một tầng lớp khác nhau. Lầu Ngũ Phụng: 100 cột gỗ lim, mái vàng trung tâm và 8 mái xanh xung quanh — biểu tượng phượng hoàng. Bốn tòa nhà phụ Đông, Tây dực lâu hai bên: tạo thành quần thể hoàn chỉnh nhìn từ sân. Sân Đại triều nghi phía Bắc: chứng kiến lễ thoái vị của vua Bảo Đại ngày 30/8/1945.
+
+=== SUGGESTED VISIT FLOW ===
+Đứng ở phía Nam Ngọ Môn — quan sát tổng thể đài hình chữ U và 5 lối đi, đếm thử số cửa. Tiếp cận gần: nhìn kỹ vật liệu xây dựng đài — gạch vồ, đá Thanh, và những lớp rêu phong. Bước qua cửa chính giữa (cửa Ngọ Môn) vào sân — đây là lối dành cho vua xưa. Đứng dưới chân lầu Ngũ Phụng nhìn lên — đếm hoa văn phụng trang trí trên bờ nóc. Leo lên lầu Ngũ Phụng (nếu mở): nhìn xuống sân Ngọ Môn và toàn cảnh phía Nam Hoàng thành. Nhìn ra phía Bắc để thấy trục thần đạo chính dẫn thẳng vào Điện Thái Hòa.
+
+=== NEARBY CONTEXT ===
+Phía Bắc ngay sau cổng: sân Đại triều nghi và Điện Thái Hòa. Phía Nam: Hồ Thái Dịch và quảng trường trước Ngọ Môn — nơi du khách thường chụp ảnh. Đây là điểm bắt đầu lý tưởng cho hành trình khám phá Hoàng thành theo trục Bắc-Nam.
+
+=== NOTABLE OBJECTS ===
+5 lối đi đài Ngọ Môn: Cửa Ngọ, Tả Giáp, Hữu Giáp, Tả Dịch, Hữu Dịch — phân tầng theo phẩm trật. Lầu Ngũ Phụng: 100 cột gỗ lim, biểu tượng 5 con phụng — đặc trưng kiến trúc quan trọng nhất. Mái ngói hoàng lưu ly và thanh lưu ly: màu vàng tượng trưng cho đế vương, màu xanh cho quan lại.
+
+=== PHOTO SPOTS ===
+Góc kinh điển: đứng phía Nam hồ Thái Dịch nhìn vào Ngọ Môn với hồ làm tiền cảnh phản chiếu. Góc từ lầu Ngũ Phụng: nhìn xuống sân Đại triều nghi — thấy cả Điện Thái Hòa ở phía Bắc. Góc hoàng hôn: mặt Tây của Ngọ Môn khi ánh chiều tà nhuộm vàng các mái ngói.
+────────────────────────────────────────────────────────────
+[2026-06-16 15:18:27] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Nền điện Cần Chánh
+Data lấy từ data của bạn: Name: Nền điện Cần Chánh
+Year: 1804
+Author: Vua Gia Long
+Location ID: 1
+
+=== HISTORY ===
+Điện Cần Chánh từng là trái tim của Tử Cấm Thành, nơi vua Nguyễn thiết triều hằng ngày, tiếp đón sứ thần ngoại giao và tổ chức yến tiệc hoàng gia. Được xây dựng năm 1804 dưới triều vua Gia Long, điện nằm trên trục chính giữa Điện Thái Hòa và điện Càn Thành. Ngôi điện này có kết cấu gỗ lớn và đẹp nhất trong Tử Cấm Thành, với diện tích gần 1.000m², chính điện 5 gian 2 chái kép, tiền điện 7 gian 2 chái đơn, và 80 cột gỗ lim. Trong điện, ở gian giữa đặt ngự tọa, trên các hàng cột hai bên treo những bức tranh gương thể hiện cảnh đẹp của kinh đô và bản đồ các tỉnh trong nước. Đây từng là nơi trưng bày nhiều báu vật quý giá như đồ sứ hiếm, hòm tượng bảo ấn bằng vàng và ngọc. Hai bên điện có Tả vu và Hữu vu phục vụ việc chuẩn bị nghi lễ và chiêu đãi khách, họp thành bố cục kiến trúc hình chữ môn. Phía đông Tả vu có điện Đông Các làm từ năm 1826 — nơi làm việc của các đại thần. Về phía Nam là Tụ Khuê thơ lâu — lầu chứa sách của triều đình. Bên tả điện Cần Chánh là điện Văn Minh, bên hữu là điện Võ Hiển, đều xoay mặt hướng Nam, mái chồng, lợp ngói thanh lưu ly. Thật đáng tiếc, điện đã bị phá hủy hoàn toàn vào tháng 2 năm 1947 trong chiến dịch tiêu thổ kháng chiến. Hiện nay chỉ còn lại nền móng và một số dấu tích kiến trúc. Tin vui là dự án phục dựng điện Cần Chánh với kinh phí gần 200 tỷ đồng đã được khởi công vào tháng 11 năm 2024, dựa trên những bức ảnh tư liệu do người Pháp chụp trước khi điện sụp đổ. Hãy tưởng tượng, trong vòng 4 năm nữa, ngôi điện này sẽ sống lại, lộng lẫy như thuở nào! Bạn có thể hình dung được không khí trang nghiêm của những buổi thiết triều xưa kia không?
+
+=== VISIBLE HIGHLIGHTS ===
+Nền móng đá Thanh: hệ thống bệ đá và móng tường phác thảo rõ bố cục nguyên bản điện 9 gian 2 chái. Cột đá chân tảng: các viên đá kê cột còn nguyên vị trí, cho thấy quy mô của điện xưa. Bảng thuyết minh phục dựng 3D: hình ảnh mô phỏng điện khi còn nguyên vẹn trước năm 1947.
+
+=== SUGGESTED VISIT FLOW ===
+Từ Điện Thái Hòa đi thẳng về hướng Bắc — Nền điện Cần Chánh nằm ngay trên trục thần đạo chính. Đứng ở rìa phía Nam nền nhìn vào trong để nhận ra bố cục gian và chái qua hệ thống chân cột. Di chuyển dọc theo rìa nền để quan sát toàn bộ chu vi — chu vi rộng hơn nhiều so với tưởng tượng. Đọc các biển giải thích về chức năng từng khu vực: hậu đường nơi vua nghỉ, tiền đường nơi thiết triều nhỏ.
+
+=== NEARBY CONTEXT ===
+Ngay phía Nam: Điện Thái Hòa — biểu tượng quyền lực nghi lễ. Phía Bắc trên trục thần đạo: Điện Kiến Trung — nơi ở của vua. Hai bên: Tả Vu Hữu Vu và các công trình Tử Cấm Thành.
+────────────────────────────────────────────────────────────
+[2026-06-16 15:18:30] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Duyệt Thị Đường
+Data lấy từ data của bạn: Name: Duyệt Thị Đường
+Year: 1826
+Author: Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Duyệt Thị Đường là nhà hát hoàng gia cổ nhất còn tồn tại ở Việt Nam, được xem là viên ngọc quý của nghệ thuật sân khấu cung đình. Được xây dựng vào năm 1826 dưới triều vua Minh Mạng trên nền của nhà hát Thanh Phong Đường cũ (1805), nhà hát nằm ở góc Đông Nam bên trong Tử Cấm Thành với tổng diện tích khuôn viên 11.740m². Kiến trúc nhà hát hình chữ nhật rộng rãi, với mái cong mềm mại tựa những đình chùa Huế, được chống đỡ bởi hai hàng cột lim sơn son cao 12 mét vẽ rồng ẩn mây cuốn chung quanh. Mỗi cột còn treo thêm một bức tranh sơn thủy vẽ cảnh Huế với khung chạm rồng nổi thiếp vàng. Điều đặc biệt là sân khấu nằm ở trung tâm, với khán giả ngồi ba phía xung quanh — một thiết kế độc đáo. Vị trí đẹp nhất là lầu hai, dành riêng cho nhà vua — từ đây, vua có thể ngắm nhìn toàn bộ sân khấu. Các bà hoàng và cung tần mỹ nữ ngồi phía sau một lớp sáo trúc thưa, có thể nhìn ra mà không bị nhìn thấy — một chi tiết đầy tinh tế và kín đáo của cung đình. Hai bên vòm có treo hai câu đối bằng chữ Hán của vua Minh Mạng, nói về sức mạnh của âm nhạc trong việc nuôi dưỡng chí khí con người. Bên hữu nhà hát là Ngự y viện, nơi sao chế thuốc cho vua và hoàng gia. Ngày nay, Duyệt Thị Đường vẫn là nơi biểu diễn Nhã nhạc cung đình Huế — Di sản Văn hóa phi vật thể của UNESCO, với hai suất diễn mỗi ngày vào lúc 10 giờ sáng và 3 giờ chiều. Nhà hát đã phục dựng 8 trong số 11 điệu múa cổ và 40 bài nhã nhạc — một kho báu văn hóa đang sống động từng ngày. Nếu có dịp, bạn hãy dừng chân ở đây để thưởng thức những điệu múa cung đình và tiếng nhạc du dương — chắc chắn sẽ là một trải nghiệm khó quên!
+
+=== VISIBLE HIGHLIGHTS ===
+Sân khấu Nhã nhạc cung đình: khu biểu diễn chính với rèm nhung và đèn chùm cổ điển. Nội thất sơn son thếp vàng tầng một: hệ thống cột gỗ lim chạm rồng phượng. Khu ngồi dành cho hoàng gia tầng hai: ban công gỗ nhìn xuống sân khấu — chỉ vua và hoàng gia được ngồi đây. Hành lang và tiền sảnh tầng một: nơi quan lại chờ đợi và chuẩn bị.
+
+=== SUGGESTED VISIT FLOW ===
+Vào từ cổng chính phía Nam — quan sát tổng thể mặt tiền nhà hát với mái ngói và trụ cột. Bước vào tiền sảnh: chiêm ngưỡng bộ cột gỗ lim sơn son và hệ thống vì kèo. Tiến vào khu khán phòng: quan sát sân khấu từ dưới lên, nhìn lên khu ngồi hoàng gia tầng hai. Leo cầu thang lên tầng hai — ngồi vào vị trí hoàng gia nhìn xuống sân khấu. Sau đó thăm phòng trưng bày về Nhã nhạc UNESCO và các hiện vật nhạc cụ cung đình.
+
+=== NEARBY CONTEXT ===
+Ngay phía Tây: Điện Kiến Trung. Phía Nam trên trục thần đạo: Điện Thái Hòa. Phía Đông Bắc: Phủ Nội Vụ — kho lưu trữ vật phẩm hoàng gia.
+
+=== NOTABLE OBJECTS ===
+Đàn Nguyệt và Đàn Tranh: nhạc cụ dây cung đình trưng bày trong nhà hát. Trống Nhã nhạc: bộ trống lớn dùng trong các buổi biểu diễn Nhã nhạc hoàng cung. Trang phục biểu diễn: áo dài cung đình thêu rồng phượng tái hiện tại phòng trưng bày.
+────────────────────────────────────────────────────────────
+[2026-06-16 15:18:31] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Phủ Nội Vụ
+Data lấy từ data của bạn: Name: Phủ Nội Vụ
+Year: 1804
+Author: Vua Gia Long
+Location ID: 1
+
+=== HISTORY ===
+Phủ Nội Vụ là cơ quan đầu não quản lý tài sản, vật dụng cho Hoàng đế và hoàng gia, được ví như 'ngân khố' và 'cục hậu cần' của triều đình nhà Nguyễn. Tiền thân dưới thời Gia Long là Nội Đồ Gia nằm trong Tử Cấm Thành. Đến năm 1820, vua Minh Mạng đổi tên thành Nội Vụ Phủ. Năm 1837, phủ được dời về vị trí hiện tại ở phía Đông Bắc Hoàng thành, gần cửa Hiển Nhơn. Phủ Nội Vụ quản lý kho tàng vàng bạc, châu báu, tơ lụa, gấm vóc và các vật cống tiến, đồng thời lo việc sản xuất các vật dụng cho hoàng đế và nội cung. Cơ cấu tổ chức rất tinh vi: 1 Thị lang, 2 Lang trung điều hành, với các kho chuyên biệt: kho vàng bạc, kho châu ngọc, kho gấm vóc, kho the lụa, kho vật hạng, kho văn nhạc, kho dược phẩm. Mỗi kho đều có viên chức riêng phụ trách với các Chủ sự, Tư vụ, Thư lại các cấp. Tiết thận ty quản lý các cục thợ thủ công gồm thợ may, thêu, nhuộm, dệt và các xưởng chế tác đồ quý. Đến năm 1906, công trình được xây dựng lại theo kiến trúc Pháp, với tòa nhà chính hai tầng còn tồn tại đến ngày nay. Sau năm 1945, khu vực này trải qua nhiều lần thay đổi công năng: từ trụ sở tuần binh, trường Cao đẳng Nghệ thuật, đến Đại học Nghệ thuật Huế. Hiện tại, Phủ Nội Vụ có dấu hiệu xuống cấp, để lộ những khung sắt trên trần nhà, nhưng vẫn giữ được vẻ cổ kính, trầm mặc của một thời vàng son. Khu vực bên cạnh đã trở thành Không gian trình diễn nghề truyền thống Huế với nón lá, đèn lồng, áo dài và hoa giấy — nơi những nghề thủ công tinh hoa của cố đô vẫn đang sống động từng ngày.
+
+=== VISIBLE HIGHLIGHTS ===
+Khuôn viên rộng lớn: tổ hợp nhiều kho và công trình lưu trữ — trung tâm hậu cần hoàng cung. Cổng Phủ Nội Vụ: kiến trúc cổng lầu kiểu Nguyễn, mái lưu ly xanh. Các kho đồ nội thất và hiện vật triều đình còn được trưng bày một phần.
+
+=== SUGGESTED VISIT FLOW ===
+Tiếp cận từ phía Nam — nhìn tổng thể cổng trước khi vào. Tham quan khu nhà kho chính, quan sát cách bố trí không gian lưu trữ xưa. Đọc biển thuyết minh về vai trò quản lý tài sản hoàng gia của Phủ Nội Vụ.
+
+=== NEARBY CONTEXT ===
+Phía Tây: Duyệt Thị Đường — nhà hát cung đình. Phía Nam: Điện Kiến Trung và trục thần đạo chính. Đây là khu vực Đông Bắc Tử Cấm Thành — ít du khách lui tới nhất nhưng giá trị lịch sử cao.
+────────────────────────────────────────────────────────────

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import MapExplore, { HUE_ARTIFACTS } from '../map/MapExplore';
 import LanguageToggle from '../shared/LanguageToggle';
+import ImageGallery from '../shared/ImageGallery';
 import TripCompletionScreen from '../passport/TripCompletionScreen';
 import { getNextSuggestionAPI, createGameRoomAPI, getMapConfigAPI } from '../../services/apiService';
 import {
@@ -87,6 +88,13 @@ const normalizeArtifact = (artifact, language) => {
     confidence: artifact.confidence_score || artifact.confidenceScore || null,
     lat: artifact.lat,
     lng: artifact.lng,
+    openHoursVi: artifact.openHoursVi || '',
+    openHoursEn: artifact.openHoursEn || '',
+    ticketVi: artifact.ticketVi || '',
+    ticketEn: artifact.ticketEn || '',
+    highlightVi: artifact.highlightVi || '',
+    highlightEn: artifact.highlightEn || '',
+    images: artifact.images || [],
     raw: artifact
   };
 };
@@ -104,6 +112,13 @@ const buildTourArtifact = (artifact, language, entryAction = 'context') => {
     summary: normalized.summary,
     lat: normalized.lat,
     lng: normalized.lng,
+    openHoursVi: normalized.openHoursVi,
+    openHoursEn: normalized.openHoursEn,
+    ticketVi: normalized.ticketVi,
+    ticketEn: normalized.ticketEn,
+    highlightVi: normalized.highlightVi,
+    highlightEn: normalized.highlightEn,
+    images: normalized.images,
     entryAction,
     selectedAt: Date.now()
   };
@@ -156,6 +171,13 @@ const ArtifactDetailPanel = ({
         </div>
       </div>
 
+      {artifact.images && artifact.images.length > 0 && (
+        <ImageGallery
+          images={artifact.images}
+          className="artifact-image-gallery"
+        />
+      )}
+
       <div className="artifact-fact-grid">
         <div>
           <span>{isVi ? 'Năm' : 'Year'}</span>
@@ -166,6 +188,30 @@ const ArtifactDetailPanel = ({
           <strong>{artifact.author || (isVi ? 'Chưa có dữ liệu' : 'No data yet')}</strong>
         </div>
       </div>
+
+      {(artifact.id === 16 || artifact.id === 17) && (artifact.openHoursVi || artifact.ticketVi) && (
+        <div className="artifact-fact-grid" style={{ marginTop: '8px' }}>
+          {artifact.openHoursVi && (
+            <div>
+              <span>{isVi ? 'Giờ mở cửa' : 'Open hours'}</span>
+              <strong>{isVi ? artifact.openHoursVi : artifact.openHoursEn}</strong>
+            </div>
+          )}
+          {artifact.ticketVi && (
+            <div>
+              <span>{isVi ? 'Giá vé' : 'Ticket'}</span>
+              <strong>{isVi ? artifact.ticketVi : artifact.ticketEn}</strong>
+            </div>
+          )}
+        </div>
+      )}
+
+      {artifact.highlightVi && (
+        <section className="artifact-summary-block">
+          <span>{isVi ? 'Điểm đặc sắc' : 'Highlight'}</span>
+          <p>{isVi ? artifact.highlightVi : artifact.highlightEn}</p>
+        </section>
+      )}
 
       <section className="artifact-summary-block">
         <span>{isVi ? 'Tóm tắt' : 'Summary'}</span>

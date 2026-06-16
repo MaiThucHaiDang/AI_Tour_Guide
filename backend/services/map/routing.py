@@ -5,7 +5,7 @@ import math
 import logging
 from pathlib import Path
 import networkx as nx
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -111,9 +111,10 @@ class MapRoutingService:
             
         instructions.append("Bắt đầu di chuyển.")
         for i in range(1, len(path_nodes)):
-            target = path_nodes[i]["name"]
-            instructions.append(f"Đi hướng về phía {target}.")
-            
+            prev = path_nodes[i - 1].get("name", f"điểm {i}")
+            target = path_nodes[i].get("name", f"điểm {i + 1}")
+            instructions.append(f"Đi từ {prev} đến {target}.")
+
         instructions.append("Bạn đã đến nơi.")
         return instructions
 

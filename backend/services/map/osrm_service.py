@@ -7,7 +7,7 @@ from typing import List, Dict, Any, Optional
 _LOGGER = logging.getLogger(__name__)
 
 # Public OSRM API endpoint for foot routing (FOSSGIS server)
-OSRM_WALKING_URL = "https://routing.openstreetmap.de/routed-foot/route/v1/driving/"
+OSRM_WALKING_URL = "https://routing.openstreetmap.de/routed-foot/route/v1/foot/"
 
 class OSRMService:
     @staticmethod

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, Polygon, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, Polygon, CircleMarker, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
@@ -7,6 +7,7 @@ import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { LocateFixed, Navigation, MapPin, Info, CheckCircle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Volume2, Pause, Wrench, Save, RefreshCw, Compass, X, Play, Route } from 'lucide-react';
 import { playTTS, stopTTS, pauseTTS, resumeTTS, isTTSPaused, getMapConfigAPI, getRouteAPI, saveMapConfigAPI, planTourAPI } from '../../services/apiService';
+import ImageGallery from '../shared/ImageGallery';
 
 // Fix Leaflet default icon issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -138,25 +139,34 @@ const IMPERIAL_CITY_BOUNDARY = [
   [16.473720, 107.578359]  // Đông Bắc
 ];
 
+const OPEN_HOURS_VI = "Mùa hè (16/03-15/10): 06:30-18:00\nMùa đông (16/10-15/03): 07:00-17:30";
+const OPEN_HOURS_EN = "Summer (Mar 16-Oct 15): 06:30-18:00\nWinter (Oct 16-Mar 15): 07:00-17:30";
+
+const TICKET_HUE_VI = "Người lớn: 200.000 VNĐ\nTrẻ em (7-12 tuổi): 40.000 VNĐ\nTrẻ em dưới 7 tuổi: Miễn phí";
+const TICKET_HUE_EN = "Adult: 200,000 VND\nChildren (7-12): 40,000 VND\nUnder 7: Free";
+
+const TICKET_MUSEUM_VI = "Người lớn: 50.000 VNĐ\nTrẻ em dưới 12 tuổi: Miễn phí";
+const TICKET_MUSEUM_EN = "Adult: 50,000 VND\nChildren under 12: Free";
+
 // Kinh thành Huế: 17 công trình
 export const HUE_ARTIFACTS = [
-  { id: 1,  name_vi: "Cửa Hòa Bình",                    name_en: "Hoa Binh Gate",              lat: 16.4721279, lng: 107.5762716 },
-  { id: 2,  name_vi: "Điện Kiến Trung",                  name_en: "Kien Trung Palace",          lat: 16.4710479, lng: 107.5765559 },
-  { id: 3,  name_vi: "Cung Trường Sanh",                 name_en: "Truong Sanh Palace",         lat: 16.469725,  lng: 107.574694  },
-  { id: 4,  name_vi: "Cung Diên Thọ",                    name_en: "Dien Tho Palace",            lat: 16.4688556, lng: 107.5753417 },
-  { id: 5,  name_vi: "Cửa Chương Đức",                   name_en: "Chuong Duc Gate",            lat: 16.4673314, lng: 107.5757295 },
-  { id: 6,  name_vi: "Hưng Miếu",                        name_en: "Hung Mieu Temple",           lat: 16.4674263, lng: 107.5764189 },
-  { id: 7,  name_vi: "Thế Miếu",                         name_en: "The Mieu Temple",            lat: 16.4671621, lng: 107.5767333 },
-  { id: 8,  name_vi: "Điện Thái Hòa",                    name_en: "Thai Hoa Palace",            lat: 16.4686747, lng: 107.578412  },
-  { id: 9,  name_vi: "Nền điện Cần Chánh",               name_en: "Can Chanh Palace Foundation", lat: 16.4695281, lng: 107.5777743 },
-  { id: 10, name_vi: "Duyệt Thị Đường",                  name_en: "Duyet Thi Duong Theater",    lat: 16.470284,  lng: 107.5785163 },
-  { id: 11, name_vi: "Phủ Nội Vụ",                       name_en: "Phu Nội Vụ",                 lat: 16.470755,  lng: 107.5796368 },
-  { id: 12, name_vi: "Vườn Cơ Hạ",                       name_en: "Co Ha Garden",               lat: 16.4717727, lng: 107.5788666 },
-  { id: 13, name_vi: "Triệu Miếu",                       name_en: "Trieu Mieu Temple",          lat: 16.4701907, lng: 107.5801058 },
-  { id: 14, name_vi: "Thái Miếu",                        name_en: "Thai Mieu Temple",           lat: 16.4699109, lng: 107.5803246 },
-  { id: 15, name_vi: "Cửa Hiển Nhơn",                    name_en: "Hien Nhon Gate",             lat: 16.4707473, lng: 107.5805514 },
-  { id: 16, name_vi: "Điện Long An (Bảo tàng Cổ vật)",   name_en: "Long An Palace (Museum)",    lat: 16.4712819, lng: 107.5818602 },
-  { id: 17, name_vi: "Ngọ Môn",                          name_en: "Ngo Mon Gate (Meridian Gate)", lat: 16.467766,  lng: 107.579146  },
+  { id: 1,  name_vi: "Cửa Hòa Bình",                    name_en: "Hoa Binh Gate",              lat: 16.4721279, lng: 107.5762716, highlightVi: "Cổng phía Bắc của Tử Cấm Thành, nổi bật với nghệ thuật khảm sành sứ tinh xảo.", highlightEn: "Northern gate of the Forbidden City, featuring exquisite porcelain mosaic art.", images: ["/assets/images/art_1_1.jpg", "/assets/images/art_1_2.jpg"] },
+  { id: 2,  name_vi: "Điện Kiến Trung",                  name_en: "Kien Trung Palace",          lat: 16.4710479, lng: 107.5765559, highlightVi: "Cung điện mang phong cách kết hợp Á - Âu độc đáo, nơi sinh hoạt của vua Bảo Đại.", highlightEn: "Unique Asian-European fusion palace, residence of Emperor Bao Dai.", images: ["/assets/images/art_2_1.jpg", "/assets/images/art_2_2.jpg"] },
+  { id: 3,  name_vi: "Cung Trường Sanh",                 name_en: "Truong Sanh Palace",         lat: 16.469725,  lng: 107.574694,  highlightVi: "Khu nghỉ dưỡng thanh tĩnh dành cho Hoàng Thái Hậu với cảnh quan sân vườn đẹp.", highlightEn: "Peaceful retreat for the Empress Dowager with beautiful garden landscape.", images: ["/assets/images/art_3_1.jpg", "/assets/images/art_3_2.jpg"] },
+  { id: 4,  name_vi: "Cung Diên Thọ",                    name_en: "Dien Tho Palace",            lat: 16.4688556, lng: 107.5753417, highlightVi: "Nơi ở của Hoàng Thái Hậu, quần thể cung điện lớn và nguyên vẹn nhất Đại Nội.", highlightEn: "Residence of the Empress Dowager, the largest and most intact palace complex in the Citadel.", images: ["/assets/images/art_4_1.jpg", "/assets/images/art_4_2.jpg"] },
+  { id: 5,  name_vi: "Cửa Chương Đức",                   name_en: "Chuong Duc Gate",            lat: 16.4673314, lng: 107.5757295, highlightVi: "Cổng phía Tây Tử Cấm Thành, mang kiến trúc cung đình đặc trưng triều Nguyễn.", highlightEn: "Western gate of the Forbidden City, featuring typical Nguyen court architecture.", images: ["/assets/images/art_5_1.jpg", "/assets/images/art_5_2.jpg"] },
+  { id: 6,  name_vi: "Hưng Miếu",                        name_en: "Hung Mieu Temple",           lat: 16.4674263, lng: 107.5764189, highlightVi: "Thờ thân phụ vua Gia Long, thể hiện sự tôn kính nguồn gốc hoàng tộc Nguyễn.", highlightEn: "Shrine to Emperor Gia Long's father, honoring the Nguyen dynasty's origins.", images: ["/assets/images/art_6_1.jpg", "/assets/images/art_6_2.jpg"] },
+  { id: 7,  name_vi: "Thế Miếu",                         name_en: "The Mieu Temple",            lat: 16.4671621, lng: 107.5767333, highlightVi: "Nơi thờ các vị vua triều Nguyễn và lưu giữ bộ Cửu Đỉnh nổi tiếng.", highlightEn: "Shrine to Nguyen emperors, housing the famous Nine Dynastic Urns.", images: ["/assets/images/art_7_1.jpg", "/assets/images/art_7_2.jpg"] },
+  { id: 8,  name_vi: "Điện Thái Hòa",                    name_en: "Thai Hoa Palace",            lat: 16.4686747, lng: 107.578412,  highlightVi: "Trung tâm quyền lực của triều Nguyễn, nơi tổ chức các đại lễ và lễ đăng quang.", highlightEn: "Power center of the Nguyen dynasty, venue for grand ceremonies and coronations.", images: ["/assets/images/art_8_1.jpg", "/assets/images/art_8_2.jpg"] },
+  { id: 9,  name_vi: "Nền điện Cần Chánh",               name_en: "Can Chanh Palace Foundation", lat: 16.4695281, lng: 107.5777743, highlightVi: "Dấu tích điện làm việc của nhà vua, gợi nhớ kiến trúc cung điện đã mất.", highlightEn: "Remains of the king's working palace, evoking lost palace architecture.", images: ["/assets/images/art_9_1.jpg", "/assets/images/art_9_2.jpg"] },
+  { id: 10, name_vi: "Duyệt Thị Đường",                  name_en: "Duyet Thi Duong Theater",    lat: 16.470284,  lng: 107.5785163, highlightVi: "Nhà hát cung đình cổ nhất Việt Nam, nơi biểu diễn Nhã nhạc cung đình Huế.", highlightEn: "Vietnam's oldest royal theater, venue for Hue royal court music.", images: ["/assets/images/art_10_1.jpg", "/assets/images/art_10_2.jpg"] },
+  { id: 11, name_vi: "Phủ Nội Vụ",                       name_en: "Phu Noi Vu",                 lat: 16.470755,  lng: 107.5796368, highlightVi: "Cơ quan quản lý tài sản và đồ dùng của Hoàng gia triều Nguyễn.", highlightEn: "Agency managing royal assets and supplies of the Nguyen dynasty.", images: ["/assets/images/art_11_1.jpg", "/assets/images/art_11_2.jpg"] },
+  { id: 12, name_vi: "Vườn Cơ Hạ",                       name_en: "Co Ha Garden",               lat: 16.4717727, lng: 107.5788666, highlightVi: "Ngự uyển nổi tiếng với kiến trúc sân vườn và không gian thư giãn của vua.", highlightEn: "Famous royal garden with landscape architecture and the king's relaxation space.", images: ["/assets/images/art_12_1.jpg", "/assets/images/art_12_2.jpg"] },
+  { id: 13, name_vi: "Triệu Miếu",                       name_en: "Trieu Mieu Temple",          lat: 16.4701907, lng: 107.5801058, highlightVi: "Thờ Nguyễn Kim, vị tiền tổ có công đặt nền móng cho họ Nguyễn.", highlightEn: "Shrine to Nguyen Kim, the ancestor who laid the foundation for the Nguyen clan.", images: ["/assets/images/art_13_1.jpg", "/assets/images/art_13_2.jpg"] },
+  { id: 14, name_vi: "Thái Miếu",                        name_en: "Thai Mieu Temple",           lat: 16.4699109, lng: 107.5803246, highlightVi: "Công trình thờ tự các chúa Nguyễn, có giá trị lịch sử và kiến trúc cao.", highlightEn: "Shrine to the Nguyen lords, of great historical and architectural value.", images: ["/assets/images/art_14_1.jpg", "/assets/images/art_14_2.jpg"] },
+  { id: 15, name_vi: "Cửa Hiển Nhơn",                    name_en: "Hien Nhon Gate",             lat: 16.4707473, lng: 107.5805514, highlightVi: "Cổng phía Đông Hoàng Thành, nổi tiếng với nghệ thuật chạm khắc gỗ tinh tế.", highlightEn: "Eastern gate of the Imperial City, famous for intricate wood carving art.", images: ["/assets/images/art_15_1.jpg", "/assets/images/art_15_2.jpg"] },
+  { id: 16, name_vi: "Điện Long An (Bảo tàng Cổ vật)",   name_en: "Long An Palace (Museum)",    lat: 16.4712819, lng: 107.5818602, openHoursVi: OPEN_HOURS_VI, openHoursEn: OPEN_HOURS_EN, ticketVi: TICKET_MUSEUM_VI, ticketEn: TICKET_MUSEUM_EN, highlightVi: "Hiện là Bảo tàng Cổ vật Cung đình Huế, lưu giữ nhiều hiện vật quý triều Nguyễn.", highlightEn: "Now the Hue Royal Antiquities Museum, preserving precious Nguyen artifacts.", images: ["/assets/images/art_16_1.jpg", "/assets/images/art_16_2.jpg"] },
+  { id: 17, name_vi: "Ngọ Môn",                          name_en: "Ngo Mon Gate (Meridian Gate)", lat: 16.467766,  lng: 107.579146,  openHoursVi: OPEN_HOURS_VI, openHoursEn: OPEN_HOURS_EN, ticketVi: TICKET_HUE_VI, ticketEn: TICKET_HUE_EN, highlightVi: "Cổng chính của Hoàng Thành Huế, biểu tượng kiến trúc nổi tiếng nhất của Đại Nội.", highlightEn: "Main gate of Hue Imperial City, the most iconic architectural symbol of the Citadel.", images: ["/assets/images/art_17_1.jpg", "/assets/images/art_17_2.jpg"] },
 ];
 
 const MAP_BOUNDS = [
@@ -175,6 +185,24 @@ const getDistance = (p1, p2) => {
             Math.sin(dLng / 2) * Math.sin(dLng / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
+};
+
+// Generate arrow markers along a path
+const getPathArrows = (path, spacing = 4) => {
+  if (!path || path.length < 4) return [];
+  const arrows = [];
+  let accumulated = 0;
+  for (let i = 1; i < path.length; i++) {
+    const prev = path[i - 1];
+    const curr = path[i];
+    const segDist = getDistance({ lat: prev[0], lng: prev[1] }, { lat: curr[0], lng: curr[1] });
+    accumulated += segDist;
+    if (accumulated >= spacing * (arrows.length + 1) * 15) {
+      const angle = Math.atan2(curr[0] - prev[0], curr[1] - prev[1]) * 180 / Math.PI;
+      arrows.push({ pos: curr, angle });
+    }
+  }
+  return arrows;
 };
 
 const MapExplore = ({
@@ -233,7 +261,11 @@ const MapExplore = ({
         const data = await getMapConfigAPI();
         if (data.success) {
           setMapBounds(data.map_bounds);
-          setArtifactsList(data.artifacts);
+          const merged = data.artifacts.map(art => {
+            const local = HUE_ARTIFACTS.find(a => Number(a.id) === Number(art.id));
+            return local ? { ...local, ...art } : art;
+          });
+          setArtifactsList(merged);
         }
       } catch (err) {
         console.error('Failed to load map config in MapExplore:', err);
@@ -940,6 +972,31 @@ const MapExplore = ({
                 <p>
                   {isVi ? art.name_en : art.name_vi}
                 </p>
+                {art.images && art.images.length > 0 && (
+                  <ImageGallery
+                    images={art.images}
+                    className="artifact-popup-gallery"
+                    imgClassName="popup-gallery-img"
+                    clipContainer=".leaflet-container"
+                  />
+                )}
+                {art.highlightVi && (
+                  <p className="artifact-popup-highlight">
+                    {isVi ? art.highlightVi : art.highlightEn}
+                  </p>
+                )}
+                {(art.id === 16 || art.id === 17) && art.openHoursVi && (
+                  <div className="artifact-popup-info">
+                    <div className="popup-info-row">
+                      <span className="popup-info-label">{isVi ? 'Giờ mở cửa' : 'Open hours'}</span>
+                      <span className="popup-info-value">{isVi ? art.openHoursVi : art.openHoursEn}</span>
+                    </div>
+                    <div className="popup-info-row">
+                      <span className="popup-info-label">{isVi ? 'Giá vé' : 'Ticket'}</span>
+                      <span className="popup-info-value">{isVi ? art.ticketVi : art.ticketEn}</span>
+                    </div>
+                  </div>
+                )}
                 <div className="artifact-popup-actions">
                   <button className="artifact-popup-primary" onClick={() => startNavigation(art)}>
                     <Navigation size={14} />
@@ -957,10 +1014,73 @@ const MapExplore = ({
         })}
 
         {routePath.length > 0 && (
-          <Polyline 
-            positions={routePath} 
-            pathOptions={{ color: '#0f5f59', weight: 6, opacity: 0.86 }} 
-          />
+          <>
+            {/* Glow layer */}
+            <Polyline
+              positions={routePath}
+              pathOptions={{ color: '#1a73e8', weight: 20, opacity: 0.1, lineCap: 'round', lineJoin: 'round' }}
+            />
+            {/* Main blue route line (Google Maps style) */}
+            <Polyline
+              positions={routePath}
+              pathOptions={{
+                color: '#1a73e8',
+                weight: 8,
+                opacity: 0.92,
+                lineCap: 'round',
+                lineJoin: 'round',
+                className: 'route-line-pulse'
+              }}
+            />
+            {/* Inner lighter blue for dimension */}
+            <Polyline
+              positions={routePath}
+              pathOptions={{
+                color: '#89b4f8',
+                weight: 3,
+                opacity: 0.6,
+                lineCap: 'round',
+                lineJoin: 'round'
+              }}
+            />
+            {/* Arrows along the path */}
+            {getPathArrows(routePath, 4).map((arrow, i) => (
+              <Marker
+                key={`arrow-${i}`}
+                position={arrow.pos}
+                icon={L.divIcon({
+                  html: getTrustedHTML(`<div class="route-arrow-anim" style="transform: rotate(${arrow.angle}deg)"><span style="animation-delay: ${i * 0.15}s; color: #fff; text-shadow: 0 0 6px rgba(26,115,232,0.8);">▶</span></div>`),
+                  className: 'route-arrow-icon',
+                  iconSize: [20, 20],
+                  iconAnchor: [10, 10]
+                })}
+                interactive={false}
+              />
+            ))}
+            {/* Start marker */}
+            {routePath[0] && (
+              <CircleMarker
+                center={routePath[0]}
+                pathOptions={{ color: '#1a73e8', fillColor: '#fff', fillOpacity: 1, weight: 4 }}
+                radius={8}
+              />
+            )}
+            {/* End marker with pulse */}
+            {routePath[routePath.length - 1] && (
+              <>
+                <CircleMarker
+                  center={routePath[routePath.length - 1]}
+                  pathOptions={{ color: '#e74c3c', fillColor: '#e74c3c', fillOpacity: 0.5, weight: 3 }}
+                  radius={10}
+                />
+                <CircleMarker
+                  center={routePath[routePath.length - 1]}
+                  pathOptions={{ color: '#e74c3c', fillColor: '#e74c3c', fillOpacity: 0.15, weight: 1, className: 'route-end-pulse' }}
+                  radius={16}
+                />
+              </>
+            )}
+          </>
         )}
       </MapContainer>
 

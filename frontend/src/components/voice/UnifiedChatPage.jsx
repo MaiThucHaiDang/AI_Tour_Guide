@@ -27,6 +27,7 @@ import {
   Square
 } from 'lucide-react';
 import LanguageToggle from '../shared/LanguageToggle';
+import ImageGallery from '../shared/ImageGallery';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder';
 import {
   unifiedChatAPI,
@@ -181,7 +182,14 @@ const toChatArtifact = (artifact, language) => ({
   year: artifact?.year || artifact?.artifactYear || null,
   author: artifact?.author || artifact?.artifactAuthor || null,
   summary: artifact?.summary || artifact?.artifactSummary || artifact?.summary_vi || artifact?.summary_en || '',
-  source: artifact?.source || artifact?.answerSource || ''
+  source: artifact?.source || artifact?.answerSource || '',
+  openHoursVi: artifact?.openHoursVi || '',
+  openHoursEn: artifact?.openHoursEn || '',
+  ticketVi: artifact?.ticketVi || '',
+  ticketEn: artifact?.ticketEn || '',
+  highlightVi: artifact?.highlightVi || '',
+  highlightEn: artifact?.highlightEn || '',
+  images: artifact?.images || []
 });
 
 const getContextPrompts = (artifactName, language) => {
@@ -524,6 +532,16 @@ const UnifiedChatPage = ({
       }
 
       if (responseArtifact) {
+        const localArtifact = currentArtifact?.id === Number(responseArtifact.id) ? currentArtifact : null;
+        if (localArtifact) {
+          responseArtifact.openHoursVi = localArtifact.openHoursVi;
+          responseArtifact.openHoursEn = localArtifact.openHoursEn;
+          responseArtifact.ticketVi = localArtifact.ticketVi;
+          responseArtifact.ticketEn = localArtifact.ticketEn;
+          responseArtifact.highlightVi = localArtifact.highlightVi;
+          responseArtifact.highlightEn = localArtifact.highlightEn;
+          responseArtifact.images = localArtifact.images;
+        }
         setCurrentArtifact(responseArtifact);
         if (imageBase64) {
           onPassportCheckIn?.(responseArtifact, {
@@ -1337,6 +1355,12 @@ const UnifiedChatPage = ({
                           <strong>{currentArtifact.name || copy.artifactPanel}</strong>
                         </div>
                       </div>
+                      {currentArtifact.images && currentArtifact.images.length > 0 && (
+                        <ImageGallery
+                          images={currentArtifact.images}
+                          className="mini-image-row"
+                        />
+                      )}
                       <div className="artifact-mini-grid">
                         <div>
                           <span>{copy.year}</span>
@@ -1346,7 +1370,24 @@ const UnifiedChatPage = ({
                           <span>{copy.author}</span>
                           <strong>{currentArtifact.author || '-'}</strong>
                         </div>
+                        {(currentArtifact.id === 16 || currentArtifact.id === 17) && currentArtifact.openHoursVi && (
+                          <div>
+                            <span>{language === 'vi' ? 'Giờ mở cửa' : 'Open hours'}</span>
+                            <strong>{language === 'vi' ? currentArtifact.openHoursVi : currentArtifact.openHoursEn}</strong>
+                          </div>
+                        )}
+                        {(currentArtifact.id === 16 || currentArtifact.id === 17) && currentArtifact.ticketVi && (
+                          <div>
+                            <span>{language === 'vi' ? 'Giá vé' : 'Ticket'}</span>
+                            <strong>{language === 'vi' ? currentArtifact.ticketVi : currentArtifact.ticketEn}</strong>
+                          </div>
+                        )}
                       </div>
+                      {currentArtifact.highlightVi && (
+                        <small style={{ display: 'block', marginBottom: '8px', color: '#9d3f2f', fontWeight: 700, fontSize: '11px' }}>
+                          {language === 'vi' ? currentArtifact.highlightVi : currentArtifact.highlightEn}
+                        </small>
+                      )}
                       <p>{currentArtifact.summary || copy.detailEmpty}</p>
                     </div>
                   ) : (
@@ -1612,6 +1653,12 @@ const UnifiedChatPage = ({
                     <Landmark size={46} />
                   </div>
                   <h3>{currentArtifact.name || copy.artifactPanel}</h3>
+                  {currentArtifact.images && currentArtifact.images.length > 0 && (
+                    <ImageGallery
+                      images={currentArtifact.images}
+                      className="desktop-gallery"
+                    />
+                  )}
                   <div className="artifact-meta-grid">
                     <div>
                       <span>{copy.year}</span>
@@ -1621,7 +1668,25 @@ const UnifiedChatPage = ({
                       <span>{copy.author}</span>
                       <strong>{currentArtifact.author || '-'}</strong>
                     </div>
+                    {(currentArtifact.id === 16 || currentArtifact.id === 17) && currentArtifact.openHoursVi && (
+                      <div>
+                        <span>{language === 'vi' ? 'Giờ mở cửa' : 'Open hours'}</span>
+                        <strong>{language === 'vi' ? currentArtifact.openHoursVi : currentArtifact.openHoursEn}</strong>
+                      </div>
+                    )}
+                    {(currentArtifact.id === 16 || currentArtifact.id === 17) && currentArtifact.ticketVi && (
+                      <div>
+                        <span>{language === 'vi' ? 'Giá vé' : 'Ticket'}</span>
+                        <strong>{language === 'vi' ? currentArtifact.ticketVi : currentArtifact.ticketEn}</strong>
+                      </div>
+                    )}
                   </div>
+                  {currentArtifact.highlightVi && (
+                    <div className="summary-block">
+                      <span>{language === 'vi' ? 'Điểm đặc sắc' : 'Highlight'}</span>
+                      <p>{language === 'vi' ? currentArtifact.highlightVi : currentArtifact.highlightEn}</p>
+                    </div>
+                  )}
                   <div className="summary-block">
                     <span>{copy.summary}</span>
                     <p>{currentArtifact.summary || copy.detailEmpty}</p>
@@ -2502,6 +2567,27 @@ const UnifiedChatPage = ({
           font-weight: 700;
         }
 
+        .desktop-gallery {
+          display: flex;
+          gap: 6px;
+          overflow-x: auto;
+          margin-bottom: 12px;
+        }
+
+        .desktop-gallery img {
+          width: 120px;
+          height: 80px;
+          object-fit: cover;
+          border-radius: 6px;
+          border: 1px solid rgba(24, 32, 35, 0.1);
+          cursor: pointer;
+          transition: transform 0.2s;
+        }
+
+        .desktop-gallery img:hover {
+          transform: scale(1.05);
+        }
+
         .artifact-meta-grid {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2522,7 +2608,7 @@ const UnifiedChatPage = ({
           display: block;
           margin-bottom: 5px;
           color: var(--ui-muted);
-          font-size: 11px;
+          font-size: 12px;
           font-weight: 900;
           letter-spacing: 0;
           text-transform: uppercase;
@@ -2530,14 +2616,15 @@ const UnifiedChatPage = ({
 
         .artifact-meta-grid strong {
           color: var(--ui-text);
-          font-size: 13px;
-          line-height: 1.35;
+          font-size: 14px;
+          line-height: 1.4;
+          white-space: pre-line;
         }
 
         .summary-block p {
           margin: 0;
           color: var(--ui-text);
-          font-size: 13px;
+          font-size: 14px;
           line-height: 1.55;
         }
 
@@ -3007,6 +3094,27 @@ const UnifiedChatPage = ({
           margin-bottom: 10px;
         }
 
+        .mini-image-row {
+          display: flex;
+          gap: 6px;
+          overflow-x: auto;
+          margin-bottom: 10px;
+        }
+
+        .mini-image-row img {
+          width: 90px;
+          height: 60px;
+          object-fit: cover;
+          border-radius: 6px;
+          border: 1px solid rgba(24, 32, 35, 0.1);
+          cursor: pointer;
+          transition: transform 0.2s;
+        }
+
+        .mini-image-row img:hover {
+          transform: scale(1.08);
+        }
+
         .artifact-mini-grid div {
           min-width: 0;
           border: 1px solid rgba(24, 32, 35, 0.09);
@@ -3019,7 +3127,7 @@ const UnifiedChatPage = ({
           display: block;
           margin-bottom: 3px;
           color: var(--ui-muted);
-          font-size: 10px;
+          font-size: 11px;
           font-weight: 900;
           text-transform: uppercase;
         }
@@ -3028,15 +3136,16 @@ const UnifiedChatPage = ({
           display: block;
           overflow-wrap: anywhere;
           color: var(--ui-text);
-          font-size: 12px;
-          line-height: 1.24;
+          font-size: 13px;
+          line-height: 1.3;
+          white-space: pre-line;
         }
 
         .mobile-artifact-summary p,
         .mobile-empty-note p {
           margin: 0;
           color: var(--ui-text);
-          font-size: 12.5px;
+          font-size: 13px;
           line-height: 1.5;
         }
 

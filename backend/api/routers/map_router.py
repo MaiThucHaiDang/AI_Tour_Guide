@@ -1,5 +1,7 @@
 """Router for map routing and calibration config API."""
 
+import logging
+
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from typing import List, Dict, Any
@@ -8,9 +10,12 @@ import json
 from pathlib import Path
 
 from services.map.osrm_service import osrm_service
+from services.map.routing import routing_service
 from core.database import async_session_factory
 from models.location import Location
 from models.artifact import Artifact
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/api/v1/map",
@@ -49,13 +54,18 @@ async def get_route(
     end_lng: float = Query(..., description="Longitude of destination"),
     lang: str = Query("vi", description="Language code")
 ):
-    """Calculate the shortest walking path using OpenStreetMap (OSRM)."""
+    """Calculate the shortest walking path using OpenStreetMap (OSRM) with local graph fallback."""
     result = await osrm_service.get_route(start_lat, start_lng, end_lat, end_lng, lang)
-    
-    if not result.get("success"):
-        raise HTTPException(status_code=400, detail=result.get("message", "Routing failed."))
-        
-    return RouteResponse(**result)
+
+    if result.get("success"):
+        return RouteResponse(**result)
+
+    logger.info("OSRM failed, falling back to local graph routing.")
+    fallback = routing_service.calculate_route(start_lat, start_lng, end_lat, end_lng)
+    if fallback.get("success"):
+        return RouteResponse(**fallback)
+
+    raise HTTPException(status_code=400, detail=fallback.get("message", "Routing failed."))
 
 @router.get("/config", response_model=MapConfigResponse)
 async def get_map_config():

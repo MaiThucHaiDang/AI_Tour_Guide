@@ -1,30 +1,13 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   ArrowLeft,
-  Camera,
-  ChevronDown,
-  CheckCircle2,
-  FileText,
-  Image as ImageIcon,
   Landmark,
-  Loader2,
-  MapPin,
-  Mic,
-  Navigation,
-  Pause,
-  Play,
   RotateCcw,
-  Send,
-  Sparkles,
-  ThumbsDown,
-  ThumbsUp,
-  Upload,
   Volume2,
   VolumeX,
   X
 } from 'lucide-react';
 import LanguageToggle from '../shared/LanguageToggle';
-import ImageGallery from '../shared/ImageGallery';
 import { useAudioRecorder } from '../../hooks/useAudioRecorder';
 import {
   unifiedChatAPI,
@@ -36,17 +19,21 @@ import {
 } from '../../services/apiService';
 import { compressImage } from '../../utils/imageUtils';
 import CameraScanner from '../CameraScanner';
+import ChatContextStrip from './ChatContextStrip';
+import QuickPromptChips from './QuickPromptChips';
+import ChatMessageList from './ChatMessageList';
+import ChatComposer from './ChatComposer';
 
 const COPY = {
   vi: {
-    title: 'Hướng dẫn Đại Nội',
+    title: 'Hướng dẫn AI',
     subtitle: 'Hướng dẫn viên số cho Đại Nội Huế',
     status: 'Sẵn sàng',
     back: 'Trang chủ',
     upload: 'Tải ảnh',
     camera: 'Chụp ảnh',
     askPlaceholder: 'Hỏi về Ngọ Môn, Điện Thái Hòa, Thế Miếu...',
-    greeting: 'Xin chào! Bạn có thể chọn một điểm trên bản đồ, tải ảnh hiện vật hoặc dùng giọng nói để nghe thuyết minh.',
+    greeting: 'Bạn muốn hỏi về điểm nào trong Đại Nội?',
     processing: 'Đang chuẩn bị câu trả lời',
     artifactPanel: 'Thông tin điểm dừng',
     noArtifact: 'Chọn một điểm trên bản đồ, tải ảnh hoặc đặt câu hỏi để nhận thông tin phù hợp.',
@@ -60,7 +47,7 @@ const COPY = {
     transcribing: 'Đang chuyển giọng nói thành văn bản...',
     pendingImage: 'Ảnh chờ gửi',
     detailEmpty: 'Thông tin chi tiết sẽ xuất hiện sau khi tìm thấy điểm dừng liên quan.',
-    assistantEyebrow: 'Hướng dẫn tham quan',
+    assistantEyebrow: 'Hỏi đáp tham quan',
     reset: 'Bắt đầu lại',
     listen: 'Nghe câu trả lời',
     helpful: 'Hữu ích',
@@ -92,14 +79,14 @@ const COPY = {
     ]
   },
   en: {
-    title: 'Citadel Guide',
+    title: 'AI Guide',
     subtitle: 'A digital guide for Hue Imperial City',
     status: 'Ready',
     back: 'Home',
     upload: 'Upload',
     camera: 'Capture',
     askPlaceholder: 'Ask about Ngo Mon Gate, Thai Hoa Palace, The Mieu...',
-    greeting: 'Hello! Choose a stop on the map, upload an artifact photo, or use voice to hear the guide.',
+    greeting: 'Which stop in Hue Imperial City do you want to ask about?',
     processing: 'Preparing your answer',
     artifactPanel: 'Stop detail',
     noArtifact: 'Choose a stop on the map, upload a photo, or ask a question to get relevant guidance.',
@@ -113,7 +100,7 @@ const COPY = {
     transcribing: 'Transcribing voice...',
     pendingImage: 'Pending image',
     detailEmpty: 'Details will appear after a related stop is found.',
-    assistantEyebrow: 'Tour guidance',
+    assistantEyebrow: 'Q&A Guide',
     reset: 'Start over',
     listen: 'Listen to answer',
     helpful: 'Helpful',
@@ -215,14 +202,12 @@ const UnifiedChatPage = ({
   onProcessingStepsUpdate,
   embedded = false,
   onNarrationFinished = null,
-  nextSuggestion = null,
   onRequestNextStop = null,
-  onNavigateNextStop = null,
-  onPreviewNextStop = null,
   onPassportCheckIn = null,
   onPassportPhoto = null,
   onPassportQuestion = null,
-  onPassportAudio = null
+  onPassportAudio = null,
+  onShowMap = null
 }) => {
   const copy = COPY[language] || COPY.vi;
   const [messages, setMessages] = useState(() => [createWelcomeMessage(copy.greeting)]);
@@ -233,8 +218,6 @@ const UnifiedChatPage = ({
   const [pendingImage, setPendingImage] = useState(null);
   const [currentArtifact, setCurrentArtifact] = useState(null);
   const [processingSteps, setProcessingSteps] = useState([]);
-  const [selectedLocation, setSelectedLocation] = useState(0);
-  const [mobileGuidePanel, setMobileGuidePanel] = useState('prompts');
   const [showJumpToLatest, setShowJumpToLatest] = useState(false);
 
   const [activeAudioMsgId, setActiveAudioMsgId] = useState(null);
@@ -304,7 +287,6 @@ const UnifiedChatPage = ({
       lastInitialArtifactKeyRef.current = artifactKey;
 
       setCurrentArtifact(artifactForChat);
-      setMobileGuidePanel('detail');
 
       if (initialArtifact.entryAction === 'context') {
         shouldStickToBottomRef.current = true;
@@ -822,12 +804,7 @@ const UnifiedChatPage = ({
     }
   };
 
-  const formatDuration = (seconds) => {
-    if (isNaN(seconds) || seconds === null || seconds === undefined) return '00:00';
-    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
-    const secs = Math.floor(seconds % 60).toString().padStart(2, '0');
-    return `${mins}:${secs}`;
-  };
+
 
   const handleResetConversation = () => {
     shouldStickToBottomRef.current = true;
@@ -899,27 +876,13 @@ const UnifiedChatPage = ({
     root.style.setProperty('--chat-move-y', `${(y - 0.5) * 12}px`);
   };
 
-  const mobileGuideTabs = [
-    { key: 'prompts', label: language === 'vi' ? 'Gợi ý' : 'Prompts', icon: Sparkles },
-    { key: 'places', label: language === 'vi' ? 'Nhóm điểm' : 'Stops', icon: MapPin },
-    { key: 'detail', label: language === 'vi' ? 'Chi tiết' : 'Detail', icon: FileText },
-    { key: 'status', label: language === 'vi' ? 'Chuẩn bị' : 'Preparing', icon: CheckCircle2 }
-  ];
+
 
   const activePrompts = currentArtifact?.name
     ? getContextPrompts(currentArtifact.name, language)
     : copy.quickPrompts;
 
-  const nextSuggestionName = getSuggestionName(nextSuggestion, language);
-  const nextSuggestionMeta = nextSuggestion
-    ? [
-        nextSuggestion.reason,
-        nextSuggestion.distance ? `${Math.round(nextSuggestion.distance)}m` : '',
-        nextSuggestion.walk_duration_min
-          ? `${Math.ceil(nextSuggestion.walk_duration_min)} ${language === 'vi' ? 'phút đi bộ' : 'min walk'}`
-          : ''
-      ].filter(Boolean).join(' · ')
-    : '';
+
 
   const handlePromptClick = (prompt) => {
     if (currentArtifact?.name && prompt === activePrompts[activePrompts.length - 1]) {
@@ -970,44 +933,7 @@ const UnifiedChatPage = ({
         </header>
       )}
 
-      <main className={embedded ? 'chat-only-view' : 'workspace-grid'}>
-        {!embedded && (
-          <aside className="explore-panel">
-            <section className="panel-section">
-              <div className="section-heading">
-                <MapPin size={17} />
-                <h2>{copy.locations}</h2>
-              </div>
-              <div className="location-list">
-                {copy.locationsList.map((location, index) => (
-                  <button
-                    key={location.name}
-                    className={`location-card ${selectedLocation === index ? 'selected' : ''}`}
-                    onClick={() => setSelectedLocation(index)}
-                  >
-                    <strong>{location.name}</strong>
-                    <span>{location.detail}</span>
-                  </button>
-                ))}
-              </div>
-            </section>
-
-            <section className="panel-section">
-              <div className="section-heading">
-                <Sparkles size={17} />
-                <h2>{copy.explore}</h2>
-              </div>
-              <div className="quick-actions">
-                {activePrompts.map((prompt) => (
-                  <button key={prompt} onClick={() => handlePromptClick(prompt)}>
-                    {prompt}
-                  </button>
-                ))}
-              </div>
-            </section>
-          </aside>
-        )}
-
+      <main className="chat-only-view">
         <section className="conversation-panel">
           <div className="conversation-header">
             <div>
@@ -1015,487 +941,77 @@ const UnifiedChatPage = ({
               <h2>{copy.title}</h2>
             </div>
             <div className="conversation-tools">
-              {embedded && (
-                <>
-                  <button onClick={handleResetConversation} aria-label={copy.reset} title={copy.reset}>
-                    <RotateCcw size={18} />
-                  </button>
-                  <button
-                    className={autoSpeak ? 'is-active' : ''}
-                    onClick={() => setAutoSpeak(!autoSpeak)}
-                    aria-label={autoSpeak
-                      ? (language === 'vi' ? 'Tắt đọc tự động' : 'Disable auto speak')
-                      : (language === 'vi' ? 'Bật đọc tự động' : 'Enable auto speak')}
-                    title={autoSpeak
-                      ? (language === 'vi' ? 'Tắt đọc tự động' : 'Disable auto speak')
-                      : (language === 'vi' ? 'Bật đọc tự động' : 'Enable auto speak')}
-                  >
-                    {autoSpeak ? <Volume2 size={18} /> : <VolumeX size={18} />}
-                  </button>
-                </>
-              )}
-              <button onClick={() => setShowCamera(true)} aria-label={copy.camera}>
-                <Camera size={18} />
-                {!embedded && copy.camera}
+              <button onClick={handleResetConversation} aria-label={copy.reset} title={copy.reset}>
+                <RotateCcw size={18} />
               </button>
-              <button onClick={() => fileInputRef.current?.click()} aria-label={copy.upload}>
-                <Upload size={18} />
-                {!embedded && copy.upload}
+              <button
+                className={autoSpeak ? 'is-active' : ''}
+                onClick={() => setAutoSpeak(!autoSpeak)}
+                aria-label={autoSpeak
+                  ? (language === 'vi' ? 'Tắt đọc tự động' : 'Disable auto speak')
+                  : (language === 'vi' ? 'Bật đọc tự động' : 'Enable auto speak')}
+                title={autoSpeak
+                  ? (language === 'vi' ? 'Tắt đọc tự động' : 'Disable auto speak')
+                  : (language === 'vi' ? 'Bật đọc tự động' : 'Enable auto speak')}
+              >
+                {autoSpeak ? <Volume2 size={18} /> : <VolumeX size={18} />}
               </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileUpload}
-                style={{ display: 'none' }}
-              />
             </div>
           </div>
 
           {currentArtifact?.name && (
-            <div className="conversation-context-strip">
-              <MapPin size={15} />
-              <span>{copy.contextEyebrow}</span>
-              <strong>{currentArtifact.name}</strong>
-              <button onClick={() => handleSendText(activePrompts[0], currentArtifact.id)}>
-                <Volume2 size={14} />
-                {copy.listenIntro}
-              </button>
-              {onRequestNextStop && (
-                <button onClick={handleFindNextStop}>
-                  <Navigation size={14} />
-                  {copy.nextStopQuestion}
-                </button>
-              )}
-            </div>
+            <ChatContextStrip
+              currentArtifact={currentArtifact}
+              language={language}
+              onListenIntro={() => handleSendText(activePrompts[0], currentArtifact.id)}
+              onShowMap={onShowMap}
+              onResetContext={() => setCurrentArtifact(null)}
+            />
           )}
 
-          {embedded && (
-            <section className="mobile-guide-panel" aria-label={language === 'vi' ? 'Công cụ hướng dẫn' : 'Guide tools'}>
-              <div className="mobile-guide-tabs">
-                {mobileGuideTabs.map(({ key, label, icon: Icon }) => (
-                  <button
-                    key={key}
-                    className={mobileGuidePanel === key ? 'active' : ''}
-                    onClick={() => setMobileGuidePanel(key)}
-                    aria-current={mobileGuidePanel === key ? 'true' : undefined}
-                  >
-                    <Icon size={16} />
-                    <span>{label}</span>
-                  </button>
-                ))}
-              </div>
+          <ChatMessageList
+            messages={messages}
+            isProcessing={isProcessing}
+            language={language}
+            copy={copy}
+            activeAudioMsgId={activeAudioMsgId}
+            speechState={speechState}
+            showJumpToLatest={showJumpToLatest}
+            handleSpeakMessage={handleSpeakMessage}
+            handleFeedback={handleFeedback}
+            handleMessageListScroll={handleMessageListScroll}
+            handleJumpToLatest={handleJumpToLatest}
+            handleStopAudio={handleStopAudio}
+            handleSelectHistoryAudio={handleSelectHistoryAudio}
+            messageListRef={messageListRef}
+            messagesEndRef={messagesEndRef}
+          />
 
-              <div className="mobile-guide-content">
-                {nextSuggestion && (
-                  <div className="guide-next-card">
-                    <div>
-                      <span>{copy.nextStopTitle}</span>
-                      <strong>{nextSuggestionName}</strong>
-                      {nextSuggestionMeta && <small>{nextSuggestionMeta}</small>}
-                    </div>
-                    <div className="guide-next-actions">
-                      <button onClick={() => onNavigateNextStop?.(nextSuggestion)}>
-                        <Navigation size={14} />
-                        {copy.showRoute}
-                      </button>
-                      <button onClick={() => onPreviewNextStop?.(nextSuggestion)}>
-                        <Volume2 size={14} />
-                        {copy.previewNext}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {mobileGuidePanel === 'prompts' && (
-                  <div className="mobile-prompt-row">
-                    {activePrompts.map((prompt) => (
-                      <button key={prompt} onClick={() => handlePromptClick(prompt)}>
-                        {prompt}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {mobileGuidePanel === 'places' && (
-                  <div className="mobile-location-list">
-                    {copy.locationsList.map((location, index) => (
-                      <button
-                        key={location.name}
-                        className={selectedLocation === index ? 'selected' : ''}
-                        onClick={() => setSelectedLocation(index)}
-                      >
-                        <strong>{location.name}</strong>
-                        <span>{location.detail}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {mobileGuidePanel === 'detail' && (
-                  currentArtifact ? (
-                    <div className="mobile-artifact-summary">
-                      <div className="artifact-mini-head">
-                        <Landmark size={22} />
-                        <div>
-                          <span>{copy.artifactPanel}</span>
-                          <strong>{currentArtifact.name || copy.artifactPanel}</strong>
-                        </div>
-                      </div>
-                      {currentArtifact.images && currentArtifact.images.length > 0 && (
-                        <ImageGallery
-                          images={currentArtifact.images}
-                          className="mini-image-row"
-                        />
-                      )}
-                      <div className="artifact-mini-grid">
-                        <div>
-                          <span>{copy.year}</span>
-                          <strong>{currentArtifact.year || '-'}</strong>
-                        </div>
-                        <div>
-                          <span>{copy.author}</span>
-                          <strong>{currentArtifact.author || '-'}</strong>
-                        </div>
-                        {(currentArtifact.id === 16 || currentArtifact.id === 17) && currentArtifact.openHoursVi && (
-                          <div>
-                            <span>{language === 'vi' ? 'Giờ mở cửa' : 'Open hours'}</span>
-                            <strong>{language === 'vi' ? currentArtifact.openHoursVi : currentArtifact.openHoursEn}</strong>
-                          </div>
-                        )}
-                        {(currentArtifact.id === 16 || currentArtifact.id === 17) && currentArtifact.ticketVi && (
-                          <div>
-                            <span>{language === 'vi' ? 'Giá vé' : 'Ticket'}</span>
-                            <strong>{language === 'vi' ? currentArtifact.ticketVi : currentArtifact.ticketEn}</strong>
-                          </div>
-                        )}
-                      </div>
-                      {currentArtifact.highlightVi && (
-                        <small style={{ display: 'block', marginBottom: '8px', color: '#9d3f2f', fontWeight: 700, fontSize: '11px' }}>
-                          {language === 'vi' ? currentArtifact.highlightVi : currentArtifact.highlightEn}
-                        </small>
-                      )}
-                      <p>{currentArtifact.summary || copy.detailEmpty}</p>
-                    </div>
-                  ) : (
-                    <div className="mobile-empty-note">
-                      <Landmark size={24} />
-                      <p>{copy.noArtifact}</p>
-                    </div>
-                  )
-                )}
-
-                {mobileGuidePanel === 'status' && (
-                  processingSteps.length > 0 ? (
-                    <ol className="mobile-processing-steps">
-                      {processingSteps.map((step, index) => (
-                        <li key={`${step}-${index}`}>{step}</li>
-                      ))}
-                    </ol>
-                  ) : (
-                    <div className="mobile-empty-note">
-                      <CheckCircle2 size={24} />
-                      <p>{copy.detailEmpty}</p>
-                    </div>
-                  )
-                )}
-              </div>
-            </section>
+          {messages.length <= 2 && (
+            <QuickPromptChips
+              prompts={activePrompts.slice(0, 3)}
+              onPromptClick={handlePromptClick}
+              language={language}
+            />
           )}
 
-          <div
-            ref={messageListRef}
-            className="message-list"
-            aria-live="polite"
-            onScroll={handleMessageListScroll}
-          >
-            {messages.map((message) => (
-              <article key={message.id} className={`message ${message.role} ${message.type}`}>
-                {message.type === 'image' ? (
-                  <img src={message.content} alt="Uploaded artifact" />
-                ) : (
-                  <>
-                    <div className="message-body">
-                      <p>{message.content}</p>
-                      {message.isStreaming && <span className="stream-caret" aria-hidden="true" />}
-                      {message.role === 'ai' && message.type !== 'error' && (() => {
-                        const isActive = activeAudioMsgId === message.id;
-                        const isCurrentPlaying = isActive && speechState === 'playing';
-                        const isCurrentPaused = isActive && speechState === 'paused';
-                        return (
-                          <button
-                            className={`tts-control-btn ${isCurrentPlaying ? 'is-playing' : ''} ${isCurrentPaused ? 'is-paused' : ''}`}
-                            onClick={() => handleSpeakMessage(message)}
-                            aria-label={isCurrentPlaying ? (language === 'vi' ? 'Tạm dừng' : 'Pause') : isCurrentPaused ? (language === 'vi' ? 'Phát tiếp' : 'Resume') : copy.listen}
-                            title={isCurrentPlaying ? (language === 'vi' ? 'Tạm dừng' : 'Pause') : isCurrentPaused ? (language === 'vi' ? 'Phát tiếp' : 'Resume') : copy.listen}
-                          >
-                            {isCurrentPlaying ? <Pause size={14} /> : isCurrentPaused ? <Play size={14} /> : <Volume2 size={14} />}
-                          </button>
-                        );
-                      })()}
-                    </div>
-                    {message.role === 'ai' && message.type !== 'error' && (
-                      <div className="message-feedback">
-                        {message.feedback ? (
-                          <span>{copy.feedbackThanks}</span>
-                        ) : (
-                          <>
-                            <button onClick={() => handleFeedback(message, 'up')} aria-label={copy.helpful}>
-                              <ThumbsUp size={14} />
-                              {copy.helpful}
-                            </button>
-                            <button onClick={() => handleFeedback(message, 'down')} aria-label={copy.notHelpful}>
-                              <ThumbsDown size={14} />
-                              {copy.notHelpful}
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </>
-                )}
-                <time>{new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</time>
-              </article>
-            ))}
-            {isProcessing && (
-              <article className="message ai">
-                <div className="message-body loading">
-                  <Loader2 size={16} className="spin" />
-                  <p>{copy.processing}</p>
-                </div>
-              </article>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {showJumpToLatest && (
-            <button className="jump-latest" onClick={handleJumpToLatest} aria-label={copy.latest}>
-              <ChevronDown size={16} />
-              {copy.latest}
-            </button>
-          )}
-
-          {activeAudioMsgId && (() => {
-            const activeMsg = messages.find(m => m.id === activeAudioMsgId) || {};
-            const historyItems = messages
-              .filter(m => m.role === 'ai' && m.type === 'text' && !m.isStreaming)
-              .slice(-3);
-
-            const displayTitle = activeMsg.content 
-              ? (activeMsg.content.length > 50 ? activeMsg.content.slice(0, 50) + '...' : activeMsg.content)
-              : (language === 'vi' ? 'Đang phát thuyết minh di tích' : 'Playing narration');
-
-            return (
-              <div className="bottom-audio-player">
-                <div className="audio-player-layout">
-                  <div className="audio-player-meta">
-                    <div className={`audio-wave-icon ${speechState === 'playing' ? 'wave-playing' : ''}`}>
-                      <Volume2 size={16} />
-                    </div>
-                    <div className="audio-meta-text">
-                      <strong>{displayTitle}</strong>
-                      <span>{language === 'vi' ? 'Giọng đọc trên thiết bị' : 'Device voice'}</span>
-                    </div>
-                  </div>
-
-                  <div className="audio-player-controls-section">
-                    <div className="audio-playback-buttons">
-                      <button 
-                        className="play-pause-toggle-btn"
-                        onClick={() => handleSpeakMessage(activeMsg)} 
-                        title={speechState === 'playing' ? (language === 'vi' ? 'Tạm dừng' : 'Pause') : (language === 'vi' ? 'Phát' : 'Play')}
-                        aria-label={speechState === 'playing' ? 'Pause' : 'Play'}
-                      >
-                        {speechState === 'playing' ? <Pause size={16} /> : <Play size={16} />}
-                      </button>
-                      <button onClick={handleStopAudio} className="stop-playback-btn" title={language === 'vi' ? 'Dừng phát' : 'Stop'} aria-label="Stop playback">
-                        <X size={14} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {historyItems.length > 0 && (
-                  <div className="audio-history-switcher">
-                    <span className="switcher-label">
-                      <Sparkles size={11} />
-                      {language === 'vi' ? '3 câu thoại gần nhất:' : 'Last 3 narrations:'}
-                    </span>
-                    <div className="history-chips-row">
-                      {historyItems.map((item, index) => {
-                        const isActive = item.id === activeAudioMsgId;
-                        const shortText = item.content.length > 22 ? item.content.slice(0, 22) + '...' : item.content;
-                        return (
-                          <button 
-                            key={item.id} 
-                            onClick={() => handleSelectHistoryAudio(item)}
-                            className={`history-audio-chip ${isActive ? 'active' : ''}`}
-                            title={item.content}
-                          >
-                            <span className="chip-num">#{index + 1}</span>
-                            <span>{shortText}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })()}
-
-          <div className="composer">
-            {pendingImage && (
-              <div className="pending-image">
-                <img src={pendingImage} alt={copy.pendingImage} />
-                <span>{copy.pendingImage}</span>
-                <button onClick={() => setPendingImage(null)} aria-label={copy.removeImage}>
-                  <X size={16} />
-                </button>
-              </div>
-            )}
-
-            {isRecording ? (
-              <div className="recording-bar">
-                <div className="recording-left">
-                  <span className="recording-dot" />
-                  <strong>{copy.recording}</strong>
-                </div>
-                <span className="recording-time">{formatDuration(recordDuration)}</span>
-                <button onClick={stopRecording}>
-                  <Mic size={18} />
-                </button>
-              </div>
-            ) : (
-              <div className="composer-row">
-                <button onClick={() => setShowCamera(true)} aria-label={copy.camera}>
-                  <Camera size={20} />
-                </button>
-                <button onClick={() => fileInputRef.current?.click()} aria-label={copy.upload}>
-                  <ImageIcon size={20} />
-                </button>
-                <input
-                  value={inputText}
-                  onChange={(event) => setInputText(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter') handleSendText();
-                  }}
-                  placeholder={copy.askPlaceholder}
-                />
-                <button
-                  className="send-button"
-                  disabled={!inputText.trim() && !pendingImage}
-                  onClick={() => handleSendText()}
-                  aria-label={copy.send}
-                >
-                  <Send size={19} />
-                </button>
-                <button
-                  className="mic-button"
-                  onMouseDown={startRecording}
-                  onTouchStart={startRecording}
-                  disabled={isProcessing}
-                  aria-label={copy.record}
-                >
-                  <Mic size={20} />
-                </button>
-              </div>
-            )}
-          </div>
+          <ChatComposer
+            inputText={inputText}
+            setInputText={setInputText}
+            pendingImage={pendingImage}
+            setPendingImage={setPendingImage}
+            isRecording={isRecording}
+            recordDuration={recordDuration}
+            isProcessing={isProcessing}
+            copy={copy}
+            handleSendText={handleSendText}
+            startRecording={startRecording}
+            stopRecording={stopRecording}
+            setShowCamera={setShowCamera}
+            fileInputRef={fileInputRef}
+            handleFileUpload={handleFileUpload}
+          />
         </section>
-
-        {!embedded && (
-          <aside className="artifact-panel">
-            <section className="artifact-card">
-              <div className="section-heading">
-                <FileText size={17} />
-                <h2>{copy.artifactPanel}</h2>
-              </div>
-
-              {currentArtifact ? (
-                <>
-                  <div className="artifact-visual">
-                    <Landmark size={46} />
-                  </div>
-                  <h3>{currentArtifact.name || copy.artifactPanel}</h3>
-                  {currentArtifact.images && currentArtifact.images.length > 0 && (
-                    <ImageGallery
-                      images={currentArtifact.images}
-                      className="desktop-gallery"
-                    />
-                  )}
-                  <div className="artifact-meta-grid">
-                    <div>
-                      <span>{copy.year}</span>
-                      <strong>{currentArtifact.year || '-'}</strong>
-                    </div>
-                    <div>
-                      <span>{copy.author}</span>
-                      <strong>{currentArtifact.author || '-'}</strong>
-                    </div>
-                    {(currentArtifact.id === 16 || currentArtifact.id === 17) && currentArtifact.openHoursVi && (
-                      <div>
-                        <span>{language === 'vi' ? 'Giờ mở cửa' : 'Open hours'}</span>
-                        <strong>{language === 'vi' ? currentArtifact.openHoursVi : currentArtifact.openHoursEn}</strong>
-                      </div>
-                    )}
-                    {(currentArtifact.id === 16 || currentArtifact.id === 17) && currentArtifact.ticketVi && (
-                      <div>
-                        <span>{language === 'vi' ? 'Giá vé' : 'Ticket'}</span>
-                        <strong>{language === 'vi' ? currentArtifact.ticketVi : currentArtifact.ticketEn}</strong>
-                      </div>
-                    )}
-                  </div>
-                  {currentArtifact.highlightVi && (
-                    <div className="summary-block">
-                      <span>{language === 'vi' ? 'Điểm đặc sắc' : 'Highlight'}</span>
-                      <p>{language === 'vi' ? currentArtifact.highlightVi : currentArtifact.highlightEn}</p>
-                    </div>
-                  )}
-                  <div className="summary-block">
-                    <span>{copy.summary}</span>
-                    <p>{currentArtifact.summary || copy.detailEmpty}</p>
-                  </div>
-                </>
-              ) : (
-                <div className="empty-artifact">
-                  <Landmark size={44} />
-                  <p>{copy.noArtifact}</p>
-                </div>
-              )}
-            </section>
-
-            <section className="steps-card">
-              <div className="section-heading">
-                <CheckCircle2 size={17} />
-                <h2>{language === 'vi' ? 'Trạng thái hỗ trợ' : 'Guidance status'}</h2>
-              </div>
-              {processingSteps.length > 0 ? (
-                <ol className="processing-steps">
-                  {processingSteps.map((step, index) => (
-                    <li key={`${step}-${index}`}>{step}</li>
-                  ))}
-                </ol>
-              ) : (
-                <p className="muted">{copy.detailEmpty}</p>
-              )}
-            </section>
-
-            <section className="panel-section suggestions-card">
-              <div className="section-heading">
-                <Sparkles size={17} />
-                <h2>{copy.suggestions}</h2>
-              </div>
-              <div className="quick-actions">
-                {activePrompts.slice(0, 3).map((prompt) => (
-                  <button key={prompt} onClick={() => handlePromptClick(prompt)}>
-                    {prompt}
-                  </button>
-                ))}
-              </div>
-            </section>
-          </aside>
-        )}
       </main>
 
       {showCamera && (
@@ -1931,6 +1447,14 @@ const UnifiedChatPage = ({
         .conversation-context-strip button:hover {
           background: var(--ui-teal);
           color: #fffdf6;
+        }
+
+        .chat-message-list-container {
+          flex: 1;
+          min-height: 0;
+          display: flex;
+          flex-direction: column;
+          position: relative;
         }
 
         .message-list {
@@ -2606,10 +2130,9 @@ const UnifiedChatPage = ({
         }
 
         .tour-workspace.embedded-mode .conversation-tools {
-          display: grid;
-          grid-template-columns: repeat(4, 38px);
+          display: flex;
           gap: 7px;
-          justify-content: end;
+          justify-content: flex-end;
         }
 
         .tour-workspace.embedded-mode .conversation-tools button {
@@ -2626,346 +2149,7 @@ const UnifiedChatPage = ({
           border-color: var(--ui-teal);
         }
 
-        .mobile-guide-panel {
-          flex: 0 0 auto;
-          display: flex;
-          flex-direction: column;
-          gap: 9px;
-          padding: 10px 12px 11px;
-          border-bottom: 1px solid rgba(24, 32, 35, 0.1);
-          background:
-            linear-gradient(180deg, rgba(255, 253, 246, 0.94), rgba(247, 250, 248, 0.94));
-        }
 
-        .mobile-guide-tabs {
-          display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 6px;
-        }
-
-        .mobile-guide-tabs button {
-          min-width: 0;
-          min-height: 42px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          flex-direction: column;
-          gap: 3px;
-          border: 1px solid rgba(24, 32, 35, 0.11);
-          border-radius: 8px;
-          color: var(--ui-muted);
-          background: #ffffff;
-          padding: 6px 4px;
-          font-size: 10.5px;
-          font-weight: 900;
-          line-height: 1.12;
-        }
-
-        .mobile-guide-tabs button span {
-          width: 100%;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        .mobile-guide-tabs button.active {
-          color: #fffdf6;
-          background: var(--ui-teal);
-          border-color: var(--ui-teal);
-          box-shadow: 0 10px 20px rgba(15, 95, 89, 0.16);
-        }
-
-        .mobile-guide-content {
-          max-height: 190px;
-          overflow-y: auto;
-          overscroll-behavior: contain;
-          padding-bottom: 1px;
-        }
-
-        .guide-next-card {
-          display: grid;
-          grid-template-columns: minmax(0, 1fr);
-          gap: 9px;
-          margin-bottom: 9px;
-          border: 1px solid rgba(15, 95, 89, 0.18);
-          border-radius: 8px;
-          background: #ffffff;
-          padding: 11px;
-          box-shadow: 0 8px 20px rgba(15, 95, 89, 0.08);
-        }
-
-        .guide-next-card span {
-          display: block;
-          color: var(--ui-teal);
-          font-size: 10.5px;
-          font-weight: 900;
-          text-transform: uppercase;
-        }
-
-        .guide-next-card strong {
-          display: block;
-          margin-top: 2px;
-          color: var(--ui-text);
-          font-size: 14px;
-          line-height: 1.2;
-        }
-
-        .guide-next-card small {
-          display: block;
-          margin-top: 4px;
-          color: var(--ui-muted);
-          font-size: 11.5px;
-          line-height: 1.35;
-        }
-
-        .guide-next-actions {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 7px;
-        }
-
-        .guide-next-actions button {
-          min-width: 0;
-          min-height: 38px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 6px;
-          border: 1px solid rgba(15, 95, 89, 0.18);
-          border-radius: 8px;
-          color: var(--ui-teal);
-          background: #f7faf8;
-          padding: 8px;
-          font-size: 12px;
-          font-weight: 900;
-        }
-
-        .guide-next-actions button:first-child {
-          color: #fffdf6;
-          background: var(--ui-teal);
-          border-color: var(--ui-teal);
-        }
-
-        .mobile-guide-content::-webkit-scrollbar,
-        .mobile-prompt-row::-webkit-scrollbar {
-          height: 8px;
-          width: 8px;
-        }
-
-        .mobile-guide-content::-webkit-scrollbar-thumb,
-        .mobile-prompt-row::-webkit-scrollbar-thumb {
-          background: rgba(15, 95, 89, 0.24);
-          border-radius: 999px;
-        }
-
-        .mobile-prompt-row {
-          display: flex;
-          gap: 8px;
-          overflow-x: auto;
-          padding-bottom: 2px;
-        }
-
-        .mobile-prompt-row button,
-        .mobile-location-list button {
-          min-height: 50px;
-          border: 1px solid rgba(24, 32, 35, 0.11);
-          border-radius: 8px;
-          color: var(--ui-text);
-          background: #ffffff;
-          padding: 10px 11px;
-          text-align: left;
-          font-size: 12.5px;
-          font-weight: 850;
-          line-height: 1.32;
-          box-shadow: 0 5px 14px rgba(24, 32, 35, 0.05);
-        }
-
-        .mobile-prompt-row button {
-          flex: 0 0 min(260px, 82%);
-        }
-
-        .mobile-location-list {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 8px;
-        }
-
-        .mobile-location-list button.selected {
-          border-color: var(--ui-teal);
-          background: #f3fbf8;
-          box-shadow: inset 4px 0 0 var(--ui-teal), 0 8px 18px rgba(15, 95, 89, 0.08);
-        }
-
-        .mobile-location-list strong {
-          display: block;
-          margin-bottom: 3px;
-          color: var(--ui-text);
-          font-size: 13px;
-        }
-
-        .mobile-location-list span {
-          display: block;
-          color: var(--ui-muted);
-          font-size: 11.5px;
-          line-height: 1.38;
-        }
-
-        .mobile-artifact-summary,
-        .mobile-empty-note {
-          border: 1px solid rgba(24, 32, 35, 0.11);
-          border-radius: 8px;
-          background: #ffffff;
-          padding: 12px;
-          box-shadow: 0 5px 14px rgba(24, 32, 35, 0.05);
-        }
-
-        .artifact-mini-head {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          margin-bottom: 10px;
-        }
-
-        .artifact-mini-head svg {
-          flex: 0 0 auto;
-          width: 38px;
-          height: 38px;
-          padding: 8px;
-          color: #fffdf6;
-          background: var(--ui-red);
-          border-radius: 8px;
-        }
-
-        .artifact-mini-head span {
-          display: block;
-          color: var(--ui-muted);
-          font-size: 10.5px;
-          font-weight: 900;
-          text-transform: uppercase;
-        }
-
-        .artifact-mini-head strong {
-          display: block;
-          margin-top: 2px;
-          color: var(--ui-text);
-          font-size: 15px;
-          line-height: 1.15;
-        }
-
-        .artifact-mini-grid {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 7px;
-          margin-bottom: 10px;
-        }
-
-        .mini-image-row {
-          display: flex;
-          gap: 6px;
-          overflow-x: auto;
-          margin-bottom: 10px;
-        }
-
-        .mini-image-row img {
-          width: 90px;
-          height: 60px;
-          object-fit: cover;
-          border-radius: 6px;
-          border: 1px solid rgba(24, 32, 35, 0.1);
-          cursor: pointer;
-          transition: transform 0.2s;
-        }
-
-        .mini-image-row img:hover {
-          transform: scale(1.08);
-        }
-
-        .artifact-mini-grid div {
-          min-width: 0;
-          border: 1px solid rgba(24, 32, 35, 0.09);
-          border-radius: 8px;
-          background: #f7faf8;
-          padding: 8px;
-        }
-
-        .artifact-mini-grid span {
-          display: block;
-          margin-bottom: 3px;
-          color: var(--ui-muted);
-          font-size: 11px;
-          font-weight: 900;
-          text-transform: uppercase;
-        }
-
-        .artifact-mini-grid strong {
-          display: block;
-          overflow-wrap: anywhere;
-          color: var(--ui-text);
-          font-size: 13px;
-          line-height: 1.3;
-          white-space: pre-line;
-        }
-
-        .mobile-artifact-summary p,
-        .mobile-empty-note p {
-          margin: 0;
-          color: var(--ui-text);
-          font-size: 13px;
-          line-height: 1.5;
-        }
-
-        .mobile-artifact-summary small {
-          display: block;
-          margin-top: 8px;
-          color: var(--ui-muted);
-          font-size: 11px;
-          line-height: 1.35;
-        }
-
-        .mobile-empty-note {
-          display: flex;
-          align-items: flex-start;
-          gap: 10px;
-          color: var(--ui-teal);
-        }
-
-        .mobile-empty-note svg {
-          flex: 0 0 auto;
-          margin-top: 2px;
-        }
-
-        .mobile-processing-steps {
-          display: grid;
-          gap: 8px;
-          margin: 0;
-          padding: 0;
-          list-style: none;
-        }
-
-        .mobile-processing-steps li {
-          position: relative;
-          min-height: 42px;
-          border: 1px solid rgba(24, 32, 35, 0.11);
-          border-radius: 8px;
-          background: #ffffff;
-          padding: 10px 10px 10px 34px;
-          color: var(--ui-text);
-          font-size: 12.5px;
-          line-height: 1.42;
-          box-shadow: 0 5px 14px rgba(24, 32, 35, 0.05);
-        }
-
-        .mobile-processing-steps li::before {
-          content: '';
-          position: absolute;
-          left: 12px;
-          top: 14px;
-          width: 10px;
-          height: 10px;
-          border-radius: 999px;
-          background: var(--ui-teal);
-          box-shadow: 0 0 0 4px rgba(15, 95, 89, 0.1);
-        }
 
         /* Bottom Audio Player styling */
         .bottom-audio-player {

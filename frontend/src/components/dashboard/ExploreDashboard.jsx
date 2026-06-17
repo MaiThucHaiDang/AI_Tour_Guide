@@ -2,10 +2,8 @@ import React, { Suspense, lazy, useCallback, useEffect, useMemo, useState } from
 import {
   ArrowLeft,
   BookOpen,
-  Camera,
   Compass,
   Flag,
-  Landmark,
   Map as MapIcon,
   MessageSquare,
   Navigation,
@@ -13,11 +11,11 @@ import {
   WifiOff,
   X,
   Gamepad2,
-  Loader2
+  Loader2,
+  MoreVertical
 } from 'lucide-react';
 import MapExplore, { HUE_ARTIFACTS } from '../map/MapExplore';
-import LanguageToggle from '../shared/LanguageToggle';
-import ImageGallery from '../shared/ImageGallery';
+import TourBottomNav from './TourBottomNav';
 import TripCompletionScreen from '../passport/TripCompletionScreen';
 import PhotoBoothModal from '../photoBooth/PhotoBoothModal';
 import { getAllPhotoBoothFrames, getPhotoBoothFrame, PHOTO_BOOTH_COVER_FRAME } from '../../data/photoBoothFrames';
@@ -57,7 +55,7 @@ const DEFAULT_LOCATION = {
   name_en: 'Hue Imperial City'
 };
 
-const DASHBOARD_TABS = new Set(['map', 'ask', 'artifact']);
+const DASHBOARD_TABS = new Set(['map', 'ask']);
 
 const normalizeDashboardTab = (tab, fallback = 'map') => (
   DASHBOARD_TABS.has(tab) ? tab : fallback
@@ -130,161 +128,11 @@ const buildTourArtifact = (artifact, language, entryAction = 'context') => {
   };
 };
 
-const ArtifactDetailPanel = ({
-  artifact,
-  language,
-  onAsk,
-  onShowMap,
-  onPhotoBooth,
-  assistantSteps = [],
-  routeStatus = null
-}) => {
-  const isVi = language === 'vi';
-
-  if (!artifact) {
-    return (
-      <div className="artifact-mobile-screen">
-        <div className="artifact-hero-mark" aria-hidden="true">
-          <Landmark size={34} />
-        </div>
-        <span className="screen-eyebrow">
-          {isVi ? 'Điểm đang xem' : 'Current place'}
-        </span>
-        <h2>{isVi ? 'Chọn một điểm để bắt đầu.' : 'Choose a stop to begin.'}</h2>
-        <p>
-          {isVi
-            ? 'Chạm vào một điểm trên bản đồ Đại Nội hoặc gửi ảnh liên quan để xem thông tin phù hợp tại đây.'
-            : 'Tap a stop on the Citadel map or send a related photo to see guide notes here.'}
-        </p>
-        <button className="tour-primary-action" onClick={onShowMap}>
-          <MapIcon size={18} />
-          {isVi ? 'Mở bản đồ' : 'Open map'}
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="artifact-mobile-screen">
-      <div className="artifact-detail-top">
-        <div className="artifact-hero-mark" aria-hidden="true">
-          <Landmark size={34} />
-        </div>
-        <div>
-          <span className="screen-eyebrow">
-            {isVi ? 'Điểm tham quan' : 'Tour stop'}
-          </span>
-          <h2>{artifact.name}</h2>
-        </div>
-      </div>
-
-      {artifact.images && artifact.images.length > 0 && (
-        <ImageGallery
-          images={artifact.images}
-          className="artifact-image-gallery"
-        />
-      )}
-
-      <div className="artifact-fact-grid">
-        <div>
-          <span>{isVi ? 'Năm' : 'Year'}</span>
-          <strong>{artifact.year || (isVi ? 'Đang cập nhật' : 'To be updated')}</strong>
-        </div>
-        <div>
-          <span>{isVi ? 'Triều đại / tác giả' : 'Dynasty / author'}</span>
-          <strong>{artifact.author || (isVi ? 'Chưa có dữ liệu' : 'No data yet')}</strong>
-        </div>
-      </div>
-
-      {(artifact.id === 16 || artifact.id === 17) && (artifact.openHoursVi || artifact.ticketVi) && (
-        <div className="artifact-fact-grid" style={{ marginTop: '8px' }}>
-          {artifact.openHoursVi && (
-            <div>
-              <span>{isVi ? 'Giờ mở cửa' : 'Open hours'}</span>
-              <strong>{isVi ? artifact.openHoursVi : artifact.openHoursEn}</strong>
-            </div>
-          )}
-          {artifact.ticketVi && (
-            <div>
-              <span>{isVi ? 'Giá vé' : 'Ticket'}</span>
-              <strong>{isVi ? artifact.ticketVi : artifact.ticketEn}</strong>
-            </div>
-          )}
-        </div>
-      )}
-
-      {artifact.highlightVi && (
-        <section className="artifact-summary-block">
-          <span>{isVi ? 'Điểm đặc sắc' : 'Highlight'}</span>
-          <p>{isVi ? artifact.highlightVi : artifact.highlightEn}</p>
-        </section>
-      )}
-
-      <section className="artifact-summary-block">
-        <span>{isVi ? 'Tóm tắt' : 'Summary'}</span>
-        <p>
-          {artifact.summary || (isVi
-            ? 'Thông tin chi tiết sẽ xuất hiện sau khi bạn nghe giới thiệu hoặc đặt câu hỏi về điểm dừng này.'
-            : 'Details will appear after you hear an intro or ask a related question.')}
-        </p>
-      </section>
-
-      {assistantSteps.length > 0 && (
-        <section className="artifact-summary-block">
-          <span>{isVi ? 'Đang hỗ trợ' : 'Guide status'}</span>
-          <ol className="artifact-step-list">
-            {assistantSteps.map((step, index) => (
-              <li key={`${step}-${index}`}>{step}</li>
-            ))}
-          </ol>
-        </section>
-      )}
-
-      {routeStatus?.isNavigating && (
-        <section className="artifact-summary-block">
-          <span>{isVi ? 'Điều hướng' : 'Navigation'}</span>
-          <p>
-            {isVi ? 'Đang đi tới' : 'Walking to'} {routeStatus.targetName || artifact.name}
-            {routeStatus.totalSteps > 0
-              ? ` · ${isVi ? 'Bước' : 'Step'} ${routeStatus.activeStep + 1}/${routeStatus.totalSteps}`
-              : ''}
-          </p>
-        </section>
-      )}
-
-      <div className="artifact-action-row">
-        <button className="tour-primary-action" onClick={() => onAsk(artifact.raw)}>
-          <Volume2 size={18} />
-          {isVi ? 'Nghe giới thiệu' : 'Hear intro'}
-        </button>
-        <button className="tour-secondary-action" onClick={onShowMap}>
-          <Navigation size={18} />
-          {isVi ? 'Xem trên bản đồ' : 'View on map'}
-        </button>
-      </div>
-
-      <button
-        type="button"
-        className={`photo-booth-inline-button ${getPhotoBoothFrame(artifact.id) ? '' : 'is-locked'}`}
-        onClick={() => getPhotoBoothFrame(artifact.id) && onPhotoBooth?.(artifact.raw || artifact)}
-        disabled={!getPhotoBoothFrame(artifact.id)}
-        title={!getPhotoBoothFrame(artifact.id) ? (isVi ? 'Khung check-in sẽ được bổ sung sau' : 'Photo frame coming later') : undefined}
-      >
-        <Camera size={16} />
-        <span>
-          {getPhotoBoothFrame(artifact.id)
-            ? (isVi ? 'Check-in ảnh tại điểm này' : 'Photo check-in here')
-            : (isVi ? 'Sắp có khung check-in' : 'Frame coming soon')}
-        </span>
-      </button>
-    </div>
-  );
-};
-
 const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) => {
   const isVi = language === 'vi';
   const location = initialLocation || DEFAULT_LOCATION;
   const initialArtifact = location.initialArtifact || null;
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(() => {
     const requestedTab = new URLSearchParams(window.location.search).get('tab');
     return normalizeDashboardTab(location.initialTab || requestedTab, 'map');
@@ -294,7 +142,6 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
   ));
   const [currentArtifact, setCurrentArtifact] = useState(() => initialArtifact);
   const [routeStatus, setRouteStatus] = useState(null);
-  const [assistantSteps, setAssistantSteps] = useState([]);
   const [isOnline, setIsOnline] = useState(() => (
     typeof navigator === 'undefined' ? true : navigator.onLine
   ));
@@ -323,7 +170,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
 
   useEffect(() => {
     if (!location.initialArtifact) return;
-    const nextTab = normalizeDashboardTab(location.initialTab, 'artifact');
+    const nextTab = normalizeDashboardTab(location.initialTab, 'map');
     setCurrentArtifact(location.initialArtifact);
     setTargetArtifact(nextTab === 'ask' ? location.initialArtifact : null);
     setActiveTab(nextTab);
@@ -558,8 +405,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
 
   const tabs = [
     { key: 'map', label: isVi ? 'Bản đồ' : 'Map', icon: MapIcon },
-    { key: 'ask', label: isVi ? 'Hỏi hướng dẫn' : 'Ask guide', icon: MessageSquare },
-    { key: 'artifact', label: isVi ? 'Điểm dừng' : 'Stop', icon: Landmark }
+    { key: 'ask', label: isVi ? 'Hỏi hướng dẫn' : 'Ask guide', icon: MessageSquare }
   ];
 
   const handleArtifactFocus = useCallback((artifact) => {
@@ -586,9 +432,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
     openArtifactInGuide(artifact, 'intro');
   };
 
-  const handleAskArtifact = (artifact) => {
-    openArtifactInGuide(artifact, 'intro');
-  };
+
 
   const handleOpenArtifactContext = (artifact) => {
     openArtifactInGuide(artifact, 'context');
@@ -633,38 +477,78 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           <h1>{locationName}</h1>
         </div>
 
-        <div className="tour-shell-actions">
-          <div
-            className="tour-passport-pill"
-            title={isVi ? 'Tiến độ hộ chiếu tham quan' : 'Passport progress'}
-            aria-label={isVi ? 'Tiến độ hộ chiếu tham quan' : 'Passport progress'}
+        <div className="tour-shell-actions-simplified">
+          <button 
+            className="tour-menu-toggle-btn" 
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label={isVi ? 'Danh mục chức năng' : 'Menu actions'}
+            aria-expanded={isMenuOpen}
           >
-            <BookOpen size={13} />
-            <span>{passportSummary.completedCount}/{passportSummary.totalCount}</span>
-          </div>
-
-          <button
-            className="tour-end-button"
-            onClick={handleEndTrip}
-            title={isVi ? 'Kết thúc chuyến đi' : 'End trip'}
-          >
-            <Flag size={13} />
-            <span>{isVi ? 'Kết thúc' : 'End trip'}</span>
+            <MoreVertical size={20} />
           </button>
 
-          <button
-            className="tour-quiz-button"
-            onClick={handleCreateGame}
-            disabled={visitedIds.length < 2 || loadingGame}
-            title={visitedIds.length < 2 
-              ? (isVi ? 'Hãy tham quan ít nhất 2 điểm để đấu trí!' : 'Visit at least 2 places to play!') 
-              : (isVi ? 'Đấu trí nhóm' : 'Group quiz')}
-          >
-            {loadingGame ? <Loader2 className="spin" size={12} /> : <Gamepad2 size={12} />}
-            <span className="tour-quiz-label">{isVi ? 'Đấu Trí Nhóm' : 'Group Quiz'}</span>
-          </button>
-          
-          <LanguageToggle language={language} setLanguage={setLanguage} />
+          {isMenuOpen && (
+            <>
+              <div className="tour-menu-backdrop" onClick={() => setIsMenuOpen(false)} />
+              <div className="tour-menu-dropdown">
+                <div className="tour-menu-item passport-progress">
+                  <BookOpen size={16} />
+                  <div>
+                    <span>{isVi ? 'Hộ chiếu tham quan' : 'Tour Passport'}</span>
+                    <strong>{passportSummary.completedCount}/{passportSummary.totalCount}</strong>
+                  </div>
+                </div>
+
+                <button 
+                  className="tour-menu-item action-btn" 
+                  onClick={() => {
+                    handleCreateGame();
+                    setIsMenuOpen(false);
+                  }}
+                  disabled={visitedIds.length < 2 || loadingGame}
+                  title={visitedIds.length < 2 ? (isVi ? 'Tham quan ít nhất 2 điểm để chơi' : 'Visit at least 2 stops to play') : ''}
+                >
+                  {loadingGame ? <Loader2 className="spin" size={16} /> : <Gamepad2 size={16} />}
+                  <span>{isVi ? 'Đấu Trí Nhóm' : 'Group Quiz'}</span>
+                </button>
+
+                <div className="tour-menu-item lang-toggle-row">
+                  <span>{isVi ? 'Ngôn ngữ' : 'Language'}</span>
+                  <div className="lang-buttons">
+                    <button 
+                      className={language === 'vi' ? 'active' : ''} 
+                      onClick={() => {
+                        setLanguage('vi');
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      VI
+                    </button>
+                    <button 
+                      className={language === 'en' ? 'active' : ''} 
+                      onClick={() => {
+                        setLanguage('en');
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      EN
+                    </button>
+                  </div>
+                </div>
+
+                <button 
+                  className="tour-menu-item action-btn end-trip" 
+                  onClick={() => {
+                    handleEndTrip();
+                    setIsMenuOpen(false);
+                  }}
+                >
+                  <Flag size={16} />
+                  <span>{isVi ? 'Kết thúc chuyến đi' : 'End Trip'}</span>
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </header>
 
@@ -713,31 +597,16 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
               setLanguage={setLanguage}
               initialArtifact={targetArtifact}
               onArtifactUpdate={handleArtifactFocus}
-              onProcessingStepsUpdate={setAssistantSteps}
               embedded
               onNarrationFinished={handleNarrationFinished}
-              nextSuggestion={nextSuggestion}
               onRequestNextStop={loadNextSuggestionForArtifact}
-              onNavigateNextStop={(suggestion) => handleUseNextSuggestion(suggestion, 'route')}
-              onPreviewNextStop={(suggestion) => handleUseNextSuggestion(suggestion, 'intro')}
               onPassportCheckIn={handlePassportCheckIn}
               onPassportPhoto={handlePassportPhoto}
               onPassportQuestion={handlePassportQuestion}
               onPassportAudio={handlePassportAudio}
+              onShowMap={() => setActiveTab('map')}
             />
           </Suspense>
-        </section>
-
-        <section className={`tour-shell-panel artifact-panel-mobile ${activeTab === 'artifact' ? 'is-active' : ''}`}>
-          <ArtifactDetailPanel
-            artifact={normalizedArtifact}
-            language={language}
-            onAsk={handleAskArtifact}
-            onShowMap={() => setActiveTab('map')}
-            onPhotoBooth={handleOpenPhotoBooth}
-            assistantSteps={assistantSteps}
-            routeStatus={routeStatus}
-          />
         </section>
       </main>
 
@@ -864,28 +733,13 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
         </button>
       )}
 
-      <nav className="tour-bottom-nav" aria-label={isVi ? 'Điều hướng tham quan' : 'Tour navigation'}>
-        {tabs.map(({ key, label, icon: Icon }) => (
-          <button
-            key={key}
-            className={activeTab === key ? 'active' : ''}
-            onClick={() => {
-              if (key === 'ask') UnifiedChatPage.preload();
-              setActiveTab(key);
-            }}
-            onMouseEnter={() => {
-              if (key === 'ask') UnifiedChatPage.preload();
-            }}
-            onFocus={() => {
-              if (key === 'ask') UnifiedChatPage.preload();
-            }}
-            aria-current={activeTab === key ? 'page' : undefined}
-          >
-            <Icon size={21} />
-            <span>{label}</span>
-          </button>
-        ))}
-      </nav>
+      <TourBottomNav
+        tabs={tabs}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        isVi={isVi}
+        onPreloadChat={UnifiedChatPage.preload}
+      />
 
       {/* Floating banner when game is minimized */}
       {activeRoomCode && gameMinimized && (

@@ -950,7 +950,7 @@ class UnifiedOrchestrator:
         return digest[:24]
 
     @staticmethod
-    def _build_speech_text(text: str, lang: str, max_chars: int = 700) -> str:
+    def _build_speech_text(text: str, lang: str, max_chars: int = 1400) -> str:
         """Create a concise, TTS-friendly version of the answer."""
         cleaned = " ".join((text or "").split())
         if len(cleaned) <= max_chars:

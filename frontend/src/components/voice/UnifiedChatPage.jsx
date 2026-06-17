@@ -477,6 +477,7 @@ const UnifiedChatPage = ({
         onPassportPhoto?.({
           imageBase64,
           artifact: responseArtifact || artifactBeforeRequest,
+          type: 'scan',
           source: responseArtifact ? 'scan_match' : 'scan'
         });
         photoRecorded = true;
@@ -516,6 +517,7 @@ const UnifiedChatPage = ({
         onPassportPhoto?.({
           imageBase64,
           artifact: artifactBeforeRequest,
+          type: 'scan',
           source: 'scan'
         });
       }

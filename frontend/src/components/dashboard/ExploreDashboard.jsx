@@ -2,6 +2,7 @@ import React, { Suspense, lazy, useCallback, useEffect, useMemo, useState } from
 import {
   ArrowLeft,
   BookOpen,
+  Camera,
   Compass,
   Flag,
   Landmark,
@@ -18,6 +19,10 @@ import MapExplore, { HUE_ARTIFACTS } from '../map/MapExplore';
 import LanguageToggle from '../shared/LanguageToggle';
 import ImageGallery from '../shared/ImageGallery';
 import TripCompletionScreen from '../passport/TripCompletionScreen';
+import PhotoBoothModal from '../photoBooth/PhotoBoothModal';
+import { getAllPhotoBoothFrames, getPhotoBoothFrame, PHOTO_BOOTH_COVER_FRAME } from '../../data/photoBoothFrames';
+import { preloadPhotoBoothFrames } from '../../utils/photoBoothCanvas';
+import { releasePhotoBoothCameraStream } from '../../utils/photoBoothCamera';
 import { getNextSuggestionAPI, createGameRoomAPI, getMapConfigAPI } from '../../services/apiService';
 import {
   buildTourSummary,
@@ -130,6 +135,7 @@ const ArtifactDetailPanel = ({
   language,
   onAsk,
   onShowMap,
+  onPhotoBooth,
   assistantSteps = [],
   routeStatus = null
 }) => {
@@ -256,6 +262,21 @@ const ArtifactDetailPanel = ({
           {isVi ? 'Xem trên bản đồ' : 'View on map'}
         </button>
       </div>
+
+      <button
+        type="button"
+        className={`photo-booth-inline-button ${getPhotoBoothFrame(artifact.id) ? '' : 'is-locked'}`}
+        onClick={() => getPhotoBoothFrame(artifact.id) && onPhotoBooth?.(artifact.raw || artifact)}
+        disabled={!getPhotoBoothFrame(artifact.id)}
+        title={!getPhotoBoothFrame(artifact.id) ? (isVi ? 'Khung check-in sẽ được bổ sung sau' : 'Photo frame coming later') : undefined}
+      >
+        <Camera size={16} />
+        <span>
+          {getPhotoBoothFrame(artifact.id)
+            ? (isVi ? 'Check-in ảnh tại điểm này' : 'Photo check-in here')
+            : (isVi ? 'Sắp có khung check-in' : 'Frame coming soon')}
+        </span>
+      </button>
     </div>
   );
 };
@@ -292,6 +313,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
   const [showTripCompletion, setShowTripCompletion] = useState(() => (
     new URLSearchParams(window.location.search).get('trip') === 'complete'
   ));
+  const [activePhotoBooth, setActivePhotoBooth] = useState(null);
 
   const visitedIds = useMemo(() => {
     return Object.keys(passportMemory.checkIns || {})
@@ -376,15 +398,88 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
   }, [isVi, showPassportToast]);
 
   const handleEndTrip = useCallback(() => {
+    if (!passportMemory.coverPhoto) {
+      setActivePhotoBooth({
+        mode: 'cover',
+        frame: PHOTO_BOOTH_COVER_FRAME,
+        artifact: null
+      });
+      return;
+    }
     setPassportMemory(prev => completeTourMemory(prev));
     setShowTripCompletion(true);
+  }, [passportMemory.coverPhoto]);
+
+  const handleOpenPhotoBooth = useCallback((artifact) => {
+    const normalized = normalizeArtifactForPassport(artifact);
+    const frame = getPhotoBoothFrame(normalized?.id);
+    if (!frame || !normalized) return;
+    setActivePhotoBooth({
+      mode: 'checkin',
+      frame,
+      artifact: normalized
+    });
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    preloadPhotoBoothFrames(getAllPhotoBoothFrames())
+      .then((result) => {
+        if (!cancelled && result.failed.length > 0) {
+          console.warn('Some photo booth frames failed to preload:', result.failed);
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          console.warn('Photo booth frame preload failed:', error);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+      releasePhotoBoothCameraStream();
+    };
+  }, []);
+
+  const handleSavePhotoBooth = useCallback(({ imageBase64, frame, artifact, mode }) => {
+    const isCover = mode === 'cover';
+    const payload = {
+      artifact,
+      imageBase64,
+      type: isCover ? 'cover' : 'checkin',
+      source: 'photo_booth',
+      frameKey: frame?.key || ''
+    };
+
+    setPassportMemory(prev => {
+      const withPhoto = recordPhoto(prev, payload);
+      return isCover ? completeTourMemory(withPhoto) : recordCheckIn(withPhoto, artifact, { method: 'photo_booth', source: 'photo_booth' });
+    });
+
+    setActivePhotoBooth(null);
+    if (isCover) {
+      setShowTripCompletion(true);
+      showPassportToast(isVi ? 'Đã lưu ảnh bìa chuyến đi.' : 'Trip cover saved.');
+      return;
+    }
+
+    const name = isVi
+      ? artifact?.name_vi || artifact?.name_en
+      : artifact?.name_en || artifact?.name_vi;
+    showPassportToast(isVi ? `Đã lưu ảnh check-in ${name}.` : `${name} check-in photo saved.`);
+  }, [isVi, showPassportToast]);
+
   const handleTripCompletionHome = useCallback(() => {
+    releasePhotoBoothCameraStream();
     const next = clearTourMemory();
     setPassportMemory(next);
     setShowTripCompletion(false);
     setNextSuggestion(null);
+    onBack?.();
+  }, [onBack]);
+
+  const handleBackFromTour = useCallback(() => {
+    releasePhotoBoothCameraStream();
     onBack?.();
   }, [onBack]);
 
@@ -529,7 +624,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
   return (
     <div className="mobile-tour-shell">
       <header className="tour-shell-header">
-        <button className="tour-shell-back" onClick={onBack} aria-label={isVi ? 'Về trang chủ' : 'Back home'}>
+        <button className="tour-shell-back" onClick={handleBackFromTour} aria-label={isVi ? 'Về trang chủ' : 'Back home'}>
           <ArrowLeft size={20} />
         </button>
 
@@ -599,6 +694,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
             onArtifactFocus={handleMapArtifactFocus}
             onRouteStatusChange={setRouteStatus}
             onPassportCheckIn={handlePassportCheckIn}
+            onPhotoBooth={handleOpenPhotoBooth}
             language={language}
             embedded
             visitorMode
@@ -638,11 +734,23 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
             language={language}
             onAsk={handleAskArtifact}
             onShowMap={() => setActiveTab('map')}
+            onPhotoBooth={handleOpenPhotoBooth}
             assistantSteps={assistantSteps}
             routeStatus={routeStatus}
           />
         </section>
       </main>
+
+      {activePhotoBooth && (
+        <PhotoBoothModal
+          frame={activePhotoBooth.frame}
+          artifact={activePhotoBooth.artifact}
+          mode={activePhotoBooth.mode}
+          language={language}
+          onClose={() => setActivePhotoBooth(null)}
+          onSave={handleSavePhotoBooth}
+        />
+      )}
 
       {showTripCompletion && (
         <TripCompletionScreen

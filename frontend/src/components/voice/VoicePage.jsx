@@ -11,7 +11,6 @@ const VoicePage = ({ onBack, language, setLanguage, artifactContext }) => {
   const [voiceState, setVoiceState] = useState('idle'); // 'idle', 'recording', 'processing', 'result', 'error'
   const [apiError, setApiError] = useState(null);
   const [apiErrorDetail, setApiErrorDetail] = useState(null);
-  const [audioResult, setAudioResult] = useState(null);
   const [userTranscript, setUserTranscript] = useState('');
   const [aiResponse, setAiResponse] = useState('');
 
@@ -77,7 +76,6 @@ const VoicePage = ({ onBack, language, setLanguage, artifactContext }) => {
   const handleStartRecording = () => {
     setVoiceStateSynced('recording');
     resetRecording();
-    setAudioResult(null);
     setUserTranscript('');
     setAiResponse('');
     setApiError(null);
@@ -107,23 +105,18 @@ const VoicePage = ({ onBack, language, setLanguage, artifactContext }) => {
         artifactContext?.artifact_name || null
       );
 
-      const responseBlob = response?.audioBlob || null;
       const transcript = response?.transcript || '';
       const responseText = response?.responseText || '';
 
-      console.warn(
-        '[VoicePage] API response received, size:',
-        responseBlob ? responseBlob.size : 'n/a'
-      );
+      console.warn('[VoicePage] API text response received:', Boolean(responseText));
 
-      if (!responseBlob || responseBlob.size === 0) {
+      if (!responseText) {
         setApiError('backend_detail');
-        setApiErrorDetail('Khong nhan duoc phan hoi am thanh tu AI.');
+        setApiErrorDetail('Khong nhan duoc phan hoi tu AI.');
         setVoiceStateSynced('error');
         return;
       }
 
-      setAudioResult(responseBlob);
       setUserTranscript(transcript);
       setAiResponse(responseText);
       setVoiceStateSynced('result');
@@ -160,7 +153,6 @@ const VoicePage = ({ onBack, language, setLanguage, artifactContext }) => {
     setVoiceStateSynced('idle');
     setApiError(null);
     setApiErrorDetail(null);
-    setAudioResult(null);
     setUserTranscript('');
     setAiResponse('');
     resetRecording(); // Xóa audioBlob cũ để effect không kích hoạt lại
@@ -170,7 +162,6 @@ const VoicePage = ({ onBack, language, setLanguage, artifactContext }) => {
     setVoiceStateSynced('idle');
     setApiError(null);
     setApiErrorDetail(null);
-    setAudioResult(null);
     setUserTranscript('');
     setAiResponse('');
     resetRecording();
@@ -212,7 +203,6 @@ const VoicePage = ({ onBack, language, setLanguage, artifactContext }) => {
 
         {voiceState === 'result' && (
           <VoiceResult
-            audioBlob={audioResult}
             textResponse={aiResponse}
             userTranscript={userTranscript}
             language={language}

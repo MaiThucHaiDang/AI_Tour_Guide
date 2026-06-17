@@ -362,8 +362,78 @@ async def find_artifact_by_name(name: str, lat: float = None, lng: float = None)
             )
     except Exception as exc:
         _LOGGER.warning("Database lookup by name failed: %s", exc)
+        return await _fallback_find_artifact_by_name(name)
 
     return None
+
+
+async def _artifact_row_to_info(session: AsyncSession, row: Artifact) -> ArtifactInfo:
+    extra = await _fetch_bilingual_fields(session, row.art_id)
+    return ArtifactInfo(
+        art_id=str(row.art_id),
+        loc_id=str(row.loc_id),
+        name_vi=row.name_vi,
+        name_en=row.name_en,
+        history_text_vi=row.history_text_vi,
+        history_text_en=row.history_text_en,
+        author=row.author,
+        year=row.year,
+        visit_route_vi=extra.get("visit_route_vi"),
+        visit_route_en=extra.get("visit_route_en"),
+        visit_highlights_vi=extra.get("visit_highlights_vi"),
+        visit_highlights_en=extra.get("visit_highlights_en"),
+        nearby_context_vi=extra.get("nearby_context_vi"),
+        nearby_context_en=extra.get("nearby_context_en"),
+        notable_objects_vi=extra.get("notable_objects_vi"),
+        notable_objects_en=extra.get("notable_objects_en"),
+        photo_spots_vi=extra.get("photo_spots_vi"),
+        photo_spots_en=extra.get("photo_spots_en"),
+    )
+
+
+async def _location_row_to_info(session: AsyncSession, row: Location) -> Optional[ArtifactInfo]:
+    art_stmt = select(Artifact).where(Artifact.loc_id == row.loc_id).limit(3)
+    art_result = await session.execute(art_stmt)
+    location_artifacts = art_result.scalars().all()
+    if not location_artifacts:
+        return None
+
+    summary_vi_parts = [f"Địa điểm {row.name_vi}. Các hiện vật nổi bật tại đây bao gồm:"]
+    summary_en_parts = [f"Location {row.name_en}. Prominent artifacts here include:"]
+    for artifact in location_artifacts:
+        vi_sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", (artifact.history_text_vi or ""))]
+        en_sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", (artifact.history_text_en or ""))]
+        summary_vi_parts.append(f"- {artifact.name_vi}: {' '.join(vi_sentences[:2])}")
+        summary_en_parts.append(f"- {artifact.name_en}: {' '.join(en_sentences[:2])}")
+
+    return ArtifactInfo(
+        art_id=f"loc_{row.loc_id}",
+        loc_id=str(row.loc_id),
+        name_vi=row.name_vi,
+        name_en=row.name_en,
+        history_text_vi="\n".join(summary_vi_parts),
+        history_text_en="\n".join(summary_en_parts),
+        author="Unknown",
+        year=None,
+    )
+
+
+async def _fallback_find_artifact_by_name(name: str) -> Optional[ArtifactInfo]:
+    """Find artifacts without pg_trgm, for local DBs where the extension is missing."""
+    try:
+        async with async_session_factory() as session:
+            row = await _direct_match(session, name)
+            if row is None:
+                tokens = _tokenize_query(name)
+                row = await _token_match(session, tokens)
+            if row is None:
+                return None
+            if isinstance(row, Location):
+                return await _location_row_to_info(session, row)
+            return await _artifact_row_to_info(session, row)
+    except Exception as exc:
+        _LOGGER.warning("Fallback database lookup by name failed: %s", exc)
+        return None
 
 
 # ─── Voice Pipeline Methods ─────────────────────────────────────────────────

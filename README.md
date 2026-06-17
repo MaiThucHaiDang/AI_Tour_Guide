@@ -9,7 +9,7 @@ AI Tour Guide là web app hướng dẫn du lịch thông minh. Ứng dụng ch�
 - Nhận diện hiện vật bằng Gemini Vision.
 - Tìm dữ liệu hiện vật trong PostgreSQL và trả lời nhanh từ DB/cache khi đủ thông tin.
 - Gọi LLM Gemini/Groq khi cần diễn giải tự nhiên.
-- Tạo audio bằng Edge TTS hoặc Web Speech API ở trình duyệt.
+- Đọc câu trả lời bằng Web Speech API ở trình duyệt; backend chỉ cần STT cho input giọng nói.
 - Ghi nhận phản hồi hữu ích/chưa đúng để cải thiện chất lượng câu trả lời.
 
 ## Cấu trúc
@@ -131,6 +131,7 @@ Frontend:
 ```bash
 cd frontend
 npm run build
+npm run test:web-speech
 npm run lint
 ```
 
@@ -139,4 +140,5 @@ npm run lint
 - Web hiện tối ưu cho máy tính và laptop. Mobile web/PWA là hướng phát triển sau.
 - Nếu backend chưa chạy, frontend vẫn mở được nhưng các request AI sẽ báo lỗi.
 - Nếu thiếu API key hoặc hết quota, các bước Vision/STT/LLM có thể thất bại.
+- Web Speech API phụ thuộc trình duyệt và giọng đọc cài trên thiết bị. Chrome/Edge hiện là lựa chọn ổn định nhất cho tính năng pause/play.
 - Nếu chưa chạy PostgreSQL/migration/seed data, hệ thống vẫn có thể chat general nhưng RAG hiện vật sẽ thiếu dữ liệu.

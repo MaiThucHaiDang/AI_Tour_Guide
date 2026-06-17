@@ -166,13 +166,34 @@ export const HUE_ARTIFACTS = [
   { id: 14, name_vi: "Thái Miếu",                        name_en: "Thai Mieu Temple",           lat: 16.4699109, lng: 107.5803246, highlightVi: "Công trình thờ tự các chúa Nguyễn, có giá trị lịch sử và kiến trúc cao.", highlightEn: "Shrine to the Nguyen lords, of great historical and architectural value.", images: ["/assets/images/art_14_1.jpg", "/assets/images/art_14_2.jpg"] },
   { id: 15, name_vi: "Cửa Hiển Nhơn",                    name_en: "Hien Nhon Gate",             lat: 16.4707473, lng: 107.5805514, highlightVi: "Cổng phía Đông Hoàng Thành, nổi tiếng với nghệ thuật chạm khắc gỗ tinh tế.", highlightEn: "Eastern gate of the Imperial City, famous for intricate wood carving art.", images: ["/assets/images/art_15_1.jpg", "/assets/images/art_15_2.jpg"] },
   { id: 16, name_vi: "Điện Long An (Bảo tàng Cổ vật)",   name_en: "Long An Palace (Museum)",    lat: 16.4712819, lng: 107.5818602, openHoursVi: OPEN_HOURS_VI, openHoursEn: OPEN_HOURS_EN, ticketVi: TICKET_MUSEUM_VI, ticketEn: TICKET_MUSEUM_EN, highlightVi: "Hiện là Bảo tàng Cổ vật Cung đình Huế, lưu giữ nhiều hiện vật quý triều Nguyễn.", highlightEn: "Now the Hue Royal Antiquities Museum, preserving precious Nguyen artifacts.", images: ["/assets/images/art_16_1.jpg", "/assets/images/art_16_2.jpg"] },
-  { id: 17, name_vi: "Ngọ Môn",                          name_en: "Ngo Mon Gate (Meridian Gate)", lat: 16.467766,  lng: 107.579146,  openHoursVi: OPEN_HOURS_VI, openHoursEn: OPEN_HOURS_EN, ticketVi: TICKET_HUE_VI, ticketEn: TICKET_HUE_EN, highlightVi: "Cổng chính của Hoàng Thành Huế, biểu tượng kiến trúc nổi tiếng nhất của Đại Nội.", highlightEn: "Main gate of Hue Imperial City, the most iconic architectural symbol of the Citadel.", images: ["/assets/images/art_17_1.jpg", "/assets/images/art_17_2.jpg"] },
+  { id: 17, name_vi: "Ngọ Môn",                          name_en: "Ngo Mon Gate (Meridian Gate)", lat: 16.467734,  lng: 107.579151,  openHoursVi: OPEN_HOURS_VI, openHoursEn: OPEN_HOURS_EN, ticketVi: TICKET_HUE_VI, ticketEn: TICKET_HUE_EN, highlightVi: "Cổng chính của Hoàng Thành Huế, biểu tượng kiến trúc nổi tiếng nhất của Đại Nội.", highlightEn: "Main gate of Hue Imperial City, the most iconic architectural symbol of the Citadel.", images: ["/assets/images/art_17_1.jpg", "/assets/images/art_17_2.jpg"] },
 ];
 
 const MAP_BOUNDS = [
   [16.4625, 107.5706], // SW
   [16.4765, 107.5854]  // NE
 ];
+
+const isValidArtifactPosition = (artifact, bounds = MAP_BOUNDS) => {
+  const lat = Number(artifact?.lat);
+  const lng = Number(artifact?.lng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+  if (lat === 0 && lng === 0) return false;
+  const safeBounds = Array.isArray(bounds)
+    && bounds.length === 2
+    && Array.isArray(bounds[0])
+    && Array.isArray(bounds[1])
+    ? bounds
+    : MAP_BOUNDS;
+  const [[swLat, swLng], [neLat, neLng]] = safeBounds;
+  const padding = 0.003;
+  return (
+    lat >= Math.min(swLat, neLat) - padding
+    && lat <= Math.max(swLat, neLat) + padding
+    && lng >= Math.min(swLng, neLng) - padding
+    && lng <= Math.max(swLng, neLng) + padding
+  );
+};
 
 // Helper to calculate distance in meters between two points
 const getDistance = (p1, p2) => {
@@ -265,7 +286,7 @@ const MapExplore = ({
           const merged = data.artifacts.map(art => {
             const local = HUE_ARTIFACTS.find(a => Number(a.id) === Number(art.id));
             return local ? { ...local, ...art } : art;
-          });
+          }).filter(artifact => isValidArtifactPosition(artifact, data.map_bounds || MAP_BOUNDS));
           setArtifactsList(merged);
         }
       } catch (err) {
@@ -288,7 +309,7 @@ const MapExplore = ({
       let finalStart = start;
       if (isFar) {
         // Fallback start coordinates to Ngọ Môn (ID 17) if user is too far from Hue
-        finalStart = { lat: 16.467766, lng: 107.579146 };
+        finalStart = { lat: 16.467734, lng: 107.579151 };
         setCurrentLocation(finalStart);
       }
 
@@ -332,7 +353,7 @@ const MapExplore = ({
 
           // 1. Auto Check-in Logic (Proximity < 30m)
           if (onPassportCheckIn) {
-            HUE_ARTIFACTS.forEach(artifact => {
+            artifactsList.filter((artifact) => isValidArtifactPosition(artifact)).forEach(artifact => {
               const dist = getDistance(loc, artifact);
               if (dist < 30) {
                 onPassportCheckIn(artifact, { method: 'gps', distanceMeters: dist });
@@ -360,7 +381,7 @@ const MapExplore = ({
         navigator.geolocation.clearWatch(watchId);
       }
     };
-  }, [calculateRoute, isNavigatingStarted, targetLocation, useGPS, onPassportCheckIn]);
+  }, [artifactsList, calculateRoute, isNavigatingStarted, targetLocation, useGPS, onPassportCheckIn]);
 
   useEffect(() => {
     if (!onRouteStatusChange) return;
@@ -442,7 +463,7 @@ const MapExplore = ({
   };
 
   const handleGoToNgoMon = () => {
-    setMapCenter([16.467766, 107.579146]);
+    setMapCenter([16.467734, 107.579151]);
   };
 
   const handleRelocateGPS = () => {
@@ -536,7 +557,7 @@ const MapExplore = ({
     let startLoc = currentLocation;
     if (!startLoc) {
       // Fallback start coordinates to Ngọ Môn (ID 17) if currentLocation is not set
-      startLoc = { lat: 16.467766, lng: 107.579146 };
+      startLoc = { lat: 16.467734, lng: 107.579151 };
       setCurrentLocation(startLoc);
       setMapCenter([startLoc.lat, startLoc.lng]);
     }
@@ -590,7 +611,7 @@ const MapExplore = ({
     setIsNavigating(true);
     setIsNavigatingStarted(false);
     setActiveTourIndex(index);
-    const startLoc = currentLocation || { lat: 16.467766, lng: 107.579146 };
+    const startLoc = currentLocation || { lat: 16.467734, lng: 107.579151 };
     await calculateRoute(startLoc, artifact);
   };
 
@@ -949,7 +970,7 @@ const MapExplore = ({
         )}
 
         {/* Artifact markers */}
-        {artifactsList.map(art => {
+        {artifactsList.filter((artifact) => isValidArtifactPosition(artifact)).map(art => {
           const isFocused = Number(focusedArtifactId) === Number(art.id);
           const isActiveTarget = Number(targetLocation?.id) === Number(art.id);
           const routeIndex = tourData ? tourData.route.findIndex(item => item.id === art.id) : -1;

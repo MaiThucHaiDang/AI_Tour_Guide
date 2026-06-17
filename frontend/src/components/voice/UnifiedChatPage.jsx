@@ -21,10 +21,7 @@ import {
   Upload,
   Volume2,
   VolumeX,
-  X,
-  SkipBack,
-  SkipForward,
-  Square
+  X
 } from 'lucide-react';
 import LanguageToggle from '../shared/LanguageToggle';
 import ImageGallery from '../shared/ImageGallery';
@@ -35,16 +32,10 @@ import {
   stopTTS,
   pauseTTS,
   resumeTTS,
-  isTTSPlaying,
-  isTTSPaused,
-  setTTSAudioElement,
-  fetchTTSAudio,
   submitFeedbackAPI,
 } from '../../services/apiService';
 import { compressImage } from '../../utils/imageUtils';
 import CameraScanner from '../CameraScanner';
-
-const AUDIO_HISTORY_MAX = 3;
 
 const COPY = {
   vi: {
@@ -245,27 +236,19 @@ const UnifiedChatPage = ({
   const [selectedLocation, setSelectedLocation] = useState(0);
   const [mobileGuidePanel, setMobileGuidePanel] = useState('prompts');
   const [showJumpToLatest, setShowJumpToLatest] = useState(false);
-  const [playingMsgId, setPlayingMsgId] = useState(null);
-  const [pausedMsgId, setPausedMsgId] = useState(null);
 
-  // Audio Playback states
   const [activeAudioMsgId, setActiveAudioMsgId] = useState(null);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [speechState, setSpeechState] = useState('idle');
 
   const messagesEndRef = useRef(null);
   const messageListRef = useRef(null);
   const shouldStickToBottomRef = useRef(true);
   const sessionIdRef = useRef(null);
-  const audioRef = useRef(null);
   const fileInputRef = useRef(null);
   const workspaceRef = useRef(null);
   const currentArtifactRef = useRef(null);
-  const ttsCheckIntervalRef = useRef(null);
   const messagesRef = useRef(messages);
   const lastInitialArtifactKeyRef = useRef(null);
-  const activeAudioMsgIdRef = useRef(null);
 
   useEffect(() => {
     currentArtifactRef.current = currentArtifact;
@@ -275,76 +258,17 @@ const UnifiedChatPage = ({
     messagesRef.current = messages;
   }, [messages]);
 
-  useEffect(() => {
-    activeAudioMsgIdRef.current = activeAudioMsgId;
-  }, [activeAudioMsgId]);
-
   const estimateSpeechSeconds = useCallback((text = '') => {
     const words = String(text).trim().split(/\s+/).filter(Boolean).length;
     if (!words) return 0;
     return Math.max(6, Math.round(words / 2.4));
   }, []);
 
-  const recordPassportAudio = useCallback((seconds, source = 'guide_audio') => {
-    const activeMsgId = activeAudioMsgIdRef.current;
-    const activeMsg = messagesRef.current.find(message => message.id === activeMsgId) || {};
-    onPassportAudio?.({
-      artifact: currentArtifactRef.current,
-      seconds,
-      title: activeMsg.content || '',
-      source
-    });
-  }, [onPassportAudio]);
-
-  // Unified HTML5 Audio listeners setup
   useEffect(() => {
-    audioRef.current = new Audio();
-    setTTSAudioElement(audioRef.current);
-    const audio = audioRef.current;
-
-    const handleTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
-    };
-
-    const handleLoadedMetadata = () => {
-      setDuration(audio.duration || 0);
-    };
-
-    const handleEnded = () => {
-      setIsPlaying(false);
-      setPlayingMsgId(null);
-      setPausedMsgId(null);
-      recordPassportAudio(Math.round(audio.duration || audio.currentTime || 0), 'backend_audio');
-      if (onNarrationFinished && currentArtifactRef.current) {
-        onNarrationFinished(currentArtifactRef.current);
-      }
-    };
-
-    const handlePlay = () => {
-      setIsPlaying(true);
-    };
-
-    const handlePause = () => {
-      setIsPlaying(false);
-    };
-
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('ended', handleEnded);
-    audio.addEventListener('play', handlePlay);
-    audio.addEventListener('pause', handlePause);
-
     return () => {
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('ended', handleEnded);
-      audio.removeEventListener('play', handlePlay);
-      audio.removeEventListener('pause', handlePause);
-      if (ttsCheckIntervalRef.current) clearTimeout(ttsCheckIntervalRef.current);
       stopTTS();
-      audio.pause();
     };
-  }, [onNarrationFinished, recordPassportAudio]);
+  }, []);
 
   const {
     isRecording,
@@ -576,8 +500,8 @@ const UnifiedChatPage = ({
         role: 'ai',
         type: 'text',
         content: response.responseText || '',
-        audioBlob: response.audioBlob,  // may be null (text-first)
-        ttsToken: response.ttsToken,
+        speechText: response.speechText || response.responseText || '',
+        audioStatus: 'idle',
         timestamp: new Date(),
         source: response.answerSource,
         artifactData: response.artifactId ? {
@@ -587,11 +511,6 @@ const UnifiedChatPage = ({
       };
       setIsProcessing(false);
       await appendAssistantMessageProgressively(aiMsg);
-
-      // Poll for backend TTS audio if ttsToken is present and no inline audio
-      if (response.ttsToken && (!response.audioBlob || response.audioBlob.size === 0)) {
-        pollTTSAudio(response.ttsToken, aiMsgId);
-      }
     } catch (error) {
       if (imageBase64 && !photoRecorded) {
         onPassportPhoto?.({
@@ -745,15 +664,14 @@ const UnifiedChatPage = ({
       item.id === streamId ? { ...item, content: fullContent, isStreaming: false } : item
     )));
 
-    if (autoSpeak && message.audioBlob && message.audioBlob.size > 0) {
-      // If inline audio is available, play it immediately
+    if (autoSpeak) {
+      // Start speaking as soon as the text is visible using the device voice.
       handleSpeakMessage(message);
     } else if (!autoSpeak) {
       if (onNarrationFinished && currentArtifactRef.current) {
         onNarrationFinished(currentArtifactRef.current);
       }
     }
-    // If autoSpeak but no inline audio, pollTTSAudio will handle playback
   };
 
   const getFriendlyError = (message = '') => {
@@ -832,156 +750,50 @@ const UnifiedChatPage = ({
     resetRecording();
   }, [recordingError, resetRecording]);
 
-  const playAudioBlob = async (blob, msgId) => {
-    stopTTS();
-    if (!blob || blob.size === 0) return false;
-    const audio = audioRef.current;
-    if (audio) {
-      if (audio.src && audio.src.startsWith('blob:')) {
-        URL.revokeObjectURL(audio.src);
-      }
-      const url = URL.createObjectURL(blob);
-      audio.src = url;
-      setPlayingMsgId(msgId || null);
-      setPausedMsgId(null);
-      setActiveAudioMsgId(msgId || null);
-      try {
-        await audio.play();
-        return true;
-      } catch (err) {
-        console.error('Playback failed:', err);
-        setPlayingMsgId(null);
-        setActiveAudioMsgId(null);
-        return false;
-      }
-    }
-    return false;
-  };
-
-  /**
-   * Poll backend for TTS audio (up to 12 times, 2s apart).
-   * When audio arrives, save to audioHistory and auto-play if autoSpeak.
-   */
-  const pollTTSAudio = useCallback((ttsToken, msgId) => {
-    let attempts = 0;
-    const maxAttempts = 12;
-    const poll = async () => {
-      attempts++;
-      try {
-        const result = await fetchTTSAudio(ttsToken);
-        if (result.status === 'ready' && result.audioBlob) {
-          // Save to message
-          setMessages(prev => prev.map(m =>
-            m.id === msgId ? { ...m, audioBlob: result.audioBlob } : m
-          ));
-          // Auto-play if enabled
-          if (autoSpeak) {
-            playAudioBlob(result.audioBlob, msgId);
-          }
-          return;
-        }
-      } catch (err) {
-        console.warn('fetchTTSAudio error during polling:', err);
-      }
-
-      if (attempts < maxAttempts) {
-        ttsCheckIntervalRef.current = setTimeout(poll, 2000);
-      } else {
-        // Fallback: use Web Speech API
-        if (autoSpeak) {
-          const msg = messagesRef.current.find(m => m.id === msgId) || {};
-          if (msg.content) {
-            setPlayingMsgId(msgId);
-            setPausedMsgId(null);
-            setActiveAudioMsgId(msgId);
-            setIsPlaying(true);
-            playTTS(msg.content, language, () => {
-              setPlayingMsgId(null);
-              setPausedMsgId(null);
-              setActiveAudioMsgId(null);
-              setIsPlaying(false);
-              onPassportAudio?.({
-                artifact: currentArtifactRef.current,
-                seconds: estimateSpeechSeconds(msg.content),
-                title: msg.content,
-                source: 'web_speech'
-              });
-              if (onNarrationFinished && currentArtifactRef.current) {
-                onNarrationFinished(currentArtifactRef.current);
-              }
-            });
-          }
-        }
-      }
-    };
-    // Start polling after 2 seconds
-    ttsCheckIntervalRef.current = setTimeout(poll, 2000);
-  }, [autoSpeak, estimateSpeechSeconds, language, onNarrationFinished, onPassportAudio]);
-
-
-
-  /**
-   * Speak/Pause/Resume toggle for a message.
-   */
   const handleSpeakMessage = async (message) => {
-    // If this message is currently playing -> pause
-    if (activeAudioMsgId === message.id) {
-      if (isPlaying) {
-        if (audioRef.current && audioRef.current.src) {
-          audioRef.current.pause();
-        } else {
-          // Web Speech pause
-          pauseTTS();
-          setIsPlaying(false);
-          setPlayingMsgId(null);
-          setPausedMsgId(message.id);
-        }
-      } else {
-        // Resume
-        if (audioRef.current && audioRef.current.src) {
-          if (audioRef.current.currentTime >= audioRef.current.duration - 0.1) {
-            audioRef.current.currentTime = 0;
-          }
-          audioRef.current.play().catch(() => {});
-        } else {
-          // Web Speech resume
-          resumeTTS();
-          setIsPlaying(true);
-          setPlayingMsgId(message.id);
-          setPausedMsgId(null);
-        }
+    const isActiveMessage = activeAudioMsgId === message.id;
+
+    if (isActiveMessage && speechState === 'playing') {
+      if (pauseTTS()) {
+        setSpeechState('paused');
+        setMessages(prev => prev.map(m => (
+          m.id === message.id ? { ...m, audioStatus: 'paused' } : m
+        )));
       }
       return;
     }
 
-    // Otherwise, start playing a different message
-    stopTTS();
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = '';
+    if (isActiveMessage && speechState === 'paused') {
+      if (resumeTTS()) {
+        setSpeechState('playing');
+        setMessages(prev => prev.map(m => (
+          m.id === message.id ? { ...m, audioStatus: 'playing' } : m
+        )));
+      } else {
+        handleStopAudio();
+        window.setTimeout(() => handleSpeakMessage(message), 0);
+      }
+      return;
     }
-    setCurrentTime(0);
-    setDuration(0);
 
-    let blob = message.audioBlob;
-    let played = false;
-    if (blob && blob.size > 0) {
-      played = await playAudioBlob(blob, message.id);
-    }
-    if (!played && message.content) {
-      setPlayingMsgId(message.id);
-      setPausedMsgId(null);
+    stopTTS();
+    const spokenText = message.content || message.speechText;
+    if (spokenText) {
       setActiveAudioMsgId(message.id);
-      setIsPlaying(true);
-      playTTS(message.content, language, () => {
-        setPlayingMsgId(null);
-        setPausedMsgId(null);
+      setSpeechState('playing');
+      setMessages(prev => prev.map(m => (
+        m.id === message.id ? { ...m, audioStatus: 'playing' } : m
+      )));
+      playTTS(spokenText, language, () => {
         setActiveAudioMsgId(null);
-        setIsPlaying(false);
+        setSpeechState('idle');
+        setMessages(prev => prev.map(m => (
+          m.id === message.id ? { ...m, audioStatus: 'stopped' } : m
+        )));
         onPassportAudio?.({
           artifact: currentArtifactRef.current,
-          seconds: estimateSpeechSeconds(message.content),
-          title: message.content,
+          seconds: estimateSpeechSeconds(spokenText),
+          title: spokenText,
           source: 'web_speech'
         });
         if (onNarrationFinished && currentArtifactRef.current) {
@@ -991,39 +803,14 @@ const UnifiedChatPage = ({
     }
   };
 
-  const handleSeekChange = (e) => {
-    const value = parseFloat(e.target.value);
-    setCurrentTime(value);
-    if (audioRef.current && audioRef.current.src) {
-      audioRef.current.currentTime = value;
-    }
-  };
-
-  const handleSkipBackward = () => {
-    if (audioRef.current && audioRef.current.src) {
-      audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 10);
-    }
-  };
-
-  const handleSkipForward = () => {
-    if (audioRef.current && audioRef.current.src) {
-      audioRef.current.currentTime = Math.min(duration, audioRef.current.currentTime + 10);
-    }
-  };
-
   const handleStopAudio = () => {
+    const stoppedMsgId = activeAudioMsgId;
     stopTTS();
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      audioRef.current.src = '';
-    }
-    setPlayingMsgId(null);
-    setPausedMsgId(null);
     setActiveAudioMsgId(null);
-    setIsPlaying(false);
-    setCurrentTime(0);
-    setDuration(0);
+    setSpeechState('idle');
+    setMessages(prev => prev.map(m => (
+      m.id === stoppedMsgId ? { ...m, audioStatus: 'stopped' } : m
+    )));
   };
 
   const handleSelectHistoryAudio = async (item) => {
@@ -1431,14 +1218,14 @@ const UnifiedChatPage = ({
                       {message.isStreaming && <span className="stream-caret" aria-hidden="true" />}
                       {message.role === 'ai' && message.type !== 'error' && (() => {
                         const isActive = activeAudioMsgId === message.id;
-                        const isCurrentPlaying = isActive && isPlaying;
-                        const isCurrentPaused = isActive && !isPlaying;
+                        const isCurrentPlaying = isActive && speechState === 'playing';
+                        const isCurrentPaused = isActive && speechState === 'paused';
                         return (
                           <button
                             className={`tts-control-btn ${isCurrentPlaying ? 'is-playing' : ''} ${isCurrentPaused ? 'is-paused' : ''}`}
                             onClick={() => handleSpeakMessage(message)}
-                            aria-label={isCurrentPlaying ? (language === 'vi' ? 'Tạm dừng' : 'Pause') : isCurrentPaused ? (language === 'vi' ? 'Tiếp tục' : 'Resume') : copy.listen}
-                            title={isCurrentPlaying ? (language === 'vi' ? 'Tạm dừng' : 'Pause') : isCurrentPaused ? (language === 'vi' ? 'Tiếp tục' : 'Resume') : copy.listen}
+                            aria-label={isCurrentPlaying ? (language === 'vi' ? 'Tạm dừng' : 'Pause') : isCurrentPaused ? (language === 'vi' ? 'Phát tiếp' : 'Resume') : copy.listen}
+                            title={isCurrentPlaying ? (language === 'vi' ? 'Tạm dừng' : 'Pause') : isCurrentPaused ? (language === 'vi' ? 'Phát tiếp' : 'Resume') : copy.listen}
                           >
                             {isCurrentPlaying ? <Pause size={14} /> : isCurrentPaused ? <Play size={14} /> : <Volume2 size={14} />}
                           </button>
@@ -1492,7 +1279,6 @@ const UnifiedChatPage = ({
               .filter(m => m.role === 'ai' && m.type === 'text' && !m.isStreaming)
               .slice(-3);
 
-            const isWebSpeech = !(audioRef.current && audioRef.current.src);
             const displayTitle = activeMsg.content 
               ? (activeMsg.content.length > 50 ? activeMsg.content.slice(0, 50) + '...' : activeMsg.content)
               : (language === 'vi' ? 'Đang phát thuyết minh di tích' : 'Playing narration');
@@ -1501,49 +1287,28 @@ const UnifiedChatPage = ({
               <div className="bottom-audio-player">
                 <div className="audio-player-layout">
                   <div className="audio-player-meta">
-                    <div className={`audio-wave-icon ${isPlaying ? 'wave-playing' : ''}`}>
+                    <div className={`audio-wave-icon ${speechState === 'playing' ? 'wave-playing' : ''}`}>
                       <Volume2 size={16} />
                     </div>
                     <div className="audio-meta-text">
                       <strong>{displayTitle}</strong>
-                      <span>{isWebSpeech ? (language === 'vi' ? 'Giọng đọc trên thiết bị' : 'Device voice') : (language === 'vi' ? 'Giọng thuyết minh' : 'Narration voice')}</span>
+                      <span>{language === 'vi' ? 'Giọng đọc trên thiết bị' : 'Device voice'}</span>
                     </div>
                   </div>
 
                   <div className="audio-player-controls-section">
                     <div className="audio-playback-buttons">
-                      <button onClick={handleSkipBackward} disabled={isWebSpeech} title={language === 'vi' ? 'Lùi 10s' : 'Back 10s'} aria-label="Skip backward">
-                        <SkipBack size={14} />
-                      </button>
                       <button 
                         className="play-pause-toggle-btn"
                         onClick={() => handleSpeakMessage(activeMsg)} 
-                        title={isPlaying ? (language === 'vi' ? 'Tạm dừng' : 'Pause') : (language === 'vi' ? 'Phát tiếp' : 'Play')}
-                        aria-label={isPlaying ? 'Pause' : 'Play'}
+                        title={speechState === 'playing' ? (language === 'vi' ? 'Tạm dừng' : 'Pause') : (language === 'vi' ? 'Phát' : 'Play')}
+                        aria-label={speechState === 'playing' ? 'Pause' : 'Play'}
                       >
-                        {isPlaying ? <Pause size={16} /> : <Play size={16} />}
-                      </button>
-                      <button onClick={handleSkipForward} disabled={isWebSpeech} title={language === 'vi' ? 'Tiến 10s' : 'Forward 10s'} aria-label="Skip forward">
-                        <SkipForward size={14} />
+                        {speechState === 'playing' ? <Pause size={16} /> : <Play size={16} />}
                       </button>
                       <button onClick={handleStopAudio} className="stop-playback-btn" title={language === 'vi' ? 'Dừng phát' : 'Stop'} aria-label="Stop playback">
-                        <Square size={13} fill="currentColor" />
+                        <X size={14} />
                       </button>
-                    </div>
-
-                    <div className="audio-timeline-container">
-                      <span className="time-label">{formatDuration(currentTime)}</span>
-                      <input 
-                        type="range"
-                        min={0}
-                        max={duration || 1}
-                        value={currentTime}
-                        onChange={handleSeekChange}
-                        disabled={isWebSpeech}
-                        className="audio-seekbar"
-                        aria-label="Seek bar"
-                      />
-                      <span className="time-label">{formatDuration(duration)}</span>
                     </div>
                   </div>
                 </div>
@@ -3333,47 +3098,6 @@ const UnifiedChatPage = ({
           background: var(--ui-red);
           color: #ffffff;
           border-color: var(--ui-red);
-        }
-
-        .audio-timeline-container {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          flex: 1;
-        }
-
-        .time-label {
-          font-size: 11px;
-          color: var(--ui-muted);
-          font-family: monospace;
-          min-width: 34px;
-        }
-
-        .audio-seekbar {
-          flex: 1;
-          height: 4px;
-          border-radius: 2px;
-          background: rgba(24, 32, 35, 0.1);
-          outline: none;
-          -webkit-appearance: none;
-          accent-color: var(--ui-teal);
-          cursor: pointer;
-        }
-
-        .audio-seekbar::-webkit-slider-runnable-track {
-          width: 100%;
-          height: 4px;
-          cursor: pointer;
-        }
-
-        .audio-seekbar::-webkit-slider-thumb {
-          height: 12px;
-          width: 12px;
-          border-radius: 50%;
-          background: var(--ui-teal);
-          cursor: pointer;
-          -webkit-appearance: none;
-          margin-top: -4px;
         }
 
         .audio-history-switcher {

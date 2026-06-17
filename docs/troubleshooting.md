@@ -106,6 +106,28 @@ Xu ly:
 - Kiem tra thiet bi input cua he dieu hanh.
 - Nhap cau hoi bang text neu mic khong kha dung.
 
+## Voice playback bi ngat hoac khong pause/play
+
+Dau hieu:
+
+- Thanh voice bien mat khi moi pause/play.
+- Cau tra loi dai khong duoc doc het.
+- Trinh duyet khong co giong doc phu hop.
+
+Kiem tra:
+
+```powershell
+cd frontend
+npm run test:web-speech
+```
+
+Xu ly:
+
+- Dung Chrome hoac Edge ban moi.
+- Kiem tra browser co ho tro `window.speechSynthesis`.
+- Neu vua doi code voice, chay lai `npm run test:web-speech` va `npm run build`.
+- Neu bi ngat sau khi chuyen tab/ngu man hinh, thu giu tab dang active vi Web Speech phu thuoc audio engine cua trinh duyet.
+
 ## Timeout khi gui anh/audio
 
 Dau hieu:
@@ -145,6 +167,7 @@ Xu ly:
 ```powershell
 .\.venv\Scripts\python.exe -m pytest backend\tests
 cd frontend
+npm run test:web-speech
 npm run lint
 npm run build
 ```

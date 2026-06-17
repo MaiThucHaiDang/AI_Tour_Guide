@@ -10,7 +10,8 @@ AI Tour Guide is a web application for visitors exploring cultural and historica
 - Backend: FastAPI unified backend in `backend/`.
 - Database: PostgreSQL 16 with async SQLAlchemy.
 - Migration: Alembic in `migrations/`.
-- AI providers: Gemini Vision/Text via `google-genai`, Groq STT/LLM fallback, Edge TTS.
+- AI providers: Gemini Vision/Text via `google-genai`, Groq STT/LLM fallback.
+- Browser narration: Web Speech API in the frontend, with chunked playback plus pause/resume/stop controls.
 
 ## Main User Flow
 
@@ -23,7 +24,7 @@ Visitor opens the web app
 -> retrieval searches artifact data
 -> direct DB/template/cache answer is preferred
 -> LLM is used only when natural reasoning is needed
--> frontend shows short answer, artifact details, audio, and feedback actions
+-> frontend shows the answer, artifact details, browser narration, and feedback actions
 ```
 
 ## API Endpoints
@@ -34,8 +35,8 @@ Visitor opens the web app
 | `/api/v1/health/live` | GET | Process liveness |
 | `/api/v1/health/ready` | GET | DB and provider readiness |
 | `/api/v1/recognize` | POST | Image recognition |
-| `/api/v1/voice/chat` | POST | Voice-only chat |
 | `/api/v1/chat/unified` | POST | Text/image/voice unified chat |
+| `/api/v1/voice/chat` | POST | Legacy voice-only chat |
 | `/api/v1/feedback` | POST | User feedback on answers |
 | `/api/v1/metrics` | GET | In-memory operational counters and latency |
 
@@ -45,7 +46,8 @@ Visitor opens the web app
 - AI endpoints are rate-limited.
 - Text, image, and audio payloads are size-checked before provider calls.
 - Frontend requests have timeout/abort handling.
-- TTS and common answers use in-memory cache for repeated requests.
+- Common answers use in-memory cache for repeated requests.
+- Frontend Web Speech playback splits long text into smaller chunks so browser voices can pause/resume reliably.
 - Errors shown to visitors are action-oriented; raw provider exceptions stay in logs.
 
 ## Data Flow

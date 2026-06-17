@@ -16,7 +16,7 @@
     { "id": "hue_14", "name": "Thái Miếu",           "lat": 16.4699109, "lng": 107.5803246 },
     { "id": "hue_15", "name": "Cửa Hiển Nhơn",       "lat": 16.4707473, "lng": 107.5805514 },
     { "id": "hue_16", "name": "Điện Long An",        "lat": 16.4712819, "lng": 107.5818602 },
-    { "id": "hue_17", "name": "Ngọ Môn",             "lat": 16.468083,  "lng": 107.578667 }
+    { "id": "hue_17", "name": "Ngọ Môn",             "lat": 16.467734,  "lng": 107.579151 }
   ],
   "edges": [
     { "source": "hue_17", "target": "hue_08", "weight": 80 },

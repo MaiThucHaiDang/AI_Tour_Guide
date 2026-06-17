@@ -199,7 +199,7 @@ function App() {
     updateViewQuery('destination', { destination: destination.id });
   };
 
-  const handleStartDestinationTour = (destination, initialTab = 'artifact') => {
+  const handleStartDestinationTour = (destination, initialTab = 'map') => {
     preloadView('dashboard');
     setSelectedLocation({
       id: destination.id,
@@ -293,7 +293,7 @@ function App() {
           destination={selectedDestination}
           language={language}
           onBack={backToDestinationList}
-          onStartTour={(destination) => handleStartDestinationTour(destination, 'artifact')}
+          onStartTour={(destination) => handleStartDestinationTour(destination, 'map')}
           onAskGuide={(destination) => handleStartDestinationTour(destination, 'ask')}
         />
       )}

@@ -9,6 +9,7 @@ import { LocateFixed, Navigation, MapPin, Info, CheckCircle, ChevronLeft, Chevro
 import { playTTS, stopTTS, pauseTTS, resumeTTS, isTTSPaused, getMapConfigAPI, getRouteAPI, saveMapConfigAPI, planTourAPI } from '../../services/apiService';
 import ImageGallery from '../shared/ImageGallery';
 import { hasPhotoBoothFrame } from '../../data/photoBoothFrames';
+import MapStopSheet from './MapStopSheet';
 
 // Fix Leaflet default icon issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -1131,43 +1132,16 @@ const MapExplore = ({
       </MapContainer>
 
       {selectedArtifact && !isNavigating && !isTourModalOpen && !showStartModal && (
-        <div
-          className="map-context-card"
-          onPointerDown={(event) => event.stopPropagation()}
-          onClick={(event) => event.stopPropagation()}
-        >
-          <div className="map-context-copy">
-            <span>{isVi ? 'Đang xem trên bản đồ' : 'Viewing on map'}</span>
-            <strong>{getArtifactName(selectedArtifact)}</strong>
-            <small>
-              {isVi
-                ? 'Chọn cách bạn muốn tiếp tục với điểm này.'
-                : 'Choose how you want to continue from this stop.'}
-            </small>
-          </div>
-          <div className="map-context-actions">
-            <button onClick={() => handleIntroduce(selectedArtifact)}>
-              <Volume2 size={15} />
-              {isVi ? 'Nghe giới thiệu' : 'Hear intro'}
-            </button>
-            <button onClick={() => handleAskSelectedArtifact(selectedArtifact)}>
-              <Info size={15} />
-              {isVi ? 'Hỏi về điểm này' : 'Ask here'}
-            </button>
-            <button onClick={() => startNavigation(selectedArtifact)}>
-              <Navigation size={15} />
-              {isVi ? 'Đường đi' : 'Route'}
-            </button>
-            <button
-              onClick={() => hasPhotoBoothFrame(selectedArtifact.id) && onPhotoBooth?.(selectedArtifact)}
-              disabled={!hasPhotoBoothFrame(selectedArtifact.id)}
-              title={!hasPhotoBoothFrame(selectedArtifact.id) ? (isVi ? 'Khung check-in sẽ được bổ sung sau' : 'Photo frame coming later') : undefined}
-            >
-              {hasPhotoBoothFrame(selectedArtifact.id) ? <Camera size={15} /> : <Lock size={15} />}
-              {hasPhotoBoothFrame(selectedArtifact.id) ? (isVi ? 'Check-in ảnh' : 'Photo') : (isVi ? 'Khóa' : 'Locked')}
-            </button>
-          </div>
-        </div>
+        <MapStopSheet
+          artifact={selectedArtifact}
+          language={language}
+          onAsk={handleIntroduce}
+          onAskAI={handleAskSelectedArtifact}
+          onNavigate={() => startNavigation(selectedArtifact)}
+          onPhotoBooth={onPhotoBooth}
+          onClose={() => setSelectedArtifact(null)}
+          currentLocation={currentLocation}
+        />
       )}
 
       {/* Tour Planner Modal */}
@@ -1624,4 +1598,9 @@ const MapExplore = ({
   );
 };
 
-export default MapExplore;
+export default React.memo(MapExplore, (prevProps, nextProps) => {
+  return prevProps.focusedArtifactId === nextProps.focusedArtifactId &&
+         prevProps.active === nextProps.active &&
+         prevProps.language === nextProps.language &&
+         prevProps.externalNavigationTarget === nextProps.externalNavigationTarget;
+});

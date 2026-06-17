@@ -1,10 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  ArrowRight,
   BookOpen,
   Landmark,
   MapPin,
-  MessageCircle,
   Mic,
   ScanSearch,
   ShieldCheck,
@@ -12,7 +10,7 @@ import {
   Smartphone
 } from 'lucide-react';
 import DestinationGrid from './destinations/DestinationGrid';
-import { featuredDestinations } from '../data/destinations';
+import { destinations } from '../data/destinations';
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
@@ -33,25 +31,22 @@ const HomeScreen = ({
   isPhoneFrame = false
 }) => {
   const isVi = language === 'vi';
-  const [activeScene, setActiveScene] = useState('hue');
   const [visibleIds, setVisibleIds] = useState(() => new Set(['hero']));
   const [isLaunching, setIsLaunching] = useState(false);
   const rootRef = useRef(null);
-  const carouselRef = useRef(null);
-  const dragStateRef = useRef({ active: false, startX: 0, scrollLeft: 0 });
   const pointerFrameRef = useRef(0);
   const pointerPositionRef = useRef({ x: 0.5, y: 0.5 });
   const prefersReducedMotionRef = useRef(false);
   const sectionRefs = useRef({});
 
   const copy = {
-    eyebrow: isVi ? 'AI Tour Guide cho Đại Nội Huế' : 'AI Tour Guide for Hue Imperial City',
+    eyebrow: isVi ? 'AI Tour Guide Đại Nội Huế' : 'AI Tour Guide Hue Imperial City',
     title: isVi
-      ? 'Một hướng dẫn viên bỏ túi cho 17 điểm tham quan trong Đại Nội.'
-      : 'A pocket guide for 17 stops inside Hue Imperial City.',
+      ? 'Bản đồ di tích & Hướng dẫn viên thuyết minh AI'
+      : 'Monument Map & AI Tour Guide',
     desc: isVi
-      ? 'Mở bản đồ Đại Nội, chọn một công trình, hỏi AI bằng giọng nói hoặc văn bản, rồi nghe phần thuyết minh ngay trên điện thoại.'
-      : 'Open the Citadel map, choose a monument, ask by voice or text, and hear the guide directly on your phone.',
+      ? 'Mở bản đồ, chọn điểm dừng di tích, hỏi AI hoặc nghe thuyết minh trực tiếp ngay trên điện thoại.'
+      : 'Open the map, select a stop, ask AI or hear audio guide directly on your phone.',
     primary: isVi ? 'Bắt đầu tham quan' : 'Start touring',
     secondary: isVi ? 'Mở khung điện thoại' : 'Open phone frame',
     navPlaces: isVi ? 'Điểm dừng' : 'Stops',
@@ -89,44 +84,7 @@ const HomeScreen = ({
       ? 'Hướng dẫn viên bỏ túi cho hành trình trong Đại Nội Huế.'
       : 'A pocket guide for Hue Imperial City.',
     launchText: isVi ? 'Đang mở bản đồ Đại Nội' : 'Opening the Citadel map',
-    scenes: [
-      {
-        id: 'map',
-        image: REAL_IMAGES.map,
-        place: isVi ? 'Bản đồ Đại Nội' : 'Citadel map',
-        eyebrow: isVi ? 'Điểm dừng 01' : 'Stop 01',
-        title: isVi ? 'Xem 17 công trình trên một bản đồ tham quan.' : 'See 17 monuments on one tour map.',
-        text: isVi
-          ? 'Marker công trình, vị trí hiện tại và lộ trình đi bộ được gom trong cùng một màn hình mobile.'
-          : 'Monument markers, current position, and walking routes stay together in one mobile screen.',
-        prompt: isVi ? 'Chỉ đường tới Ngọ Môn' : 'Navigate to Ngo Mon Gate',
-        chips: isVi ? ['Bản đồ', '17 điểm', 'Chỉ đường'] : ['Map', '17 stops', 'Directions']
-      },
-      {
-        id: 'ngo-mon',
-        image: REAL_IMAGES.ngoMon,
-        place: isVi ? 'Ngọ Môn' : 'Ngo Mon Gate',
-        eyebrow: isVi ? 'Điểm dừng 02' : 'Stop 02',
-        title: isVi ? 'Chạm một điểm dừng, nghe phần giới thiệu.' : 'Tap a stop and hear the introduction.',
-        text: isVi
-          ? 'Người dùng có thể nghe giới thiệu ngắn, hỏi tiếp bằng văn bản hoặc dùng giọng nói khi đang di chuyển.'
-          : 'Visitors can hear a short intro, follow up by text, or use voice while moving.',
-        prompt: isVi ? 'Ngọ Môn có vai trò gì trong triều Nguyễn?' : 'What role did Ngo Mon Gate play?',
-        chips: isVi ? ['Nghe giới thiệu', 'Hỏi tiếp', 'Giọng nói'] : ['Narration', 'Follow-up', 'Voice']
-      },
-      {
-        id: 'thai-hoa',
-        image: REAL_IMAGES.thaiHoa,
-        place: isVi ? 'Điện Thái Hòa' : 'Thai Hoa Palace',
-        eyebrow: isVi ? 'Điểm dừng 03' : 'Stop 03',
-        title: isVi ? 'Chụp hoặc tải ảnh để giữ đúng ngữ cảnh.' : 'Upload or capture a photo to keep context.',
-        text: isVi
-          ? 'Khi nhận diện được công trình hoặc hiện vật liên quan, phần hỏi đáp chuyển sang đúng điểm đang xem.'
-          : 'When a related monument or artifact is recognized, the guide keeps the conversation tied to that stop.',
-        prompt: isVi ? 'Điện Thái Hòa được xây dựng năm nào?' : 'When was Thai Hoa Palace built?',
-        chips: isVi ? ['Ảnh', 'Ngữ cảnh', 'Tóm tắt'] : ['Photo', 'Context', 'Summary']
-      }
-    ],
+
     features: [
       {
         icon: MapPin,
@@ -168,8 +126,7 @@ const HomeScreen = ({
     ]
   };
 
-  const sceneMap = Object.fromEntries(copy.scenes.map((scene) => [scene.id, scene]));
-  const currentScene = sceneMap[activeScene] || copy.scenes[0];
+
 
   useEffect(() => {
     const mediaQuery = window.matchMedia(REDUCED_MOTION_QUERY);
@@ -202,7 +159,6 @@ const HomeScreen = ({
       (entries) => {
         entries.forEach((entry) => {
           const revealId = entry.target.dataset.reveal;
-          const sceneId = entry.target.dataset.scene;
 
           if (entry.isIntersecting && revealId) {
             setVisibleIds((prev) => {
@@ -211,10 +167,6 @@ const HomeScreen = ({
               next.add(revealId);
               return next;
             });
-          }
-
-          if (entry.isIntersecting && sceneId) {
-            setActiveScene((current) => (current === sceneId ? current : sceneId));
           }
         });
       },
@@ -238,11 +190,19 @@ const HomeScreen = ({
     `${className} reveal-on-scroll ${visibleIds.has(id) ? 'is-visible' : ''}`.trim()
   );
 
-  const startExperience = () => {
+  const startMapExperience = () => {
     if (isLaunching) return;
     setIsLaunching(true);
     window.setTimeout(() => {
-      onSelectFeature('dashboard', { id: 1, name_vi: "Kinh thành Huế (Đại Nội)" });
+      onSelectFeature('dashboard', { id: 1, name_vi: "Kinh thành Huế (Đại Nội)", initialTab: 'map' });
+    }, 720);
+  };
+
+  const startChatExperience = () => {
+    if (isLaunching) return;
+    setIsLaunching(true);
+    window.setTimeout(() => {
+      onSelectFeature('dashboard', { id: 1, name_vi: "Kinh thành Huế (Đại Nội)", initialTab: 'ask' });
     }, 720);
   };
 
@@ -278,28 +238,7 @@ const HomeScreen = ({
     });
   };
 
-  const handleCarouselPointerDown = (event) => {
-    const carousel = carouselRef.current;
-    if (!carousel) return;
-    dragStateRef.current = {
-      active: true,
-      startX: event.pageX,
-      scrollLeft: carousel.scrollLeft
-    };
-    carousel.setPointerCapture?.(event.pointerId);
-  };
 
-  const handleCarouselPointerMove = (event) => {
-    const carousel = carouselRef.current;
-    const drag = dragStateRef.current;
-    if (!carousel || !drag.active) return;
-    const distance = event.pageX - drag.startX;
-    carousel.scrollLeft = drag.scrollLeft - distance;
-  };
-
-  const stopCarouselDrag = () => {
-    dragStateRef.current.active = false;
-  };
 
   return (
     <div className="tour-home landing-page" ref={rootRef} onPointerMove={handlePointerMove}>
@@ -350,28 +289,27 @@ const HomeScreen = ({
             <h2>{copy.title}</h2>
             <p>{copy.desc}</p>
             
-            <div className="location-picker" style={{ marginTop: '40px' }}>
+            <div className="landing-hero-ctas" style={{ marginTop: '40px', display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
                 <button
-                    className="location-card-hero"
+                    className="hero-btn-primary"
                     type="button"
-                    onClick={startExperience}
+                    onClick={startMapExperience}
                 >
-                    <span className="location-card-hero-icon" aria-hidden="true">
-                        <Landmark size={36} color="#fff" />
-                    </span>
-                    <span className="location-card-hero-copy">
-                        <strong>{isVi ? 'Đại Nội Huế' : 'Hue Imperial City'}</strong>
-                        <small>{isVi ? '17 điểm tham quan - bản đồ - hỏi AI' : '17 tour stops - map - AI guide'}</small>
-                        <span>
-                            {isVi ? 'Mở bản đồ mobile' : 'Open mobile map'}
-                            <ArrowRight size={16} />
-                        </span>
-                    </span>
+                    <Landmark size={20} />
+                    <span>{isVi ? 'Mở bản đồ Đại Nội' : 'Open Citadel Map'}</span>
+                </button>
+                <button
+                    className="hero-btn-secondary"
+                    type="button"
+                    onClick={startChatExperience}
+                >
+                    <Sparkles size={20} />
+                    <span>{isVi ? 'Hỏi AI ngay' : 'Ask AI Guide'}</span>
                 </button>
             </div>
 
             {!isPhoneFrame && (
-              <div className="tour-home-actions phone-preview-actions">
+              <div className="tour-home-actions phone-preview-actions" style={{ marginTop: '20px' }}>
                 <button className="secondary-link phone-preview-trigger" onClick={openPhonePreview}>
                   <Smartphone size={18} />
                   <span>{copy.secondary}</span>
@@ -387,7 +325,7 @@ const HomeScreen = ({
         </section>
 
         <DestinationGrid
-          destinations={featuredDestinations}
+          destinations={destinations}
           language={language}
           onSelectDestination={handleDestinationSelect}
           kicker={copy.destinationKicker}
@@ -395,145 +333,6 @@ const HomeScreen = ({
           description={copy.destinationText}
         />
 
-        <section className="landing-story-shell" id="tour-flow">
-          <div className="story-stage-wrap">
-            <div className="story-stage">
-              {copy.scenes.map((scene) => (
-                <div
-                  className={`story-image-layer ${activeScene === scene.id ? 'active' : ''}`}
-                  style={{ backgroundImage: `linear-gradient(180deg, rgba(9, 17, 18, 0.08), rgba(9, 17, 18, 0.58)), url(${scene.image})` }}
-                  key={scene.id}
-                />
-              ))}
-              <div className="story-stage-badge">
-                <span>{currentScene.place}</span>
-                <strong>{currentScene.eyebrow}</strong>
-              </div>
-              <div className="story-stage-prompt">
-                <MessageCircle size={18} />
-                <span>{currentScene.prompt}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="story-copy">
-            <div className="story-heading">
-              <span className="section-label">{copy.storyKicker}</span>
-              <h2>{copy.storyTitle}</h2>
-            </div>
-
-            <div
-              className="place-carousel"
-              ref={carouselRef}
-              onPointerDown={handleCarouselPointerDown}
-              onPointerMove={handleCarouselPointerMove}
-              onPointerUp={stopCarouselDrag}
-              onPointerLeave={stopCarouselDrag}
-              aria-label={isVi ? 'Kéo để xem ảnh địa danh' : 'Drag to browse landmark images'}
-            >
-              {copy.scenes.map((scene) => (
-                <button
-                  className={`place-slide ${activeScene === scene.id ? 'active' : ''}`}
-                  key={scene.id}
-                  onClick={() => setActiveScene(scene.id)}
-                >
-                  <img src={scene.image} alt={scene.place} draggable="false" />
-                  <span>{scene.place}</span>
-                </button>
-              ))}
-            </div>
-
-            {copy.scenes.map((scene) => (
-              <article
-                key={scene.id}
-                ref={setSectionRef(scene.id)}
-                data-reveal={scene.id}
-                data-scene={scene.id}
-                className={revealClass(scene.id, `story-card ${activeScene === scene.id ? 'active' : ''}`)}
-              >
-                <span>{scene.eyebrow}</span>
-                <h3>{scene.title}</h3>
-                <p>{scene.text}</p>
-                <div className="scene-chip-row">
-                  {scene.chips.map((chip) => (
-                    <strong key={chip}>{chip}</strong>
-                  ))}
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="feature-pop-section" id="features">
-          <div className={revealClass('features-title', 'landing-section-heading')} ref={setSectionRef('features-title')} data-reveal="features-title">
-            <span className="section-label">{copy.featureKicker}</span>
-            <h2>{copy.featureTitle}</h2>
-          </div>
-
-          <div className="feature-pop-grid">
-            {copy.features.map(({ icon: Icon, title, text }, index) => {
-              const revealId = `feature-${index}`;
-              return (
-                <article
-                  ref={setSectionRef(revealId)}
-                  data-reveal={revealId}
-                  className={revealClass(revealId, 'feature-pop-card')}
-                  style={{ '--delay': `${index * 80}ms` }}
-                  key={title}
-                >
-                  <Icon size={26} />
-                  <strong>{title}</strong>
-                  <span>{text}</span>
-                </article>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="landing-outcomes">
-          <div className={revealClass('outcomes-title', 'outcome-heading')} ref={setSectionRef('outcomes-title')} data-reveal="outcomes-title">
-            <span className="section-label">{copy.outcomeKicker}</span>
-            <h2>{copy.outcomeTitle}</h2>
-          </div>
-          <div className="outcome-grid">
-            {copy.outcomes.map(({ icon: Icon, title, text }, index) => {
-              const revealId = `outcome-${index}`;
-              return (
-                <article
-                  ref={setSectionRef(revealId)}
-                  data-reveal={revealId}
-                  className={revealClass(revealId, 'outcome-card')}
-                  style={{ '--delay': `${index * 90}ms` }}
-                  key={title}
-                >
-                  <Icon size={24} />
-                  <strong>{title}</strong>
-                  <span>{text}</span>
-                </article>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className={revealClass('final-cta', 'landing-final-cta')} ref={setSectionRef('final-cta')} data-reveal="final-cta">
-          <div>
-            <span className="section-label">{isVi ? 'Không gian tham quan' : 'Tour workspace'}</span>
-            <h2>{copy.finalTitle}</h2>
-            <p>{copy.finalText}</p>
-          </div>
-          <div className="landing-final-actions">
-            <button className="primary" onClick={startExperience}>
-              <span>{copy.primary}</span>
-              <ArrowRight size={18} />
-            </button>
-            {!isPhoneFrame && (
-              <button className="secondary-link phone-preview-trigger" onClick={openPhonePreview}>
-                <Smartphone size={18} />
-                <span>{copy.secondary}</span>
-              </button>
-            )}
-          </div>
-        </section>
 
         <footer className="landing-footer">
           <div className="footer-brand">

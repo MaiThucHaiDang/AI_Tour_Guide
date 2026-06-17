@@ -83,7 +83,6 @@ async def unified_chat(
         )
         
         stt = None
-        tts = None
         audio_bytes = None
         audio_filename = None
         audio_content_type = None
@@ -96,7 +95,6 @@ async def unified_chat(
             if len(audio_bytes) >= MIN_AUDIO_BYTES:
                 try:
                     stt = get_stt_provider()
-                    tts = get_tts_provider()
                 except Exception as err:
                     _LOGGER.warning("Voice provider initialization failed: %s", err)
                     raise HTTPException(
@@ -112,10 +110,10 @@ async def unified_chat(
         orchestrator = UnifiedOrchestrator(
             stt,
             None,
-            tts,
+            None,
             memory,
             llm_factory=get_llm_provider,
-            tts_factory=get_tts_provider,
+            tts_factory=None,
         )
             
         result = await orchestrator.process_chat_request(
@@ -136,6 +134,7 @@ async def unified_chat(
         return UnifiedChatResponse(
             success=True,
             response_text=result.response_text,
+            speech_text=result.speech_text,
             audio_base64=audio_b64,
             audio_mime="audio/mpeg",
             transcript=result.transcript,
@@ -173,11 +172,18 @@ async def fetch_tts_audio(
     if not tts_token or len(tts_token) > 64:
         raise HTTPException(status_code=400, detail="Invalid tts_token")
 
-    audio_bytes = UnifiedOrchestrator.fetch_tts_audio(tts_token)
+    tts_result = UnifiedOrchestrator.fetch_tts_status(tts_token)
+    audio_bytes = tts_result.get("audio_bytes")
+    status = tts_result.get("status")
     if audio_bytes:
         return {
             "status": "ready",
             "audio_base64": base64.b64encode(audio_bytes).decode("ascii"),
             "audio_mime": "audio/mpeg",
+        }
+    if status in {"failed", "expired"}:
+        return {
+            "status": status,
+            "message": tts_result.get("error") or status,
         }
     return {"status": "pending"}

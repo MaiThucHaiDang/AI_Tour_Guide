@@ -21,6 +21,7 @@ import TripCompletionScreen from '../passport/TripCompletionScreen';
 import { getNextSuggestionAPI, createGameRoomAPI, getMapConfigAPI } from '../../services/apiService';
 import {
   buildTourSummary,
+  clearTourMemory,
   completeTourMemory,
   loadTourMemory,
   normalizeArtifactForPassport,
@@ -379,6 +380,14 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
     setShowTripCompletion(true);
   }, []);
 
+  const handleTripCompletionHome = useCallback(() => {
+    const next = clearTourMemory();
+    setPassportMemory(next);
+    setShowTripCompletion(false);
+    setNextSuggestion(null);
+    onBack?.();
+  }, [onBack]);
+
   const handleCreateGame = async () => {
     if (visitedIds.length < 2) return;
     GameHost.preload();
@@ -641,7 +650,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           catalog={passportCatalog}
           memory={passportMemory}
           onBackToTour={() => setShowTripCompletion(false)}
-          onBackHome={onBack}
+          onBackHome={handleTripCompletionHome}
           onResetMemory={handleResetPassport}
         />
       )}

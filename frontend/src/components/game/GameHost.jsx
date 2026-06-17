@@ -269,17 +269,17 @@ const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
                     <>
                       Khi quét mã, điện thoại sẽ hiện cảnh báo bảo mật vì ứng dụng sử dụng SSL tự ký. Đừng lo lắng, hãy làm như sau:
                       <br />
-                      • <strong>Android / Chrome</strong>: Bấm <strong>"Nâng cao" (Advanced)</strong> → Chọn <strong>"Tiếp tục truy cập... (không an toàn)" (Proceed)</strong>.
+                      • <strong>Android / Chrome</strong>: Bấm <strong>&quot;Nâng cao&quot; (Advanced)</strong> → Chọn <strong>&quot;Tiếp tục truy cập... (không an toàn)&quot; (Proceed)</strong>.
                       <br />
-                      • <strong>iOS / Safari</strong>: Bấm <strong>"Hiển thị chi tiết" (Show Details)</strong> → Chọn <strong>"Truy cập trang web này" (Visit this website)</strong> → Xác nhận.
+                      • <strong>iOS / Safari</strong>: Bấm <strong>&quot;Hiển thị chi tiết&quot; (Show Details)</strong> → Chọn <strong>&quot;Truy cập trang web này&quot; (Visit this website)</strong> → Xác nhận.
                     </>
                   ) : (
                     <>
-                      When scanning, your phone will show a security warning because of self-signed SSL. Don't worry, proceed as follows:
+                      When scanning, your phone will show a security warning because of self-signed SSL. Don&apos;t worry, proceed as follows:
                       <br />
-                      • <strong>Android / Chrome</strong>: Tap <strong>"Advanced"</strong> → Tap <strong>"Proceed to ... (unsafe)"</strong>.
+                      • <strong>Android / Chrome</strong>: Tap <strong>&quot;Advanced&quot;</strong> → Tap <strong>&quot;Proceed to ... (unsafe)&quot;</strong>.
                       <br />
-                      • <strong>iOS / Safari</strong>: Tap <strong>"Show Details"</strong> → Tap <strong>"Visit this website"</strong> → Confirm.
+                      • <strong>iOS / Safari</strong>: Tap <strong>&quot;Show Details&quot;</strong> → Tap <strong>&quot;Visit this website&quot;</strong> → Confirm.
                     </>
                   )}
                 </p>
@@ -607,7 +607,7 @@ const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
                       margin: 0, fontSize: '13px', color: '#333', lineHeight: '1.6',
                       fontStyle: 'italic', whiteSpace: 'pre-wrap'
                     }}>
-                      "{praiseText || (isVi ? 'Đang tải lời khen ngợi từ Hoàng cung...' : 'Loading congratulations address...')}"
+                      {praiseText || (isVi ? 'Đang tải lời khen ngợi từ Hoàng cung...' : 'Loading congratulations address...')}
                     </p>
                   )}
                 </div>

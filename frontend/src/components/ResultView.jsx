@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Pause, RotateCcw, Volume2, ArrowLeft } from 'lucide-react';
-import { playTTS, stopTTS } from '../services/apiService';
+import { Pause, Play, Square, Volume2, ArrowLeft } from 'lucide-react';
+import { pauseTTS, playTTS, resumeTTS, stopTTS } from '../services/apiService';
 
 const ResultView = ({ data, onBack }) => {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
     setIsPlaying(true);
-    playTTS(data.text_response, () => {
+    playTTS(data.text_response, 'vi', () => {
       setIsPlaying(false);
+      setIsPaused(false);
     });
 
     return () => {
@@ -16,25 +18,31 @@ const ResultView = ({ data, onBack }) => {
     };
   }, [data.text_response]);
 
-  // Nhận audio stream từ TTS Service, phát qua loa thiết bị
   const handlePlayAudio = () => {
     if (isPlaying) {
-      stopTTS();
-      setIsPlaying(false);
-    } else {
-      setIsPlaying(true);
-      playTTS(data.text_response, () => {
+      if (pauseTTS()) {
         setIsPlaying(false);
-      });
+        setIsPaused(true);
+      }
+      return;
     }
+    if (isPaused && resumeTTS()) {
+      setIsPlaying(true);
+      setIsPaused(false);
+      return;
+    }
+    setIsPlaying(true);
+    setIsPaused(false);
+    playTTS(data.text_response, 'vi', () => {
+      setIsPlaying(false);
+      setIsPaused(false);
+    });
   };
 
-  const handleReplay = () => {
+  const handleStopAudio = () => {
     stopTTS();
-    setIsPlaying(true);
-    playTTS(data.text_response, () => {
-      setIsPlaying(false);
-    });
+    setIsPlaying(false);
+    setIsPaused(false);
   };
 
   return (
@@ -96,22 +104,22 @@ const ResultView = ({ data, onBack }) => {
         paddingBottom: 'max(20px, env(safe-area-inset-bottom))'
       }}>
 
-        <button onClick={handleReplay} style={{
+        <button onClick={handlePlayAudio} style={{
           width: 50, height: 50, borderRadius: 25,
           display: 'flex', justifyContent: 'center', alignItems: 'center',
           color: 'var(--text-secondary)'
         }}>
-          <RotateCcw size={24} />
+          {isPlaying ? <Pause size={24} /> : <Play size={24} />}
         </button>
 
-        <button onClick={handlePlayAudio} style={{
+        <button onClick={handleStopAudio} disabled={!isPlaying && !isPaused} style={{
           width: 70, height: 70, borderRadius: 35,
           backgroundColor: 'var(--primary-color)',
           display: 'flex', justifyContent: 'center', alignItems: 'center',
           margin: '0 30px', color: 'white',
           boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)'
         }}>
-          {isPlaying ? <Pause size={32} /> : <Play size={32} style={{ marginLeft: 4 }} />}
+          <Square size={28} fill="currentColor" />
         </button>
 
       </div>

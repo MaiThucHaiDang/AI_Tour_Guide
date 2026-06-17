@@ -50,7 +50,8 @@ _ANSWER_CACHE: dict[str, str] = {}
 _ARTIFACT_INTRO_CACHE: dict[str, str] = {}
 _INTRO_CACHE_MAX_SIZE = 64
 
-# Background TTS result cache: token -> {"audio_bytes": bytes, "timestamp": float}
+# Background TTS result cache:
+# token -> {"status": "pending" | "ready" | "failed", "audio_bytes": bytes | None, "timestamp": float, "error": str | None}
 _TTS_RESULT_CACHE: dict[str, dict] = {}
 _TTS_RESULT_CACHE_MAX = 32
 _TTS_RESULT_TTL = 120  # seconds — auto-expire after 2 minutes
@@ -58,6 +59,7 @@ _TTS_RESULT_TTL = 120  # seconds — auto-expire after 2 minutes
 @dataclass
 class UnifiedChatResult:
     response_text: str
+    speech_text: Optional[str] = None
     audio_bytes: Optional[bytes] = None
     transcript: Optional[str] = None
     artifact_id: Optional[str] = None
@@ -422,26 +424,35 @@ class UnifiedOrchestrator:
 
         # 9. Generate Audio Response (TTS) — fire-and-forget background task
         tts_token = None
+        speech_text = self._build_speech_text(response_text, lang_code)
         if not llm_skipped:
             tts = self._get_tts()
             if tts is not None:
-                tts_token = self._make_tts_token(response_text, lang_code)
+                tts_token = self._make_tts_token(speech_text, lang_code)
                 # Check if this exact text already has cached audio
                 cached_entry = _TTS_RESULT_CACHE.get(tts_token)
-                if cached_entry and cached_entry.get("audio_bytes"):
+                if cached_entry and cached_entry.get("status") == "ready" and cached_entry.get("audio_bytes"):
                     _LOGGER.info("TTS cache hit for token %s", tts_token[:12])
                 else:
+                    _evict_tts_cache()
+                    _TTS_RESULT_CACHE[tts_token] = {
+                        "status": "pending",
+                        "audio_bytes": None,
+                        "timestamp": time.time(),
+                        "error": None,
+                    }
                     processing_steps.append(self._step_label("tts", lang_code))
                     _LOGGER.info(
                         "Launching background TTS synthesis (length=%d, token=%s)",
-                        len(response_text), tts_token[:12],
+                        len(speech_text), tts_token[:12],
                     )
                     asyncio.create_task(
-                        self._background_tts(tts, response_text, lang_code, tts_token)
+                        self._background_tts(tts, speech_text, lang_code, tts_token)
                     )
 
         return UnifiedChatResult(
             response_text=response_text,
+            speech_text=speech_text,
             audio_bytes=None,  # Always None — frontend polls via tts_token
             transcript=final_query,
             artifact_id=recognized_artifact_id,
@@ -481,6 +492,7 @@ class UnifiedOrchestrator:
             await self._memory.add_turn(session_id, "assistant", response_text, context_data)
         return UnifiedChatResult(
             response_text=response_text,
+            speech_text=self._build_speech_text(response_text, lang_code),
             audio_bytes=None,
             transcript=final_query,
             artifact_id=artifact_id,
@@ -938,6 +950,30 @@ class UnifiedOrchestrator:
         return digest[:24]
 
     @staticmethod
+    def _build_speech_text(text: str, lang: str, max_chars: int = 700) -> str:
+        """Create a concise, TTS-friendly version of the answer."""
+        cleaned = " ".join((text or "").split())
+        if len(cleaned) <= max_chars:
+            return cleaned
+
+        sentences = re.split(r"(?<=[.!?])\s+", cleaned)
+        selected: list[str] = []
+        total = 0
+        for sentence in sentences:
+            if not sentence:
+                continue
+            next_total = total + len(sentence) + (1 if selected else 0)
+            if selected and next_total > max_chars:
+                break
+            selected.append(sentence)
+            total = next_total
+
+        speech = " ".join(selected).strip()
+        if speech:
+            return speech
+        return cleaned[: max_chars - 3].rstrip() + "..."
+
+    @staticmethod
     async def _background_tts(
         tts: BaseTTS, text: str, lang: str, token: str
     ) -> None:
@@ -950,26 +986,51 @@ class UnifiedOrchestrator:
             if audio:
                 _evict_tts_cache()
                 _TTS_RESULT_CACHE[token] = {
+                    "status": "ready",
                     "audio_bytes": audio,
                     "timestamp": time.time(),
+                    "error": None,
                 }
                 _LOGGER.info("Background TTS completed for token %s (%d bytes)", token[:12], len(audio))
             else:
+                _TTS_RESULT_CACHE[token] = {
+                    "status": "failed",
+                    "audio_bytes": None,
+                    "timestamp": time.time(),
+                    "error": "empty_audio",
+                }
                 _LOGGER.info("Background TTS returned empty audio for token %s", token[:12])
         except Exception as exc:
+            _TTS_RESULT_CACHE[token] = {
+                "status": "failed",
+                "audio_bytes": None,
+                "timestamp": time.time(),
+                "error": str(exc)[:200],
+            }
             _LOGGER.warning("Background TTS failed for token %s: %s", token[:12], exc)
+
+    @staticmethod
+    def fetch_tts_status(token: str) -> dict:
+        """Retrieve synthesized audio status by token."""
+        entry = _TTS_RESULT_CACHE.get(token)
+        if not entry:
+            return {"status": "pending", "audio_bytes": None, "error": None}
+        if time.time() - entry["timestamp"] > _TTS_RESULT_TTL:
+            _TTS_RESULT_CACHE.pop(token, None)
+            return {"status": "expired", "audio_bytes": None, "error": "expired"}
+        return {
+            "status": entry.get("status", "pending"),
+            "audio_bytes": entry.get("audio_bytes"),
+            "error": entry.get("error"),
+        }
 
     @staticmethod
     def fetch_tts_audio(token: str) -> bytes | None:
         """Retrieve synthesized audio by token. Returns None if not ready."""
-        entry = _TTS_RESULT_CACHE.get(token)
-        if not entry:
+        status = UnifiedOrchestrator.fetch_tts_status(token)
+        if status.get("status") != "ready":
             return None
-        # Expire stale entries
-        if time.time() - entry["timestamp"] > _TTS_RESULT_TTL:
-            _TTS_RESULT_CACHE.pop(token, None)
-            return None
-        return entry.get("audio_bytes")
+        return status.get("audio_bytes")
 
 
 def _evict_tts_cache() -> None:

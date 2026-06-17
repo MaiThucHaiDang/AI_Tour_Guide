@@ -1,4 +1,5 @@
 const STORAGE_KEY = 'ai_tour_passport_memory_v1';
+const LEGACY_STORAGE_KEY = 'ai_tour_passport_memory_v1';
 const MEMORY_VERSION = 1;
 const MAX_PHOTOS = 10;
 const MAX_QUESTIONS = 40;
@@ -18,6 +19,17 @@ const safeArray = (value) => (Array.isArray(value) ? value : []);
 const safeObject = (value) => (value && typeof value === 'object' && !Array.isArray(value) ? value : {});
 
 const limitList = (items, maxItems) => safeArray(items).slice(-maxItems);
+
+const getTourStorage = () => {
+  if (typeof sessionStorage !== 'undefined') return sessionStorage;
+  return null;
+};
+
+const clearLegacyPersistentMemory = () => {
+  if (typeof localStorage !== 'undefined') {
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
+  }
+};
 
 const normalizeText = (value, maxLength = 400) => {
   if (!value) return '';
@@ -66,13 +78,16 @@ export const normalizeCatalogForPassport = (catalog = []) => (
 );
 
 export const loadTourMemory = () => {
-  if (typeof localStorage === 'undefined') return createEmptyTourMemory();
+  clearLegacyPersistentMemory();
+
+  const storage = getTourStorage();
+  if (!storage) return createEmptyTourMemory();
 
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = storage.getItem(STORAGE_KEY);
     if (!raw) return createEmptyTourMemory();
     const parsed = JSON.parse(raw);
-    return {
+    const memory = {
       ...createEmptyTourMemory(),
       ...parsed,
       version: MEMORY_VERSION,
@@ -84,6 +99,7 @@ export const loadTourMemory = () => {
       events: safeArray(parsed.events),
       totalAudioSeconds: Number(parsed.totalAudioSeconds || 0)
     };
+    return memory.completedAt ? createEmptyTourMemory() : memory;
   } catch (error) {
     console.warn('Failed to load tour memory:', error);
     return createEmptyTourMemory();
@@ -98,18 +114,31 @@ export const saveTourMemory = (memory) => {
     updatedAt: nowIso()
   };
 
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  const storage = getTourStorage();
+  if (storage) {
+    storage.setItem(STORAGE_KEY, JSON.stringify(next));
   }
+  clearLegacyPersistentMemory();
   return next;
 };
 
 export const resetTourMemory = () => {
   const next = createEmptyTourMemory();
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  const storage = getTourStorage();
+  if (storage) {
+    storage.setItem(STORAGE_KEY, JSON.stringify(next));
   }
+  clearLegacyPersistentMemory();
   return next;
+};
+
+export const clearTourMemory = () => {
+  const storage = getTourStorage();
+  if (storage) {
+    storage.removeItem(STORAGE_KEY);
+  }
+  clearLegacyPersistentMemory();
+  return createEmptyTourMemory();
 };
 
 export const completeTourMemory = (memory) => saveTourMemory({

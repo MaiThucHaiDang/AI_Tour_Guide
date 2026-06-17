@@ -4,7 +4,7 @@ Hệ thống sử dụng dữ liệu thực tế tại Kinh thành Huế (Đại
 
 ## 1. Hướng dẫn lấy API Keys
 
-Để ứng dụng hoạt động đầy đủ tính năng AI (Chatbot, Nhận diện ảnh, Giọng nói), bạn chỉ cần chuẩn bị 2 loại API Keys sau:
+Để ứng dụng hoạt động đầy đủ tính năng AI (Chatbot, Nhận diện ảnh, ghi âm giọng nói), bạn chỉ cần chuẩn bị 2 loại API Keys sau:
 
 ### 1.1. Google Gemini API Key (Dùng cho Chatbot & Vision)
 - **Bước 1:** Truy cập vào [Google AI Studio](https://aistudio.google.com/).
@@ -24,6 +24,10 @@ Hệ thống sử dụng dữ liệu thực tế tại Kinh thành Huế (Đại
 > **Không cần Google Maps API Key:**
 > Hệ thống bản đồ hoạt động trực tiếp qua nền tảng OpenStreetMap và công cụ định tuyến OSRM mà không cần bất kỳ khóa truy cập hay đăng ký dịch vụ trả phí nào.
 
+> [!NOTE]
+> **Không cần cấu hình TTS server cho web app chính:**
+> Câu trả lời được đọc bằng Web Speech API trên trình duyệt. `GROQ_API_KEY` vẫn cần cho nhận diện giọng nói khi người dùng ghi âm.
+
 ---
 
 ## 2. Cài đặt Thư viện & Dữ liệu
@@ -42,6 +46,13 @@ python -m venv .venv
 cd frontend
 # Cài đặt các thư viện frontend cần thiết (đã tích hợp Leaflet)
 npm install
+```
+
+Kiểm thử riêng hệ thống đọc bằng Web Speech:
+
+```bash
+cd frontend
+npm run test:web-speech
 ```
 
 ### Khởi tạo lại Dữ liệu:
@@ -71,7 +82,7 @@ npm run dev
 
 ## 4. Cách sử dụng Tính năng Chỉ đường
 
-1. **Truy cập:** `http://localhost:5173`.
+1. **Truy cập:** `https://localhost:5173`.
 2. **Chọn Địa điểm:** Nhấn vào card **"Kinh thành Huế"** trên trang chủ.
 3. **Xác định vị trí bắt đầu:**
    * Modal sẽ hiện ra – chọn GPS tự động hoặc chọn trên bản đồ.

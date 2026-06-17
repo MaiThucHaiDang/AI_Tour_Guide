@@ -39,8 +39,8 @@ export const destinations = [
     highlightsEn: ['Five Phoenix Pavilion', 'Five passageways', 'Strong view into the Citadel axis'],
     tipsVi: ['Đến sớm để tránh nắng và đông khách.', 'Chụp toàn cảnh từ khoảng sân phía trước.'],
     tipsEn: ['Arrive early to avoid heat and crowds.', 'Take the widest photo from the front court.'],
-    lat: 16.467766,
-    lng: 107.579146
+    lat: 16.467734,
+    lng: 107.579151
   },
   {
     id: 8,

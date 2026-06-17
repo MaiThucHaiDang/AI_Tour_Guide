@@ -92,7 +92,7 @@ const MapCalibrate = ({ onBack, language = 'vi' }) => {
   const [statusType, setStatusType] = useState('success');
 
   const handleGoToNgoMon = () => {
-    setMapCenter([16.467766, 107.579146]);
+    setMapCenter([16.467734, 107.579151]);
   };
 
   const showStatus = useCallback((msg, type = 'success') => {

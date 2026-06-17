@@ -24,6 +24,59 @@ router = APIRouter(
 
 # Persistent file backup path
 CALIBRATED_FILE_PATH = Path(__file__).resolve().parents[2] / "data" / "map_calibrated.json"
+DEFAULT_MAP_BOUNDS = [[16.46369, 107.57258], [16.47554, 107.58376]]
+
+
+def _load_calibrated_config() -> dict[str, Any]:
+    try:
+        with open(CALIBRATED_FILE_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if not isinstance(data, dict):
+            return {}
+        return data
+    except FileNotFoundError:
+        return {}
+    except Exception:
+        logger.exception("Failed to load calibrated map config")
+        return {}
+
+
+def _is_valid_lat_lng(lat: Any, lng: Any, bounds: list[list[float]] | None = None) -> bool:
+    try:
+        lat_value = float(lat)
+        lng_value = float(lng)
+    except (TypeError, ValueError):
+        return False
+
+    if lat_value == 0.0 and lng_value == 0.0:
+        return False
+    if not (-90 <= lat_value <= 90 and -180 <= lng_value <= 180):
+        return False
+    if not bounds or len(bounds) != 2:
+        return True
+
+    try:
+        sw, ne = bounds
+        lat_min, lat_max = sorted([float(sw[0]), float(ne[0])])
+        lng_min, lng_max = sorted([float(sw[1]), float(ne[1])])
+    except (TypeError, ValueError, IndexError):
+        return True
+
+    padding = 0.003
+    return (
+        lat_min - padding <= lat_value <= lat_max + padding
+        and lng_min - padding <= lng_value <= lng_max + padding
+    )
+
+
+def _normalize_bounds(value: Any) -> list[list[float]]:
+    if isinstance(value, list) and len(value) == 2:
+        try:
+            sw, ne = value
+            return [[float(sw[0]), float(sw[1])], [float(ne[0]), float(ne[1])]]
+        except (TypeError, ValueError, IndexError):
+            pass
+    return DEFAULT_MAP_BOUNDS
 
 class RouteResponse(BaseModel):
     success: bool
@@ -70,14 +123,20 @@ async def get_route(
 @router.get("/config", response_model=MapConfigResponse)
 async def get_map_config():
     """Fetch current map bounds and artifact coordinates."""
+    calibrated = _load_calibrated_config()
+    calibrated_bounds = _normalize_bounds(calibrated.get("map_bounds"))
+    calibrated_artifacts = {
+        int(item["id"]): item
+        for item in calibrated.get("artifacts", [])
+        if isinstance(item, dict) and str(item.get("id", "")).isdigit()
+    }
+
     async with async_session_factory() as session:
         loc_stmt = select(Location).limit(1)
         loc_res = await session.execute(loc_stmt)
         location = loc_res.scalar_one_or_none()
         
-        # Default bounds fallback
-        sw_lat, sw_lng = 16.46369, 107.57258
-        ne_lat, ne_lng = 16.47554, 107.58376
+        map_bounds = calibrated_bounds
         
         if location and location.gps_coordinates and "|" in location.gps_coordinates:
             try:
@@ -85,6 +144,7 @@ async def get_map_config():
                 sw_str, ne_str = bounds_str.split(";")
                 sw_lat, sw_lng = map(float, sw_str.split(","))
                 ne_lat, ne_lng = map(float, ne_str.split(","))
+                map_bounds = _normalize_bounds([[sw_lat, sw_lng], [ne_lat, ne_lng]])
             except Exception:
                 pass
                 
@@ -94,18 +154,40 @@ async def get_map_config():
         
         artifacts_list = []
         for art in artifacts:
+            calibrated_artifact = calibrated_artifacts.get(int(art.art_id), {})
+            lat = calibrated_artifact.get("lat", art.latitude)
+            lng = calibrated_artifact.get("lng", art.longitude)
+            if not _is_valid_lat_lng(lat, lng, map_bounds):
+                lat = art.latitude
+                lng = art.longitude
             artifacts_list.append({
                 "id": art.art_id,
-                "name_vi": art.name_vi,
-                "name_en": art.name_en,
-                "lat": art.latitude or 0.0,
-                "lng": art.longitude or 0.0
+                "name_vi": art.name_vi or calibrated_artifact.get("name_vi", ""),
+                "name_en": art.name_en or calibrated_artifact.get("name_en", ""),
+                "lat": lat if _is_valid_lat_lng(lat, lng, map_bounds) else 0.0,
+                "lng": lng if _is_valid_lat_lng(lat, lng, map_bounds) else 0.0
             })
-            
+
+        existing_ids = {int(item["id"]) for item in artifacts_list}
+        for art_id, item in calibrated_artifacts.items():
+            if art_id in existing_ids:
+                continue
+            lat = item.get("lat")
+            lng = item.get("lng")
+            if not _is_valid_lat_lng(lat, lng, map_bounds):
+                continue
+            artifacts_list.append({
+                "id": art_id,
+                "name_vi": item.get("name_vi", ""),
+                "name_en": item.get("name_en", ""),
+                "lat": lat,
+                "lng": lng
+            })
+
         from core.config import settings
         return MapConfigResponse(
             success=True,
-            map_bounds=[[sw_lat, sw_lng], [ne_lat, ne_lng]],
+            map_bounds=map_bounds,
             artifacts=artifacts_list,
             google_maps_api_key=settings.GOOGLE_MAPS_API_KEY
         )

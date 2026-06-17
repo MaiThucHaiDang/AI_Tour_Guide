@@ -12,7 +12,7 @@ from services.map.osrm_service import osrm_service
 _LOGGER = logging.getLogger(__name__)
 
 # Coordinates for Ngọ Môn Gate (ID 17 / default start point)
-NGO_MON_COORDS = (16.467766, 107.579146)
+NGO_MON_COORDS = (16.467734, 107.579151)
 HUE_CENTER_LAT = 16.4695
 HUE_CENTER_LNG = 107.5780
 MAX_HUE_DISTANCE_DEG = 0.05 # Approx 5.5 km

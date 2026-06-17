@@ -18,6 +18,7 @@ class UnifiedChatResponse(BaseModel):
     """Typed response for the multimodal unified chat endpoint."""
     success: bool = True
     response_text: str
+    speech_text: Optional[str] = None
     audio_base64: Optional[str] = None
     audio_mime: str = "audio/mpeg"
     transcript: Optional[str] = None

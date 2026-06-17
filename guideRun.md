@@ -28,6 +28,8 @@ LLM_MAX_TOKENS=2048
 LLM_MAX_TOKENS_FOLLOWUP=800
 ```
 
+> Ghi chú voice: frontend dùng Web Speech API của trình duyệt để đọc câu trả lời. Backend vẫn dùng `GROQ_API_KEY` cho Speech-to-Text khi người dùng ghi âm, nhưng không cần Edge TTS cho thanh phát chính trong web app.
+
 ## 2. Khởi động Cơ sở dữ liệu
 
 Sử dụng Docker để chạy PostgreSQL (hỗ trợ pgvector cho tìm kiếm ngữ nghĩa):
@@ -82,11 +84,11 @@ npm run dev
 3.  **Chọn điểm tham quan & Chỉ đường:**
     *   Nhấn vào các Marker (màu đỏ) đại diện cho 17 công trình trên bản đồ.
     *   Mỗi popup có các nút hành động:
-        *   **"Chỉ đường đến đây"** – tính toán lộ trình đi bộ thực tế qua OSRM, vẽ đường đi uốn lượn theo lối mòn, tự động phát âm thanh hướng dẫn (TTS).
+        *   **"Chỉ đường đến đây"** – tính toán lộ trình đi bộ thực tế qua OSRM, vẽ đường đi uốn lượn theo lối mòn, tự động đọc chỉ dẫn bằng Web Speech API.
         *   **"Giới thiệu công trình"** – chuyển sang khung Chat để AI kể chuyện sâu sắc về công trình đó.
 4.  **Sử dụng Thanh hướng dẫn:**
     *   Khi đang dẫn đường, thanh dưới đáy hiển thị hướng dẫn bước hiện tại.
-    *   Dùng nút `🔊` để nghe lại chỉ dẫn, hoặc dùng mũi tên `<-` `->` để xem các bước tiếp theo.
+    *   Dùng nút phát/tạm dừng để nghe chỉ dẫn bằng giọng đọc trên thiết bị, hoặc dùng mũi tên `<-` `->` để xem các bước tiếp theo.
     *   Bấm **"Toàn bộ bước"** để xem danh sách lộ trình đầy đủ.
 5.  **Đến nơi:**
     *   Khi đã đến đích, nhấn nút **"ĐÃ ĐẾN NƠI – Giới thiệu địa điểm"**.
@@ -130,3 +132,14 @@ Nếu vị trí các di tích hiển thị chưa khớp trên ảnh bản đồ 
 Kiểm tra dữ liệu AI sử dụng để trả lời tại:
 - **Đường dẫn:** `backend/data/rag_debug_log.txt`
 - Giúp bạn biết chính xác đoạn văn bản nào từ Database đã được nạp vào Prompt của AI cho mỗi câu hỏi.
+- Đây là file log runtime; không dùng nội dung log này như dữ liệu nguồn của hệ thống.
+
+## 9. Kiểm thử nhanh
+
+```bash
+cd frontend
+npm run test:web-speech
+npm run build
+```
+
+`test:web-speech` kiểm tra queue Web Speech, đọc hết đoạn dài, pause/play nhiều lần và hủy phát ổn định.

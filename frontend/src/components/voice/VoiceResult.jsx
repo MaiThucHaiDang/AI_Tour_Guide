@@ -1,108 +1,38 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
+import { pauseTTS, playTTS, resumeTTS, stopTTS } from '../../services/apiService';
 
-const VoiceResult = ({ audioBlob, textResponse, userTranscript, language, onAskAgain }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [speed, setSpeed] = useState(1);
-  const [duration, setDuration] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
-  
-  const audioRef = useRef(null);
-  const audioUrlRef = useRef(null);
+const VoiceResult = ({ textResponse, userTranscript, language, onAskAgain }) => {
+  const [speechState, setSpeechState] = useState('idle');
 
   useEffect(() => {
-    if (audioBlob) {
-      const url = URL.createObjectURL(audioBlob);
-      audioUrlRef.current = url;
-      audioRef.current = new Audio(url);
+    return () => stopTTS();
+  }, []);
 
-      const audio = audioRef.current;
-
-      audio.onloadedmetadata = () => {
-        setDuration(audio.duration);
-      };
-
-      audio.ontimeupdate = () => {
-        setCurrentTime(audio.currentTime);
-        if (audio.duration) {
-          setProgress((audio.currentTime / audio.duration) * 100);
-        }
-      };
-
-      audio.onended = () => {
-        setIsPlaying(false);
-        setProgress(0);
-        setCurrentTime(0);
-      };
-
-      // Tự động phát khi có kết quả
-      audio.play().then(() => {
-        setIsPlaying(true);
-      }).catch(err => {
-        console.error("Auto-play failed", err);
-      });
-    }
-
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
+  const handlePlayPause = () => {
+    if (!textResponse) return;
+    if (speechState === 'playing') {
+      if (pauseTTS()) {
+        setSpeechState('paused');
       }
-      if (audioUrlRef.current) {
-        URL.revokeObjectURL(audioUrlRef.current);
-      }
-    };
-  }, [audioBlob]);
-
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.playbackRate = speed;
+      return;
     }
-  }, [speed]);
-
-  const togglePlay = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
+    if (speechState === 'paused') {
+      if (resumeTTS()) {
+        setSpeechState('playing');
       } else {
-        audioRef.current.play();
+        stopTTS();
+        setSpeechState('playing');
+        playTTS(textResponse, language, () => setSpeechState('idle'));
       }
-      setIsPlaying(!isPlaying);
+      return;
     }
+    setSpeechState('playing');
+    playTTS(textResponse, language, () => setSpeechState('idle'));
   };
 
-  const replay = () => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play();
-      setIsPlaying(true);
-    }
-  };
-
-  const cycleSpeed = () => {
-    const speeds = [0.5, 1, 1.5, 2];
-    const currentIndex = speeds.indexOf(speed);
-    const nextIndex = (currentIndex + 1) % speeds.length;
-    setSpeed(speeds[nextIndex]);
-  };
-
-  const formatTime = (seconds) => {
-    if (!seconds || isNaN(seconds)) return "0:00";
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60).toString().padStart(2, '0');
-    return `${mins}:${secs}`;
-  };
-
-  const handleSeek = (e) => {
-    if (audioRef.current && duration) {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const percentage = x / rect.width;
-      const newTime = percentage * duration;
-      audioRef.current.currentTime = newTime;
-      setProgress(percentage * 100);
-      setCurrentTime(newTime);
-    }
+  const handleStop = () => {
+    stopTTS();
+    setSpeechState('idle');
   };
 
   return (
@@ -129,27 +59,9 @@ const VoiceResult = ({ audioBlob, textResponse, userTranscript, language, onAskA
       </div>
 
       <div className="audio-player glass-panel">
-        <div className="progress-container" onClick={handleSeek}>
-          <div className="progress-bar">
-            <div className="progress-fill" style={{ width: `${progress}%` }}></div>
-            <div className="progress-thumb" style={{ left: `${progress}%` }}></div>
-          </div>
-        </div>
-        <div className="time-display">
-          <span>{formatTime(currentTime)}</span>
-          <span>{formatTime(duration)}</span>
-        </div>
-
         <div className="player-controls">
-          <button className="control-btn" onClick={replay} title={language === 'vi' ? 'Phát lại' : 'Replay'}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="1 4 1 10 7 10"></polyline>
-              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-            </svg>
-          </button>
-          
-          <button className="control-btn play-btn" onClick={togglePlay}>
-            {isPlaying ? (
+          <button className="control-btn play-btn" onClick={handlePlayPause} disabled={!textResponse}>
+            {speechState === 'playing' ? (
               <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                 <rect x="6" y="4" width="4" height="16"></rect>
                 <rect x="14" y="4" width="4" height="16"></rect>
@@ -160,9 +72,10 @@ const VoiceResult = ({ audioBlob, textResponse, userTranscript, language, onAskA
               </svg>
             )}
           </button>
-          
-          <button className="control-btn speed-btn" onClick={cycleSpeed}>
-            {speed}x
+          <button className="control-btn" onClick={handleStop} disabled={speechState === 'idle'}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="5" y="5" width="14" height="14" rx="2" />
+            </svg>
           </button>
         </div>
       </div>

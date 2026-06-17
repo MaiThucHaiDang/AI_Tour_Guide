@@ -46,105 +46,255 @@ export const recognizeArtifactAPI = async (imageBase64, lang = 'vi', sessionId =
   }
 };
 
-/**
- * Text to Speech Service — supports Pause / Resume
- *
- * playTTS   → start speaking (cancels previous)
- * pauseTTS  → pause current speech / audio
- * resumeTTS → resume from where it was paused
- * stopTTS   → cancel completely
- */
-
-// Global audio state tracker
-let _ttsCurrentAudio = null;   // Audio element (for backend blob)
-let _ttsCurrentUtterance = null; // SpeechSynthesisUtterance (for Web Speech)
-let _ttsIsPaused = false;
+// Browser Text-to-Speech via Web Speech API.
 let _ttsOnEndCallback = null;
+let _ttsStopping = false;
+let _ttsState = 'idle';
+let _ttsQueue = [];
+let _ttsQueueIndex = 0;
+let _ttsRunId = 0;
+let _ttsCurrentUtterance = null;
+let _ttsCurrentChunkIndex = -1;
+let _ttsPausedEndedChunkIndex = -1;
+let _ttsLang = 'vi';
+
+const TTS_MAX_CHUNK_CHARS = 220;
+
+const getSpeechSynthesis = () => {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    return null;
+  }
+  return window.speechSynthesis;
+};
+
+const pickVoice = (lang) => {
+  const synth = getSpeechSynthesis();
+  if (!synth) return null;
+
+  const locale = lang === 'vi' ? 'vi-VN' : 'en-US';
+  const prefix = lang === 'vi' ? 'vi' : 'en';
+  const voices = synth.getVoices?.() || [];
+  return (
+    voices.find((voice) => voice.lang === locale)
+    || voices.find((voice) => voice.lang?.toLowerCase().startsWith(prefix))
+    || null
+  );
+};
+
+const splitTTSIntoChunks = (text, maxChars = TTS_MAX_CHUNK_CHARS) => {
+  const cleaned = String(text || '').replace(/\s+/g, ' ').trim();
+  if (!cleaned) return [];
+
+  const sentences = cleaned.match(/[^.!?。！？]+[.!?。！？]*/g) || [cleaned];
+  const chunks = [];
+  let current = '';
+
+  const pushLongSegment = (segment) => {
+    const words = segment.split(/\s+/).filter(Boolean);
+    let piece = '';
+    words.forEach((word) => {
+      const next = piece ? `${piece} ${word}` : word;
+      if (next.length > maxChars && piece) {
+        chunks.push(piece);
+        piece = word;
+      } else {
+        piece = next;
+      }
+    });
+    if (piece) chunks.push(piece);
+  };
+
+  sentences.forEach((sentence) => {
+    const trimmed = sentence.trim();
+    if (!trimmed) return;
+    if (trimmed.length > maxChars) {
+      if (current) {
+        chunks.push(current);
+        current = '';
+      }
+      pushLongSegment(trimmed);
+      return;
+    }
+
+    const next = current ? `${current} ${trimmed}` : trimmed;
+    if (next.length > maxChars && current) {
+      chunks.push(current);
+      current = trimmed;
+    } else {
+      current = next;
+    }
+  });
+
+  if (current) chunks.push(current);
+  return chunks;
+};
+
+const makeUtterance = (text, lang) => {
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = lang === 'vi' ? 'vi-VN' : 'en-US';
+  utterance.rate = 1.0;
+  utterance.voice = pickVoice(lang);
+  return utterance;
+};
+
+const finishTTSQueue = (runId) => {
+  if (runId !== _ttsRunId) return;
+  _ttsCurrentUtterance = null;
+  _ttsQueue = [];
+  _ttsQueueIndex = 0;
+  _ttsCurrentChunkIndex = -1;
+  _ttsPausedEndedChunkIndex = -1;
+  _ttsState = 'idle';
+  const callback = _ttsOnEndCallback;
+  _ttsOnEndCallback = null;
+  if (!_ttsStopping && callback) callback();
+};
+
+const speakTTSChunkAt = (synth, lang, runId, chunkIndex) => {
+  if (_ttsStopping || runId !== _ttsRunId) return null;
+  if (chunkIndex >= _ttsQueue.length) {
+    finishTTSQueue(runId);
+    return null;
+  }
+
+  const utterance = makeUtterance(_ttsQueue[chunkIndex], lang);
+  _ttsCurrentUtterance = utterance;
+  _ttsCurrentChunkIndex = chunkIndex;
+  _ttsQueueIndex = chunkIndex + 1;
+
+  utterance.onend = () => {
+    if (_ttsStopping || runId !== _ttsRunId) return;
+    if (_ttsState === 'paused') {
+      _ttsPausedEndedChunkIndex = chunkIndex;
+      return;
+    }
+    speakTTSChunkAt(synth, lang, runId, chunkIndex + 1);
+  };
+  utterance.onerror = () => {
+    if (_ttsStopping || runId !== _ttsRunId) return;
+    if (_ttsState === 'paused') {
+      _ttsPausedEndedChunkIndex = chunkIndex;
+      return;
+    }
+    // Browser voices can fail on a single long sentence; continue with the remaining queue.
+    speakTTSChunkAt(synth, lang, runId, chunkIndex + 1);
+  };
+
+  _ttsState = 'playing';
+  synth.speak(utterance);
+  return utterance;
+};
+
+const speakNextTTSChunk = (synth, lang, runId) => speakTTSChunkAt(synth, lang, runId, _ttsQueueIndex);
 
 export const playTTS = (text, lang = 'vi', onEndCallback) => {
-  stopTTS(); // cancel anything playing
-  _ttsIsPaused = false;
+  stopTTS();
+  _ttsStopping = false;
   _ttsOnEndCallback = onEndCallback || null;
+  _ttsRunId += 1;
+  _ttsLang = lang;
+  _ttsPausedEndedChunkIndex = -1;
 
-  if (!('speechSynthesis' in window)) {
+  const synth = getSpeechSynthesis();
+  if (!synth) {
     console.warn("Browser does not support Web Speech API");
+    _ttsState = 'idle';
     if (onEndCallback) onEndCallback();
     return null;
   }
 
-  window.speechSynthesis.cancel();
+  synth.cancel();
 
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = lang === 'vi' ? 'vi-VN' : 'en-US';
-  utterance.rate = 1.0;
+  _ttsQueue = splitTTSIntoChunks(text);
+  _ttsQueueIndex = 0;
+  if (_ttsQueue.length === 0) {
+    _ttsState = 'idle';
+    if (onEndCallback) onEndCallback();
+    return null;
+  }
 
-  utterance.onend = () => {
-    _ttsCurrentUtterance = null;
-    if (_ttsOnEndCallback) _ttsOnEndCallback();
-  };
-  utterance.onerror = () => {
-    _ttsCurrentUtterance = null;
-    if (_ttsOnEndCallback) _ttsOnEndCallback();
-  };
-
-  _ttsCurrentUtterance = utterance;
-  window.speechSynthesis.speak(utterance);
-  return utterance;
+  return speakNextTTSChunk(synth, lang, _ttsRunId);
 };
 
 export const stopTTS = () => {
-  _ttsIsPaused = false;
+  _ttsStopping = true;
   _ttsOnEndCallback = null;
-
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-  }
+  _ttsState = 'idle';
+  _ttsQueue = [];
+  _ttsQueueIndex = 0;
   _ttsCurrentUtterance = null;
+  _ttsCurrentChunkIndex = -1;
+  _ttsPausedEndedChunkIndex = -1;
+  _ttsRunId += 1;
 
-  if (_ttsCurrentAudio) {
-    _ttsCurrentAudio.pause();
-    _ttsCurrentAudio.src = '';
-    _ttsCurrentAudio = null;
+  const synth = getSpeechSynthesis();
+  if (synth) {
+    synth.cancel();
   }
+
+  setTimeout(() => {
+    _ttsStopping = false;
+  }, 0);
 };
 
 export const pauseTTS = () => {
-  if (_ttsCurrentAudio && !_ttsCurrentAudio.paused) {
-    _ttsCurrentAudio.pause();
-    _ttsIsPaused = true;
-    return;
-  }
-  if ('speechSynthesis' in window && window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
-    window.speechSynthesis.pause();
-    _ttsIsPaused = true;
-  }
+  const synth = getSpeechSynthesis();
+  if (!synth || _ttsCurrentChunkIndex < 0 || _ttsQueue.length === 0 || _ttsState !== 'playing') return false;
+  synth.pause();
+  _ttsState = 'paused';
+  return true;
 };
 
 export const resumeTTS = () => {
-  if (_ttsCurrentAudio && _ttsCurrentAudio.paused && _ttsIsPaused) {
-    _ttsCurrentAudio.play().catch(() => {});
-    _ttsIsPaused = false;
-    return;
+  const synth = getSpeechSynthesis();
+  if (!synth || (!synth.paused && _ttsState !== 'paused')) return false;
+  if (_ttsPausedEndedChunkIndex >= 0) {
+    const nextChunkIndex = _ttsPausedEndedChunkIndex + 1;
+    _ttsPausedEndedChunkIndex = -1;
+    if (synth.paused) {
+      synth.resume();
+    }
+    if (nextChunkIndex >= _ttsQueue.length) {
+      finishTTSQueue(_ttsRunId);
+      return true;
+    }
+    speakTTSChunkAt(synth, _ttsLang, _ttsRunId, nextChunkIndex);
+  } else if (synth.paused && synth.speaking) {
+    synth.resume();
+  } else if (!synth.speaking && _ttsCurrentChunkIndex >= 0 && _ttsQueue[_ttsCurrentChunkIndex]) {
+    speakTTSChunkAt(synth, _ttsLang, _ttsRunId, _ttsCurrentChunkIndex);
+  } else if (synth.paused) {
+    synth.resume();
   }
-  if ('speechSynthesis' in window && window.speechSynthesis.paused) {
-    window.speechSynthesis.resume();
-    _ttsIsPaused = false;
-  }
+  _ttsState = 'playing';
+  return true;
 };
 
 export const isTTSPlaying = () => {
-  if (_ttsCurrentAudio && !_ttsCurrentAudio.paused && !_ttsCurrentAudio.ended) return true;
-  if ('speechSynthesis' in window && window.speechSynthesis.speaking && !window.speechSynthesis.paused) return true;
-  return false;
+  const synth = getSpeechSynthesis();
+  return Boolean((synth && synth.speaking && !synth.paused) || _ttsState === 'playing');
 };
 
-export const isTTSPaused = () => _ttsIsPaused;
+export const getTTSQueueInfo = () => ({
+  total: _ttsQueue.length,
+  current: _ttsQueueIndex,
+  state: _ttsState,
+  currentChunk: _ttsCurrentChunkIndex,
+  pausedEndedChunk: _ttsPausedEndedChunkIndex,
+  currentText: _ttsCurrentUtterance?.text || '',
+});
 
-/**
- * Set the global Audio element for blob playback (used by UnifiedChatPage).
- */
-export const setTTSAudioElement = (audio) => {
-  _ttsCurrentAudio = audio;
+export const isTTSPaused = () => {
+  const synth = getSpeechSynthesis();
+  return Boolean((synth && synth.paused) || _ttsState === 'paused');
+};
+
+export const getTTSState = () => {
+  const synth = getSpeechSynthesis();
+  if (!synth) return 'unsupported';
+  if (synth.paused || _ttsState === 'paused') return 'paused';
+  if ((synth.speaking && !synth.paused) || _ttsState === 'playing') return 'playing';
+  return 'idle';
 };
 
 /**
@@ -161,6 +311,9 @@ export const fetchTTSAudio = async (ttsToken) => {
     if (data.status === 'ready' && data.audio_base64) {
       const blob = base64ToBlob(data.audio_base64, data.audio_mime || 'audio/mpeg');
       return { status: 'ready', audioBlob: blob };
+    }
+    if (data.status === 'failed' || data.status === 'expired') {
+      return { status: data.status, message: data.message || data.status };
     }
     return { status: 'pending' };
   } catch (err) {
@@ -237,7 +390,7 @@ export const voiceChatAPI = async (
   }
 
   try {
-    const response = await fetch(`${VOICE_API_URL}/api/v1/voice/chat`, {
+    const response = await fetch(`${VOICE_API_URL}/api/v1/chat/unified`, {
       method: 'POST',
       body: formData,
       signal: controller.signal,
@@ -253,11 +406,11 @@ export const voiceChatAPI = async (
     const contentType = response.headers.get('content-type') || '';
     if (contentType.includes('application/json')) {
       const data = await response.json();
-      const blob = base64ToBlob(data.audio_base64, data.audio_mime || 'audio/mpeg');
       return {
-        audioBlob: blob,
+        audioBlob: data.audio_base64 ? base64ToBlob(data.audio_base64, data.audio_mime || 'audio/mpeg') : null,
         transcript: data.transcript || '',
         responseText: data.response_text || '',
+        speechText: data.speech_text || data.response_text || '',
       };
     }
 
@@ -321,6 +474,7 @@ export const unifiedChatAPI = async ({
     return {
       success: data.success,
       responseText: data.response_text,
+      speechText: data.speech_text || data.response_text || '',
       audioBlob: audioBlobResult,
       transcript: data.transcript,
       artifactId: data.artifact_id,

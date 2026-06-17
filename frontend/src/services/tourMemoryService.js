@@ -25,6 +25,17 @@ const getTourStorage = () => {
   return null;
 };
 
+const persistTourMemory = (storage, memory) => {
+  if (!storage) return false;
+  try {
+    storage.setItem(STORAGE_KEY, JSON.stringify(memory));
+    return true;
+  } catch (error) {
+    console.warn('Failed to persist tour memory:', error);
+    return false;
+  }
+};
+
 const clearLegacyPersistentMemory = () => {
   if (typeof localStorage !== 'undefined') {
     localStorage.removeItem(LEGACY_STORAGE_KEY);
@@ -44,6 +55,7 @@ export const createEmptyTourMemory = () => ({
   updatedAt: nowIso(),
   completedAt: null,
   checkIns: {},
+  coverPhoto: null,
   photos: [],
   questions: [],
   audio: [],
@@ -92,6 +104,7 @@ export const loadTourMemory = () => {
       ...parsed,
       version: MEMORY_VERSION,
       checkIns: safeObject(parsed.checkIns),
+      coverPhoto: parsed.coverPhoto || null,
       photos: safeArray(parsed.photos),
       questions: safeArray(parsed.questions),
       audio: safeArray(parsed.audio),
@@ -115,9 +128,7 @@ export const saveTourMemory = (memory) => {
   };
 
   const storage = getTourStorage();
-  if (storage) {
-    storage.setItem(STORAGE_KEY, JSON.stringify(next));
-  }
+  persistTourMemory(storage, next);
   clearLegacyPersistentMemory();
   return next;
 };
@@ -125,9 +136,7 @@ export const saveTourMemory = (memory) => {
 export const resetTourMemory = () => {
   const next = createEmptyTourMemory();
   const storage = getTourStorage();
-  if (storage) {
-    storage.setItem(STORAGE_KEY, JSON.stringify(next));
-  }
+  persistTourMemory(storage, next);
   clearLegacyPersistentMemory();
   return next;
 };
@@ -135,7 +144,11 @@ export const resetTourMemory = () => {
 export const clearTourMemory = () => {
   const storage = getTourStorage();
   if (storage) {
-    storage.removeItem(STORAGE_KEY);
+    try {
+      storage.removeItem(STORAGE_KEY);
+    } catch (error) {
+      console.warn('Failed to clear tour memory:', error);
+    }
   }
   clearLegacyPersistentMemory();
   return createEmptyTourMemory();
@@ -216,6 +229,7 @@ export const recordPhoto = (memory, payload = {}) => {
   const artifact = normalizeArtifactForPassport(payload.artifact);
   const imageBase64 = payload.imageBase64 || payload.photoBase64 || '';
   if (!imageBase64) return saveTourMemory(memory);
+  const photoType = payload.type || payload.mode || 'camera';
 
   const item = {
     id: `photo-${Date.now()}-${Math.random().toString(16).slice(2)}`,
@@ -224,8 +238,22 @@ export const recordPhoto = (memory, payload = {}) => {
     artifactNameVi: artifact?.name_vi || '',
     artifactNameEn: artifact?.name_en || '',
     source: payload.source || 'camera',
+    type: photoType,
+    frameKey: payload.frameKey || payload.frame?.key || '',
     imageBase64
   };
+
+  if (photoType === 'cover') {
+    const next = addEvent({
+      ...memory,
+      coverPhoto: item,
+      photos: limitList([...safeArray(memory.photos).filter((photo) => photo.type !== 'cover'), item], MAX_PHOTOS)
+    }, {
+      type: 'cover_photo',
+      source: item.source
+    });
+    return saveTourMemory(next);
+  }
 
   const next = addEvent({
     ...memory,
@@ -341,6 +369,10 @@ export const buildTourSummary = (memoryInput, catalogInput = [], language = 'vi'
     totalCount,
     progressPercent,
     photos: safeArray(memory.photos),
+    checkInPhotos: safeArray(memory.photos).filter((photo) => (
+      photo.type === 'checkin' && photo.source === 'photo_booth'
+    )),
+    coverPhoto: memory.coverPhoto || safeArray(memory.photos).find((photo) => photo.type === 'cover') || null,
     questions: safeArray(memory.questions),
     audio: safeArray(memory.audio),
     totalAudioSeconds: Math.max(0, Number(memory.totalAudioSeconds || 0))

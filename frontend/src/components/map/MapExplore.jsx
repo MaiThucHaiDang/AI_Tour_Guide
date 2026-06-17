@@ -5,9 +5,10 @@ import L from 'leaflet';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-import { LocateFixed, Navigation, MapPin, Info, CheckCircle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Volume2, Pause, Wrench, Save, RefreshCw, Compass, X, Play, Route } from 'lucide-react';
+import { LocateFixed, Navigation, MapPin, Info, CheckCircle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Volume2, Pause, Wrench, Save, RefreshCw, Compass, X, Play, Route, Camera, Lock } from 'lucide-react';
 import { playTTS, stopTTS, pauseTTS, resumeTTS, isTTSPaused, getMapConfigAPI, getRouteAPI, saveMapConfigAPI, planTourAPI } from '../../services/apiService';
 import ImageGallery from '../shared/ImageGallery';
+import { hasPhotoBoothFrame } from '../../data/photoBoothFrames';
 
 // Fix Leaflet default icon issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -232,6 +233,7 @@ const MapExplore = ({
   onArtifactFocus,
   onRouteStatusChange,
   onPassportCheckIn,
+  onPhotoBooth,
   language,
   embedded = false,
   visitorMode = false,
@@ -1041,6 +1043,15 @@ const MapExplore = ({
                     <Info size={14} />
                     {isVi ? 'Nghe giới thiệu' : 'Hear intro'}
                   </button>
+                  <button
+                    className="artifact-popup-secondary"
+                    onClick={() => hasPhotoBoothFrame(art.id) && onPhotoBooth?.(art)}
+                    disabled={!hasPhotoBoothFrame(art.id)}
+                    title={!hasPhotoBoothFrame(art.id) ? (isVi ? 'Khung check-in sẽ được bổ sung sau' : 'Photo frame coming later') : undefined}
+                  >
+                    {hasPhotoBoothFrame(art.id) ? <Camera size={14} /> : <Lock size={14} />}
+                    {hasPhotoBoothFrame(art.id) ? (isVi ? 'Check-in ảnh' : 'Photo check-in') : (isVi ? 'Đang khóa' : 'Locked')}
+                  </button>
                 </div>
               </div>
             </Popup>
@@ -1146,6 +1157,14 @@ const MapExplore = ({
             <button onClick={() => startNavigation(selectedArtifact)}>
               <Navigation size={15} />
               {isVi ? 'Đường đi' : 'Route'}
+            </button>
+            <button
+              onClick={() => hasPhotoBoothFrame(selectedArtifact.id) && onPhotoBooth?.(selectedArtifact)}
+              disabled={!hasPhotoBoothFrame(selectedArtifact.id)}
+              title={!hasPhotoBoothFrame(selectedArtifact.id) ? (isVi ? 'Khung check-in sẽ được bổ sung sau' : 'Photo frame coming later') : undefined}
+            >
+              {hasPhotoBoothFrame(selectedArtifact.id) ? <Camera size={15} /> : <Lock size={15} />}
+              {hasPhotoBoothFrame(selectedArtifact.id) ? (isVi ? 'Check-in ảnh' : 'Photo') : (isVi ? 'Khóa' : 'Locked')}
             </button>
           </div>
         </div>

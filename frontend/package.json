@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "test:photo-booth": "node scripts/photoBoothAlbum.test.mjs",
     "test:web-speech": "node scripts/webSpeechTts.test.mjs",
     "preview": "vite preview"
   },

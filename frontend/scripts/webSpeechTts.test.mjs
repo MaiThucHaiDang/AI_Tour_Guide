@@ -110,6 +110,17 @@ const longSystemGeneratedSpeechText = [
   'Nếu bạn đang đứng tại đây, hãy nhìn theo trục nam bắc để thấy cách kinh thành tổ chức quyền lực, nghi lễ và cảnh quan trong cùng một bố cục.'
 ].join(' ');
 
+const moderatePromptLengthSpeechText = [
+  systemGeneratedSpeechText,
+  'Từ vị trí phía trước Ngọ Môn, du khách có thể quan sát rõ cách công trình tạo nên một ngưỡng chuyển tiếp trang nghiêm giữa không gian bên ngoài và vùng nghi lễ của Hoàng thành.',
+  'Phần nền đài vững chắc khiến cổng có dáng vẻ bề thế, còn lầu Ngũ Phụng phía trên làm mềm lại khối kiến trúc bằng hệ mái nhiều tầng và nhịp điệu cân xứng.',
+  'Khi nhìn kỹ hơn, khanh sẽ thấy công trình không chỉ là lối đi, mà còn là sân khấu quyền lực, nơi nghi lễ triều đình được tổ chức trước ánh nhìn của quan lại và dân chúng trong những dịp trọng đại.',
+  'Từ đây đi sâu vào Đại Nội, trục tham quan tiếp tục dẫn về Điện Thái Hòa, nơi không khí nghi lễ trở nên rõ rệt hơn qua sân rộng, hàng cột, mái điện và những khoảng chuyển tiếp trang trọng.',
+  'Nếu có thời gian, hãy đi chậm qua từng lớp không gian, vì chính nhịp chuyển từ cổng, sân, điện đến các cung viện phía sau giúp người tham quan hiểu cách triều Nguyễn tổ chức quyền lực, lễ nghi và đời sống cung đình.',
+  'Điểm đáng chú ý là các chi tiết kiến trúc không đứng riêng lẻ, mà cùng nhau kể một câu chuyện về trật tự, nghi lễ và mỹ cảm Huế, từ thế đứng của cổng cho đến đường nhìn mở về phía trung tâm Hoàng thành.',
+  'Vì vậy, khi chụp ảnh hay nghe thuyết minh tại đây, khanh nên giữ lại một khoảnh khắc nhìn bao quát toàn cảnh trước, rồi mới tiến gần để quan sát mái, cửa, nền đài và các lớp không gian nối tiếp nhau.'
+].join(' ');
+
 const normalizeSpeech = (text) => String(text || '').replace(/\s+/g, ' ').trim();
 
 const test = (name, fn) => {
@@ -403,4 +414,51 @@ test('20 pause/play across later chunks succeeds 5 times and reaches the end', (
   assert.equal(resumeSuccessCount, 5);
   assert.equal(endedCount, 1);
   assert.equal(getTTSState(), 'idle');
+});
+
+test('21 moderate-length generated narration survives pause/play at many text positions', () => {
+  let endedCount = 0;
+  let pauseSuccessCount = 0;
+  let resumeSuccessCount = 0;
+
+  playTTS(moderatePromptLengthSpeechText, 'vi', () => {
+    endedCount += 1;
+  });
+
+  const queueInfo = getTTSQueueInfo();
+  assert.equal(queueInfo.total >= 8, true);
+
+  for (let targetChunk = 0; targetChunk < queueInfo.total && currentUtterance; targetChunk += 2) {
+    while (getTTSQueueInfo().currentChunk < targetChunk && currentUtterance) {
+      finishCurrentUtterance();
+    }
+
+    if (!currentUtterance) break;
+
+    assert.equal(pauseTTS(), true);
+    pauseSuccessCount += 1;
+    assert.equal(getTTSState(), 'paused');
+    assert.equal(endedCount, 0);
+
+    const pausedUtterance = currentUtterance;
+    synth.paused = true;
+    synth.speaking = true;
+    currentUtterance = null;
+    pausedUtterance.onend();
+
+    assert.equal(getTTSState(), 'paused');
+    assert.equal(endedCount, 0);
+    assert.equal(resumeTTS(), true);
+    resumeSuccessCount += 1;
+    assert.equal(getTTSState(), 'playing');
+  }
+
+  finishAllUtterances(60);
+
+  const spokenText = spokenUtterances.map((utterance) => utterance.text).join(' ');
+  assert.equal(pauseSuccessCount >= 4, true);
+  assert.equal(resumeSuccessCount, pauseSuccessCount);
+  assert.equal(endedCount, 1);
+  assert.equal(getTTSState(), 'idle');
+  assert.equal(normalizeSpeech(spokenText).includes(normalizeSpeech(moderatePromptLengthSpeechText)), true);
 });

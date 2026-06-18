@@ -9,7 +9,7 @@ from services.ai.interfaces import BaseLLM
 
 _LOGGER = logging.getLogger(__name__)
 
-_PER_PROVIDER_TIMEOUT = 14
+_PER_PROVIDER_TIMEOUT = 10
 
 
 class FallbackLLMProvider(BaseLLM):

@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     LLM_TEMPERATURE: float = 0.7
     LLM_MAX_TOKENS: int = 2048
     LLM_MAX_TOKENS_FOLLOWUP: int = 800
+    LLM_MAX_TOKENS_IMAGE: int = 650
     VISION_CONFIDENCE_THRESHOLD: float = 0.6
 
     TEXT_MAX_CHARS: int = 5000

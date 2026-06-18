@@ -124,7 +124,9 @@ async def unified_chat(
             session_id=session_id,
             audio_filename=audio_filename,
             audio_content_type=audio_content_type,
-            artifact_id=artifact_id
+            artifact_id=artifact_id,
+            lat=lat,
+            lng=lng,
         )
         
         audio_b64 = None

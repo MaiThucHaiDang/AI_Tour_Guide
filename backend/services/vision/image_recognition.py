@@ -11,6 +11,11 @@ import json
 import logging
 import threading
 import asyncio
+import re
+import unicodedata
+from functools import lru_cache
+from pathlib import Path
+from typing import Any
 
 from PIL import Image
 from google import genai
@@ -27,6 +32,8 @@ logger = logging.getLogger(__name__)
 
 _vision_model = None
 _vision_lock = threading.Lock()
+_FEATURES_PATH = Path(__file__).resolve().parents[2] / "data" / "vision_artifact_features.json"
+_DETAIL_RECOGNITION_TYPES = {"architectural_detail", "interior_detail", "museum_object"}
 
 
 def _get_vision_model():
@@ -44,6 +51,245 @@ def _get_vision_model():
             raise RuntimeError("401: GEMINI_API_KEY is not configured.")
         _vision_model = genai.Client(api_key=api_key)
         return _vision_model
+
+
+@lru_cache(maxsize=1)
+def _load_feature_catalog() -> dict[str, dict[str, Any]]:
+    """Load normalized visual feature metadata for post-vision reranking."""
+    try:
+        with open(_FEATURES_PATH, "r", encoding="utf-8") as feature_file:
+            rows = json.load(feature_file)
+    except Exception as exc:
+        logger.warning("Failed to load vision feature catalog: %s", exc)
+        return {}
+
+    catalog: dict[str, dict[str, Any]] = {}
+    for item in rows if isinstance(rows, list) else []:
+        if not isinstance(item, dict):
+            continue
+        artifact_id = str(item.get("artifact_id", "")).strip()
+        if artifact_id:
+            catalog[artifact_id] = item
+    return catalog
+
+
+def _normalize_text(text: Any) -> str:
+    if text is None:
+        return ""
+    cleaned = str(text).replace("đ", "d").replace("Đ", "d")
+    normalized = unicodedata.normalize("NFD", cleaned)
+    stripped = "".join(
+        char for char in normalized if unicodedata.category(char) != "Mn"
+    )
+    stripped = re.sub(r"[^a-zA-Z0-9\s]", " ", stripped)
+    return " ".join(stripped.lower().split())
+
+
+def _coerce_feature_list(value: Any) -> list[str]:
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    if isinstance(value, str) and value.strip():
+        return [part.strip() for part in re.split(r"[,;]\s*", value) if part.strip()]
+    return []
+
+
+def _coerce_candidates(
+    data: dict[str, Any],
+    label: str,
+    confidence: float,
+    visual_features: str,
+    image_context_description: str = "",
+) -> list[dict[str, Any]]:
+    raw_candidates = data.get("top_candidates")
+    candidates: list[dict[str, Any]] = []
+    if isinstance(raw_candidates, list):
+        for raw in raw_candidates[:5]:
+            if not isinstance(raw, dict):
+                continue
+            candidate_name = str(raw.get("artifact_name", "")).strip()
+            if not candidate_name or candidate_name.upper() == "UNKNOWN":
+                continue
+            try:
+                candidate_confidence = float(raw.get("confidence", 0.0))
+            except (TypeError, ValueError):
+                candidate_confidence = 0.0
+            candidates.append({
+                "artifact_name": candidate_name,
+                "confidence": max(0.0, min(1.0, candidate_confidence)),
+                "visible_features": _coerce_feature_list(raw.get("visible_features") or raw.get("matched_features")),
+                "evidence": str(raw.get("evidence", "")).strip(),
+            })
+
+    if label and label.upper() != "UNKNOWN" and not any(
+        _normalize_text(item.get("artifact_name")) == _normalize_text(label) for item in candidates
+    ):
+        candidates.insert(0, {
+            "artifact_name": label,
+            "confidence": max(0.0, min(1.0, confidence)),
+            "visible_features": _coerce_feature_list(data.get("visible_features")) or _coerce_feature_list(visual_features),
+            "evidence": image_context_description or str(data.get("visual_summary", "")).strip(),
+        })
+    return candidates[:5]
+
+
+def _feature_terms_for(item: dict[str, Any], recognition_type: str) -> list[str]:
+    fields = ["whole_building_features", "architectural_details", "interior_details", "museum_or_object_details"]
+    if recognition_type in _DETAIL_RECOGNITION_TYPES:
+        fields = ["architectural_details", "interior_details", "museum_or_object_details", "whole_building_features"]
+    terms: list[str] = []
+    for field in fields:
+        terms.extend(_coerce_feature_list(item.get(field)))
+    return terms
+
+
+def _name_alias_match_score(artifact_info: Any, feature_item: dict[str, Any] | None, candidate_name: str) -> float:
+    candidate_norm = _normalize_text(candidate_name)
+    names = [
+        getattr(artifact_info, "name_vi", ""),
+        getattr(artifact_info, "name_en", ""),
+    ]
+    if feature_item:
+        names.extend(_coerce_feature_list(feature_item.get("aliases_vi")))
+        names.extend(_coerce_feature_list(feature_item.get("aliases_en")))
+        names.append(feature_item.get("name_vi", ""))
+        names.append(feature_item.get("name_en", ""))
+
+    for name in names:
+        name_norm = _normalize_text(name)
+        if not name_norm:
+            continue
+        if candidate_norm == name_norm:
+            return 1.0
+        if candidate_norm in name_norm or name_norm in candidate_norm:
+            return 0.85
+
+    candidate_tokens = set(candidate_norm.split())
+    best_overlap = 0.0
+    for name in names:
+        name_tokens = set(_normalize_text(name).split())
+        if not candidate_tokens or not name_tokens:
+            continue
+        overlap = len(candidate_tokens & name_tokens) / max(len(candidate_tokens), len(name_tokens), 1)
+        best_overlap = max(best_overlap, overlap)
+    return min(0.75, best_overlap)
+
+
+def _visual_feature_score(feature_item: dict[str, Any] | None, candidate: dict[str, Any], recognition_type: str) -> float:
+    if not feature_item:
+        return 0.0
+    visible = " ".join(_coerce_feature_list(candidate.get("visible_features")) + [candidate.get("evidence", "")])
+    visible_norm = _normalize_text(visible)
+    if not visible_norm:
+        return 0.0
+    terms = [_normalize_text(term) for term in _feature_terms_for(feature_item, recognition_type)]
+    terms = [term for term in terms if term]
+    if not terms:
+        return 0.0
+    matches = 0
+    for term in terms:
+        term_tokens = term.split()
+        if term in visible_norm or any(token in visible_norm for token in term_tokens if len(token) >= 4):
+            matches += 1
+    return min(1.0, matches / max(min(len(terms), 5), 1))
+
+
+def _gps_score(lat: float | None, lng: float | None) -> float:
+    if lat is None or lng is None:
+        return 0.5
+    return 1.0
+
+
+def _final_candidate_score(
+    candidate: dict[str, Any],
+    artifact_info: Any,
+    feature_item: dict[str, Any] | None,
+    recognition_type: str,
+    lat: float | None,
+    lng: float | None,
+) -> float:
+    vision_confidence = max(0.0, min(1.0, float(candidate.get("confidence") or 0.0)))
+    alias_score = _name_alias_match_score(artifact_info, feature_item, candidate.get("artifact_name", ""))
+    feature_score = _visual_feature_score(feature_item, candidate, recognition_type)
+    gps = _gps_score(lat, lng)
+
+    if recognition_type in _DETAIL_RECOGNITION_TYPES:
+        score = (
+            vision_confidence * 0.35
+            + alias_score * 0.20
+            + feature_score * 0.35
+            + gps * 0.10
+        )
+    else:
+        score = (
+            vision_confidence * 0.40
+            + alias_score * 0.25
+            + feature_score * 0.20
+            + gps * 0.15
+        )
+    return round(max(0.0, min(1.0, score)), 3)
+
+
+async def _match_best_candidate(
+    candidates: list[dict[str, Any]],
+    recognition_type: str,
+    lat: float | None,
+    lng: float | None,
+) -> tuple[Any | None, str | None, float, list[dict[str, Any]]]:
+    catalog = _load_feature_catalog()
+    scored_candidates: list[dict[str, Any]] = []
+    best_info = None
+    best_score = -1.0
+    best_label = None
+
+    for candidate in candidates:
+        label = candidate.get("artifact_name", "")
+        artifact_info = None
+        try:
+            artifact_info = await find_artifact_by_name(label, lat=lat, lng=lng)
+        except Exception as db_error:
+            logger.warning("Database lookup failed for candidate '%s': %s", label, db_error)
+
+        mapped_id = None
+        if not artifact_info:
+            try:
+                mapped_id = map_vision_label_to_artifact_id(label)
+                if mapped_id:
+                    artifact_info = await find_artifact_by_name(label, lat=lat, lng=lng)
+            except Exception as mapping_error:
+                logger.warning("Legacy mapping lookup failed for candidate '%s': %s", label, mapping_error)
+
+        if not artifact_info and mapped_id:
+            candidate_score = round(float(candidate.get("confidence") or 0.0), 3)
+            scored_candidates.append({
+                **candidate,
+                "artifact_id": str(mapped_id),
+                "final_score": candidate_score,
+            })
+            if candidate_score > best_score:
+                best_info = None
+                best_label = label
+                best_score = candidate_score
+            continue
+
+        if not artifact_info:
+            scored_candidates.append({**candidate, "artifact_id": None, "final_score": 0.0})
+            continue
+
+        feature_item = catalog.get(str(artifact_info.art_id))
+        candidate_score = _final_candidate_score(
+            candidate, artifact_info, feature_item, recognition_type, lat, lng
+        )
+        scored_candidates.append({
+            **candidate,
+            "artifact_id": str(artifact_info.art_id),
+            "final_score": candidate_score,
+        })
+        if candidate_score > best_score:
+            best_info = artifact_info
+            best_label = label
+            best_score = candidate_score
+
+    return best_info, best_label, max(0.0, best_score), scored_candidates
 
 
 async def recognize_image(image_base64: str, lang: str = "vi", lat: float = None, lng: float = None, _retry_count: int = 0) -> VisionResult:
@@ -112,11 +358,13 @@ async def recognize_image(image_base64: str, lang: str = "vi", lat: float = None
                 logger.error("Gemini API error after retries: %s", api_error, exc_info=True)
                 # Return specific error based on API error
                 if "401" in str(api_error) or "Unauthorized" in str(api_error):
-                    return VisionResult(recognized=False, error="401")
+                    return VisionResult(recognized=False, error="VISION_AUTH_ERROR")
                 elif "429" in str(api_error):
-                    return VisionResult(recognized=False, error="429")
+                    return VisionResult(recognized=False, error="VISION_RATE_LIMITED")
+                elif "503" in str(api_error) or "unavailable" in error_str or "high demand" in error_str:
+                    return VisionResult(recognized=False, error="VISION_PROVIDER_UNAVAILABLE")
                 else:
-                    return VisionResult(recognized=False, error="API_ERROR")
+                    return VisionResult(recognized=False, error="VISION_API_ERROR")
         
         raw_text = response.text
         if not raw_text:
@@ -130,6 +378,11 @@ async def recognize_image(image_base64: str, lang: str = "vi", lat: float = None
         confidence = 0.0
         is_artifact = False
         visual_features = ""
+        recognition_type = "unknown"
+        visual_summary = ""
+        image_context_description = ""
+        needs_user_confirmation = False
+        candidates: list[dict[str, Any]] = []
         
         try:
             # Handle potential markdown code blocks in response
@@ -146,7 +399,17 @@ async def recognize_image(image_base64: str, lang: str = "vi", lat: float = None
             label = str(data.get("artifact_name", "")).strip()
             confidence = float(data.get("confidence", 0.0))
             is_artifact = bool(data.get("is_historical_artifact", False))
+            recognition_type = str(data.get("recognition_type", "unknown")).strip() or "unknown"
+            visual_summary = str(data.get("visual_summary", "")).strip()
+            image_context_description = str(data.get("image_context_description", "")).strip()
+            if not image_context_description:
+                image_context_description = visual_summary
+            visible_features = _coerce_feature_list(data.get("visible_features"))
             visual_features = str(data.get("visual_features", "")).strip()
+            if not visual_features and visible_features:
+                visual_features = ", ".join(visible_features)
+            needs_user_confirmation = bool(data.get("needs_user_confirmation", False))
+            candidates = _coerce_candidates(data, label, confidence, visual_features, image_context_description)
 
         except (json.JSONDecodeError, ValueError, TypeError) as e:
             logger.warning("Failed to parse JSON response from vision model: %s", e)
@@ -157,53 +420,123 @@ async def recognize_image(image_base64: str, lang: str = "vi", lat: float = None
             label = response_text[:100].strip()
             confidence = 0.3
             is_artifact = False
+            candidates = []
 
         # Validation checks
         if not label or label.upper() == "UNKNOWN":
             logger.debug("Model returned UNKNOWN or empty label")
-            return VisionResult(recognized=False, error="UNRECOGNIZED")
+            return VisionResult(
+                recognized=False,
+                error="UNRECOGNIZED",
+                confidence_score=confidence,
+                recognition_type=recognition_type,
+                visual_features=visual_features,
+                visual_summary=visual_summary,
+                image_context_description=image_context_description,
+                top_candidates=candidates,
+                needs_user_confirmation=needs_user_confirmation,
+            )
         
         if not is_artifact:
             logger.debug("Model classified as non-artifact: %s", label)
-            return VisionResult(recognized=False, error="NOT_AN_ARTIFACT", confidence_score=confidence)
+            return VisionResult(
+                recognized=False,
+                error="NOT_AN_ARTIFACT",
+                confidence_score=confidence,
+                recognition_type=recognition_type,
+                visual_features=visual_features,
+                visual_summary=visual_summary,
+                image_context_description=image_context_description,
+                top_candidates=candidates,
+                needs_user_confirmation=needs_user_confirmation,
+            )
         
         if confidence < settings.VISION_CONFIDENCE_THRESHOLD:
             logger.warning("Low confidence (%.2f) for label: %s", confidence, label)
-            return VisionResult(recognized=False, error="LOW_CONFIDENCE", confidence_score=confidence)
+            return VisionResult(
+                recognized=False,
+                error="LOW_CONFIDENCE",
+                confidence_score=confidence,
+                recognition_type=recognition_type,
+                visual_features=visual_features,
+                visual_summary=visual_summary,
+                image_context_description=image_context_description,
+                top_candidates=candidates,
+                needs_user_confirmation=True,
+            )
 
-        # 1. Try dynamic database lookup (New Robust Way with GPS)
-        try:
-            artifact_info = await find_artifact_by_name(label, lat=lat, lng=lng)
-            
-            if artifact_info:
-                logger.info("Successfully matched label '%s' to artifact_id '%s' with confidence %.2f", 
-                           label, artifact_info.art_id, confidence)
-                return VisionResult(
-                    recognized=True,
-                    raw_label=label,
-                    artifact_id=artifact_info.art_id,
-                    confidence_score=confidence,
-                )
-        except Exception as db_error:
-            logger.warning("Database lookup failed: %s", db_error, exc_info=True)
+        if not candidates:
+            candidates = [{
+                "artifact_name": label,
+                "confidence": confidence,
+                "visible_features": _coerce_feature_list(visual_features),
+                "evidence": image_context_description or visual_summary,
+            }]
 
-        # 2. Try legacy mapping fallback (Hardcoded Aliases)
+        artifact_info, best_label, final_score, scored_candidates = await _match_best_candidate(
+            candidates, recognition_type, lat, lng
+        )
+
+        if artifact_info:
+            should_confirm = needs_user_confirmation or (
+                final_score < 0.6 or (final_score < 0.7 and confidence < 0.9)
+            )
+            logger.info(
+                "Successfully matched label '%s' to artifact_id '%s' with confidence %.2f final_score %.2f",
+                best_label or label, artifact_info.art_id, confidence, final_score,
+            )
+            return VisionResult(
+                recognized=True,
+                raw_label=best_label or label,
+                artifact_id=artifact_info.art_id,
+                confidence_score=confidence,
+                recognition_type=recognition_type,
+                visual_features=visual_features,
+                visual_summary=visual_summary,
+                image_context_description=image_context_description,
+                top_candidates=scored_candidates,
+                needs_user_confirmation=should_confirm,
+                final_score=final_score,
+            )
+
+        # Legacy mapping fallback can still resolve labels even if DB fuzzy search did not.
         try:
-            artifact_id = map_vision_label_to_artifact_id(label)
+            artifact_id = map_vision_label_to_artifact_id(best_label or label)
 
             if artifact_id:
-                logger.info("Matched label '%s' using legacy mapping to artifact_id '%s'", label, artifact_id)
+                should_confirm = needs_user_confirmation or (
+                    final_score < 0.6 or (final_score < 0.7 and confidence < 0.9)
+                )
+                logger.info("Matched label '%s' using legacy mapping to artifact_id '%s'", best_label or label, artifact_id)
                 return VisionResult(
                     recognized=True,
-                    raw_label=label,
+                    raw_label=best_label or label,
                     artifact_id=artifact_id,
                     confidence_score=confidence,
+                    recognition_type=recognition_type,
+                    visual_features=visual_features,
+                    visual_summary=visual_summary,
+                    image_context_description=image_context_description,
+                    top_candidates=scored_candidates,
+                    needs_user_confirmation=should_confirm,
+                    final_score=final_score if final_score > 0 else confidence,
                 )
         except Exception as mapping_error:
             logger.warning("Legacy mapping lookup failed: %s", mapping_error, exc_info=True)
 
         logger.warning("Label '%s' not found in DB or mapping (confidence: %.2f)", label, confidence)
-        return VisionResult(recognized=False, error="UNRECOGNIZED", confidence_score=confidence)
+        return VisionResult(
+            recognized=False,
+            error="UNRECOGNIZED",
+            confidence_score=confidence,
+            recognition_type=recognition_type,
+            visual_features=visual_features,
+            visual_summary=visual_summary,
+            image_context_description=image_context_description,
+            top_candidates=scored_candidates,
+            needs_user_confirmation=True,
+            final_score=final_score,
+        )
 
     except Exception as e:
         logger.error("Gemini recognition error: %s", e, exc_info=True)

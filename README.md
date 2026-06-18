@@ -75,6 +75,8 @@ cd backend
 .venv\Scripts\python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
+Nếu backend log báo `function word_similarity(...) does not exist`, database chưa bật extension `pg_trgm`; chạy lại `backend\.venv\Scripts\alembic upgrade head` bằng user PostgreSQL có quyền tạo extension.
+
 Backend chạy tại:
 
 ```text

@@ -1,7 +1,7 @@
 """Pydantic schemas for the vision (image recognition) pipeline."""
 
 from pydantic import BaseModel, Field, field_validator
-from typing import Optional
+from typing import Any, Optional
 
 
 class RecognizeRequest(BaseModel):
@@ -49,6 +49,13 @@ class VisionResult(BaseModel):
     artifact_id: Optional[str] = None
     confidence_score: float = 0.0
     error: Optional[str] = None
+    recognition_type: Optional[str] = None
+    visual_features: Optional[str] = None
+    visual_summary: Optional[str] = None
+    image_context_description: Optional[str] = None
+    top_candidates: list[dict[str, Any]] = Field(default_factory=list)
+    needs_user_confirmation: bool = False
+    final_score: Optional[float] = None
 
 
 class LLMResponse(BaseModel):

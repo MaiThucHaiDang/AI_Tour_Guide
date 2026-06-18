@@ -32,7 +32,11 @@ from repositories.artifact_repository import (
     get_artifact_context_by_id,
 )
 from schemas.vision import ArtifactInfo
-from utils.prompt_templates import build_voice_system_prompt, build_followup_system_prompt
+from utils.prompt_templates import (
+    build_voice_system_prompt,
+    build_followup_system_prompt,
+    build_image_grounded_system_prompt,
+)
 from utils.rag_debug_logger import log_rag_context
 from core.config import get_settings
 from core.observability import increment
@@ -42,8 +46,8 @@ _LOGGER = logging.getLogger(__name__)
 # Timeouts in seconds
 STT_TIMEOUT = 20
 VISION_TIMEOUT = 25
-LLM_TIMEOUT = 18
-FOLLOWUP_LLM_TIMEOUT = 12
+LLM_TIMEOUT = 30
+FOLLOWUP_LLM_TIMEOUT = 25
 MIN_AUDIO_BYTES = 800
 ANSWER_CACHE_MAX_SIZE = 128
 _ANSWER_CACHE: dict[str, str] = {}
@@ -100,6 +104,8 @@ class UnifiedOrchestrator:
         audio_filename: Optional[str] = None,
         audio_content_type: Optional[str] = None,
         artifact_id: Optional[int] = None,
+        lat: Optional[float] = None,
+        lng: Optional[float] = None,
     ) -> UnifiedChatResult:
         """Process a multimodal chat request."""
         context = self._language_manager.setup_context(lang)
@@ -113,6 +119,8 @@ class UnifiedOrchestrator:
         artifact_info: ArtifactInfo | None = None
         processing_steps: list[str] = []
         llm_skipped = False
+        vision_result = None
+        vision_error = None
 
         # If artifact_id is not passed, fetch the last active artifact from session memory
         if not recognized_artifact_id and session_id:
@@ -201,7 +209,7 @@ class UnifiedOrchestrator:
 
         if image_base64:
             vision_task = asyncio.create_task(
-                recognize_image(image_base64, lang=lang_code)
+                recognize_image(image_base64, lang=lang_code, lat=lat, lng=lng)
             )
 
         # 2. Await STT and Vision concurrently with proper error handling
@@ -229,16 +237,17 @@ class UnifiedOrchestrator:
                     pass
 
         # Handle vision task - ensure it's properly cleaned up
-        vision_result = None
         if vision_task:
             try:
                 processing_steps.append(self._step_label("vision", lang_code))
                 vision_result = await asyncio.wait_for(vision_task, timeout=VISION_TIMEOUT)
             except asyncio.TimeoutError:
                 _LOGGER.error("Vision timed out after %s seconds", VISION_TIMEOUT)
+                vision_error = "VISION_TIMEOUT"
                 vision_task = None
             except Exception as e:
                 _LOGGER.error("Vision processing failed: %s", e)
+                vision_error = "VISION_API_ERROR"
                 vision_task = None
             finally:
                 # Ensure task is cancelled if not completed
@@ -263,11 +272,11 @@ class UnifiedOrchestrator:
                 processing_steps,
             )
 
-        # 3. Await Vision
-        if vision_task:
+        # 3. Handle Vision result. If Vision is unavailable but an artifact was
+        # already selected/preloaded, continue with that context instead of
+        # telling the visitor the image could not be recognized.
+        if vision_result:
             try:
-                processing_steps.append(self._step_label("vision", lang_code))
-                vision_result = await asyncio.wait_for(vision_task, timeout=VISION_TIMEOUT)
                 if vision_result.recognized:
                     recognized_artifact_id = vision_result.artifact_id
                     try:
@@ -288,7 +297,21 @@ class UnifiedOrchestrator:
                     if not final_query:
                         final_query = f"[User sent an image of {recognized_artifact_name}]"
                 else:
-                    if not final_query:
+                    vision_error = vision_result.error or "VISION_UNRECOGNIZED"
+                    if artifact_info:
+                        if self._step_label("selected_context", lang_code) not in processing_steps:
+                            processing_steps.append(self._step_label("selected_context", lang_code))
+                        _LOGGER.info(
+                            "Vision failed with %s; continuing with preloaded artifact_id=%s",
+                            vision_error,
+                            recognized_artifact_id,
+                        )
+                        if not final_query:
+                            final_query = (
+                                f"[User sent an image while viewing {recognized_artifact_name}. "
+                                f"Vision analysis was unavailable: {vision_error}]"
+                            )
+                    elif not final_query:
                         return await self._finalize_without_tts(
                             self._unrecognized_image_message(lang_code),
                             final_query,
@@ -305,6 +328,27 @@ class UnifiedOrchestrator:
                         final_query = f"[User sent an unrecognized image. User asks: {final_query}]"
             except Exception as e:
                 _LOGGER.error("Vision failed or timed out: %s", e, exc_info=True)
+                vision_error = "VISION_API_ERROR"
+                if artifact_info and not final_query:
+                    if self._step_label("selected_context", lang_code) not in processing_steps:
+                        processing_steps.append(self._step_label("selected_context", lang_code))
+                    final_query = (
+                        f"[User sent an image while viewing {recognized_artifact_name}. "
+                        "Vision analysis failed, continue from selected artifact context.]"
+                    )
+        elif image_base64 and vision_error and artifact_info:
+            if self._step_label("selected_context", lang_code) not in processing_steps:
+                processing_steps.append(self._step_label("selected_context", lang_code))
+            _LOGGER.info(
+                "Vision unavailable (%s); continuing with preloaded artifact_id=%s",
+                vision_error,
+                recognized_artifact_id,
+            )
+            if not final_query:
+                final_query = (
+                    f"[User sent an image while viewing {recognized_artifact_name}. "
+                    f"Vision analysis was unavailable: {vision_error}]"
+                )
 
         # 3. If no image but query exists, try searching DB for artifact context (RAG)
         if not db_context and final_query:
@@ -320,8 +364,10 @@ class UnifiedOrchestrator:
             except Exception as e:
                 _LOGGER.error("DB context lookup failed: %s", e, exc_info=True)
 
+        has_image_observation = self._has_image_observation(vision_result)
+
         # 4. Prefer cached answers before LLM.
-        if artifact_info:
+        if artifact_info and not has_image_observation:
             cached = self._get_cached_answer(artifact_info, final_query, lang_code)
             if cached:
                 increment("chat.llm_calls_avoided")
@@ -353,13 +399,20 @@ class UnifiedOrchestrator:
                 )
 
         # 6. Prepare LLM Context — classify query to pick prompt & max_tokens
-        query_type = self._classify_query_type(final_query, artifact_info)
         _settings = get_settings()
+        if has_image_observation:
+            query_type = "image_grounded"
+            system_prompt = build_image_grounded_system_prompt(lang_code)
+            chosen_max_tokens = _settings.LLM_MAX_TOKENS_IMAGE
+            chosen_timeout = FOLLOWUP_LLM_TIMEOUT
+        else:
+            query_type = self._classify_query_type(final_query, artifact_info)
+
         if query_type == "intro":
             system_prompt = build_voice_system_prompt(lang_code)
             chosen_max_tokens = _settings.LLM_MAX_TOKENS
             chosen_timeout = LLM_TIMEOUT
-        else:
+        elif query_type == "followup":
             system_prompt = build_followup_system_prompt(lang_code)
             chosen_max_tokens = _settings.LLM_MAX_TOKENS_FOLLOWUP
             chosen_timeout = FOLLOWUP_LLM_TIMEOUT
@@ -377,6 +430,10 @@ class UnifiedOrchestrator:
             and "Database is temporarily unavailable" not in db_context
         )
 
+        vision_context = self._format_vision_analysis(vision_result, lang_code, vision_error)
+        if vision_context:
+            llm_context_parts.append(vision_context)
+
         if has_database_context:
             llm_context_parts.append(f"DB_CONTEXT:\n{db_context}")
         else:
@@ -392,6 +449,13 @@ class UnifiedOrchestrator:
         # 7. Generate LLM Response with dynamic max_tokens
         try:
             processing_steps.append(self._step_label("llm", lang_code))
+            _LOGGER.info(
+                "LLM request mode=%s timeout=%s max_tokens=%s has_image_observation=%s",
+                query_type,
+                chosen_timeout,
+                chosen_max_tokens,
+                has_image_observation,
+            )
             llm = self._get_llm()
             response_text = await asyncio.wait_for(
                 llm.generate_response(
@@ -404,15 +468,21 @@ class UnifiedOrchestrator:
         except Exception as e:
             _LOGGER.error("LLM generation failed or timed out: %s", e, exc_info=True)
             increment("chat.llm_fallback")
-            if artifact_info:
+            if has_image_observation:
+                response_text = self._build_image_fallback_answer(
+                    vision_result, artifact_info, lang_code
+                )
+            elif artifact_info:
                 response_text = self._wrapped_summary(artifact_info, lang_code)
             else:
                 response_text = self._build_resilient_fallback_answer(
                     final_query, lang_code, has_database_context
-                )
+            )
             llm_skipped = True
 
-        if artifact_info and response_text.strip():
+        response_text = self._sanitize_user_response(response_text, lang_code)
+
+        if artifact_info and response_text.strip() and not has_image_observation:
             self._set_cached_answer(artifact_info, final_query, lang_code, response_text)
 
         # 8. Save to Memory
@@ -679,6 +749,7 @@ class UnifiedOrchestrator:
                 ),
                 timeout=FOLLOWUP_LLM_TIMEOUT,
             )
+            answer = self._sanitize_user_response(answer, lang_code)
 
             self._set_cached_answer(artifact, query, lang_code, answer)
             return answer
@@ -707,7 +778,7 @@ class UnifiedOrchestrator:
             ),
             timeout=LLM_TIMEOUT,
         )
-        return intro
+        return self._sanitize_user_response(intro, lang_code)
 
     def _wrapped_summary(self, artifact: ArtifactInfo, lang_code: str) -> str:
         name = self._artifact_name(artifact, lang_code)
@@ -832,6 +903,174 @@ class UnifiedOrchestrator:
         return "Mình chưa nhận diện được di tích hoặc hiện vật trong ảnh. Có thể ảnh không liên quan, bị mờ hoặc chưa có trong dữ liệu. Bạn có thể chụp rõ hơn hoặc gõ tên của nó cho mình biết nhé!"
 
     @staticmethod
+    def _has_image_observation(vision_result) -> bool:
+        if not vision_result:
+            return False
+        return any(
+            bool(getattr(vision_result, field, None))
+            for field in ("image_context_description", "visual_summary", "visual_features")
+        )
+
+    @staticmethod
+    def _build_image_fallback_answer(vision_result, artifact_info: ArtifactInfo | None, lang_code: str) -> str:
+        image_context = (
+            getattr(vision_result, "image_context_description", None)
+            or getattr(vision_result, "visual_summary", None)
+            or getattr(vision_result, "visual_features", None)
+            or ""
+        ).strip()
+        artifact_name = None
+        if artifact_info:
+            artifact_name = artifact_info.name_vi if lang_code == "vi" else artifact_info.name_en
+        artifact_name = artifact_name or getattr(vision_result, "raw_label", None)
+
+        if lang_code == "en":
+            if image_context and artifact_name:
+                return (
+                    f"From the photo, this appears to relate to {artifact_name}. {image_context} "
+                    "I could not prepare the fuller guided explanation in time, but the most useful point is to focus on the visible architectural details in the image and connect them with this site's historical role."
+                )
+            if image_context:
+                return (
+                    f"From the photo, I can note this: {image_context} "
+                    "I could not prepare the fuller guided explanation in time, so please try again with a shorter question if you want deeper detail."
+                )
+            return "I recognized that you sent an image, but I could not prepare the full visual explanation in time. Please try again with a shorter question."
+
+        if image_context and artifact_name:
+            return (
+                f"Quan sát ảnh này, nhiều khả năng khanh đang chụp {artifact_name}. {image_context} "
+                "Ta chưa kịp soạn phần thuyết minh đầy đủ, nhưng điểm nên chú ý trước hết là các chi tiết đang hiện rõ trong ảnh rồi mới liên hệ chúng với vai trò lịch sử của địa điểm này."
+            )
+        if image_context:
+            return (
+                f"Quan sát ảnh này, ta thấy: {image_context} "
+                "Ta chưa kịp soạn phần thuyết minh đầy đủ, khanh có thể hỏi lại ngắn hơn để ta đào sâu chi tiết ấy."
+            )
+        return "Ta đã nhận được ảnh, nhưng chưa kịp soạn phần phân tích hình ảnh đầy đủ. Khanh có thể hỏi lại ngắn hơn để ta trả lời sát vào chi tiết trong ảnh."
+
+    @staticmethod
+    def _sanitize_user_response(text: str, lang_code: str) -> str:
+        """Remove internal prompt labels if a provider leaks them into user-facing text."""
+        if not text:
+            return text
+
+        cleaned = text
+        replacements = {
+            r"(?i)\btheo\s+DB_CONTEXT[:,]?\s*": "Theo tư liệu về di tích, " if lang_code == "vi" else "According to the site information, ",
+            r"(?i)\btheo\s+VISION_ANALYSIS[:,]?\s*": "Quan sát ảnh này, " if lang_code == "vi" else "From the image, ",
+            r"(?i)\bIMAGE_CONTEXT_FOR_ANSWER\b": "điều đang thấy trong ảnh" if lang_code == "vi" else "what the image shows",
+            r"(?i)\bDB_CONTEXT\b": "tư liệu về di tích" if lang_code == "vi" else "site information",
+            r"(?i)\bVISION_ANALYSIS\b": "ghi chú quan sát ảnh" if lang_code == "vi" else "image observation notes",
+            r"(?i)\bGHI CHÚ ẢNH KHÁCH VỪA CHỤP\b:?\s*": "Quan sát ảnh này, " if lang_code == "vi" else "From the visitor's photo, ",
+            r"(?i)\bVISITOR PHOTO NOTES\b:?\s*": "Quan sát ảnh này, " if lang_code == "vi" else "From the visitor's photo, ",
+            r"(?i)\bGENERAL_CHAT\b": "",
+            r"(?i)\bContext Data\b": "ngữ cảnh" if lang_code == "vi" else "context",
+            r"(?i)\bUser Prompt\b": "câu hỏi" if lang_code == "vi" else "question",
+        }
+        for pattern, replacement in replacements.items():
+            cleaned = re.sub(pattern, replacement, cleaned)
+
+        cleaned = re.sub(r"\s+([,.!?;:])", r"\1", cleaned)
+        cleaned = re.sub(r"[ \t]{2,}", " ", cleaned)
+        cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+        return cleaned.strip()
+
+    @staticmethod
+    def _format_vision_analysis(vision_result, lang_code: str, vision_error: str | None = None) -> str:
+        if not vision_result and not vision_error:
+            return ""
+
+        if lang_code == "vi":
+            parts = ["GHI CHÚ ẢNH KHÁCH VỪA CHỤP:"]
+        else:
+            parts = ["VISITOR PHOTO NOTES:"]
+
+        image_context_description = (
+            getattr(vision_result, "image_context_description", None) if vision_result else None
+        )
+        if image_context_description:
+            if lang_code == "vi":
+                parts.append(f"Điều khách đang nhìn thấy: {image_context_description}")
+            else:
+                parts.append(f"What the visitor is looking at: {image_context_description}")
+
+        raw_label = getattr(vision_result, "raw_label", None) if vision_result else None
+        recognition_type = getattr(vision_result, "recognition_type", None) if vision_result else None
+        if raw_label:
+            if lang_code == "vi":
+                parts.append(f"Địa điểm có khả năng khớp nhất: {raw_label}")
+            else:
+                parts.append(f"Most likely matching site: {raw_label}")
+        if recognition_type:
+            if lang_code == "vi":
+                type_map = {
+                    "whole_building": "ảnh toàn cảnh hoặc mặt ngoài công trình",
+                    "architectural_detail": "ảnh chi tiết kiến trúc",
+                    "interior_detail": "ảnh không gian hoặc chi tiết bên trong",
+                    "museum_object": "ảnh hiện vật trưng bày",
+                }
+                parts.append(f"Kiểu ảnh: {type_map.get(recognition_type, 'chưa rõ')}")
+            else:
+                parts.append(f"Image type: {recognition_type}")
+
+        visual_summary = getattr(vision_result, "visual_summary", None) if vision_result else None
+        if visual_summary and visual_summary != image_context_description:
+            if lang_code == "vi":
+                parts.append(f"Tóm tắt quan sát thêm: {visual_summary}")
+            else:
+                parts.append(f"Additional visual summary: {visual_summary}")
+
+        visual_features = getattr(vision_result, "visual_features", None) if vision_result else None
+        if visual_features:
+            if lang_code == "vi":
+                parts.append(f"Chi tiết nhìn thấy nên phân tích: {visual_features}")
+            else:
+                parts.append(f"Visible details to analyze: {visual_features}")
+
+        needs_confirmation = bool(getattr(vision_result, "needs_user_confirmation", False)) if vision_result else False
+        if needs_confirmation:
+            if lang_code == "vi":
+                parts.append("Mức chắc chắn: nên diễn đạt thận trọng nếu khẳng định địa điểm.")
+            else:
+                parts.append("Certainty note: answer cautiously if naming the site.")
+
+        if vision_error:
+            if lang_code == "vi":
+                parts.append(f"Lưu ý: phần nhận diện ảnh gặp vấn đề tạm thời ({vision_error}); nếu có địa điểm đang chọn, hãy dùng địa điểm đó một cách thận trọng.")
+            else:
+                parts.append(f"Note: image recognition had a temporary issue ({vision_error}); if a selected site exists, use it cautiously.")
+
+        candidates = (getattr(vision_result, "top_candidates", None) if vision_result else None) or []
+        if candidates:
+            parts.append("Ứng viên gần nhất:" if lang_code == "vi" else "Closest candidates:")
+            for candidate in candidates[:3]:
+                if not isinstance(candidate, dict):
+                    continue
+                name = candidate.get("artifact_name") or candidate.get("artifact_id") or "unknown"
+                evidence = candidate.get("evidence", "")
+                features = candidate.get("visible_features") or []
+                candidate_line = f"- {name}"
+                if evidence:
+                    candidate_line += f": {evidence}"
+                if features:
+                    label = "chi tiết" if lang_code == "vi" else "features"
+                    candidate_line += f" ({label}: {', '.join(map(str, features[:5]))})"
+                parts.append(candidate_line)
+
+        if lang_code == "vi":
+            parts.append(
+                "Yêu cầu trả lời: hãy mở đầu từ cảnh hoặc chi tiết trong ảnh, phân tích chi tiết đó trước, "
+                "rồi mới dùng tư liệu lịch sử về di tích để giải thích ý nghĩa. Không chỉ đọc lại bài giới thiệu chung."
+            )
+        else:
+            parts.append(
+                "Answering requirement: begin from the scene or detail in the photo, analyze that detail first, "
+                "then use site history to explain its meaning. Do not recite a generic site introduction."
+            )
+        return "\n".join(parts)
+
+    @staticmethod
     def _format_artifact_context(artifact: ArtifactInfo, lang_code: str) -> str:
         name = artifact.name_vi if lang_code == "vi" else artifact.name_en
         history = artifact.history_text_vi if lang_code == "vi" else artifact.history_text_en
@@ -927,6 +1166,7 @@ class UnifiedOrchestrator:
             "cache": "Đã dùng câu trả lời cache",
             "db_direct": "Đã trả lời từ dữ liệu có sẵn",
             "template": "Đã dùng mẫu trả lời nhanh",
+            "selected_context": "Đã dùng ngữ cảnh điểm đang chọn",
         }
         en = {
             "stt": "Transcribed voice to text",
@@ -937,6 +1177,7 @@ class UnifiedOrchestrator:
             "cache": "Used cached answer",
             "db_direct": "Answered from stored data",
             "template": "Used a quick response template",
+            "selected_context": "Used selected stop context",
         }
         labels = vi if lang_code == "vi" else en
         return labels.get(step, step)

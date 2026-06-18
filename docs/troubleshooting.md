@@ -46,6 +46,7 @@ Dau hieu:
 
 - `/api/v1/health/ready` fail.
 - Backend log co loi asyncpg/connection refused/authentication failed.
+- Backend log co `function word_similarity(...) does not exist`.
 
 Kiem tra:
 
@@ -60,6 +61,17 @@ Xu ly:
 - Kiem tra Postgres dang chay.
 - Kiem tra user/password/database trong `DATABASE_URL`.
 - Chay migration truoc seed.
+- Neu log co `word_similarity(...) does not exist`, database thieu extension `pg_trgm`. Chay:
+
+```powershell
+alembic upgrade head
+```
+
+Hoac chay truc tiep trong PostgreSQL bang user co quyen tao extension:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+```
 
 ## API key hoac provider AI loi
 
@@ -68,6 +80,7 @@ Dau hieu:
 - Recognition/LLM/STT loi nhung backend van live.
 - Chat bao voice/recognition chua san sang.
 - Backend log co provider error.
+- Backend log co `503 UNAVAILABLE` hoac `This model is currently experiencing high demand`.
 
 Kiem tra:
 
@@ -80,6 +93,7 @@ Xu ly:
 - Dat key hop le trong `.env`.
 - Restart backend sau khi doi key.
 - Neu provider loi tam thoi, demo text direct fact/DB answer truoc.
+- Neu Gemini Vision tra `503`, day la loi provider tam thoi. He thong se co gang fallback sang artifact dang duoc chon neu request co `artifact_id`; thu lai sau it phut hoac dung text/chat theo diem dang chon.
 
 ## Camera bi chan
 

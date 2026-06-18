@@ -62,6 +62,8 @@ backend\.venv\Scripts\alembic upgrade head
 backend\.venv\Scripts\python scripts/seed_data.py
 ```
 
+Nếu backend log báo `function word_similarity(...) does not exist`, database chưa bật extension `pg_trgm`. Chạy lại `backend\.venv\Scripts\alembic upgrade head` bằng user PostgreSQL có quyền tạo extension.
+
 ---
 
 ## 3. Khởi chạy Ứng dụng

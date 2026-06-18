@@ -32,7 +32,7 @@ LLM_MAX_TOKENS_FOLLOWUP=800
 
 ## 2. Khởi động Cơ sở dữ liệu
 
-Sử dụng Docker để chạy PostgreSQL (hỗ trợ pgvector cho tìm kiếm ngữ nghĩa):
+Sử dụng Docker để chạy PostgreSQL (hỗ trợ `pgvector`; migration sẽ bật thêm `pg_trgm` cho tìm kiếm fuzzy):
 
 ```bash
 cd docker
@@ -52,6 +52,9 @@ python -m venv .venv
 # Cập nhật Database Schema và nạp dữ liệu 17 công trình Kinh thành Huế (từ thư mục root)
 .venv\Scripts\alembic upgrade head
 .venv\Scripts\python scripts/seed_data.py
+
+# Nếu log báo function word_similarity(...) does not exist, chạy lại migration để bật pg_trgm
+.venv\Scripts\alembic upgrade head
 
 # (Tùy chọn) Xây dựng Knowledge Graph - Đồ thị tri thức (yêu cầu GROQ_API_KEY)
 .venv\Scripts\python scripts/build_graph.py

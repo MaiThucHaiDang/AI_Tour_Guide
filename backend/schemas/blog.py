@@ -105,13 +105,13 @@ class BlogPostCreate(BaseModel):
     @field_validator("cover_image")
     @classmethod
     def validate_cover_image(cls, value: str | None) -> str:
-        return _validate_public_url(value, default="/assets/icons/palace.png") or "/assets/icons/palace.png"
+        return _validate_public_url(value, default="/assets/images/art_17_1.jpg") or "/assets/images/art_17_1.jpg"
 
     @field_validator("cover_alt")
     @classmethod
     def validate_cover_alt(cls, value: str | None) -> str:
         if not value:
-            return "Ảnh minh họa bài chia sẻ du lịch Huế"
+            return "Ảnh bìa mặc định bài chia sẻ du lịch Huế"
         return _clean_plain_text(value, "cover_alt", 260)
 
     @field_validator("author_name")

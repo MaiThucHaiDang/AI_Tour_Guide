@@ -7,19 +7,19 @@ import {
   ScanSearch,
   ShieldCheck,
   Sparkles,
-  Smartphone
+  Smartphone,
+  Sun,
+  Moon
 } from 'lucide-react';
 import DestinationGrid from './destinations/DestinationGrid';
 import { destinations } from '../data/destinations';
+import styles from './HomeScreen.module.css';
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
 const REAL_IMAGES = {
-  hue: 'https://commons.wikimedia.org/wiki/Special:FilePath/Meridian%20Gate%2C%20Hue%20%28I%29.jpg',
-  map: '/map.jpg',
-  ngoMon: '/assets/icons/ngo_mon.png',
-  thaiHoa: '/assets/icons/thai_hoa.png',
-  kienTrung: '/assets/icons/kien_trung.png'
+  hue: '/assets/images/art_17_1.jpg',
+  map: '/map.jpg'
 };
 
 const HomeScreen = ({
@@ -33,6 +33,21 @@ const HomeScreen = ({
   const isVi = language === 'vi';
   const [visibleIds, setVisibleIds] = useState(() => new Set(['hero']));
   const [isLaunching, setIsLaunching] = useState(false);
+
+  // Theme state
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('tour-theme') || 'dark';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('tour-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
+
   const rootRef = useRef(null);
   const pointerFrameRef = useRef(0);
   const pointerPositionRef = useRef({ x: 0.5, y: 0.5 });
@@ -241,57 +256,66 @@ const HomeScreen = ({
 
 
   return (
-    <div className="tour-home landing-page" ref={rootRef} onPointerMove={handlePointerMove}>
+    <div className={styles.tourHome} ref={rootRef} onPointerMove={handlePointerMove}>
+      <div className={styles.backgroundGlow} />
+      <div className={styles.backgroundGlowAccent} />
+
       {isLaunching && (
-        <div className="journey-transition" aria-live="polite">
-          <div className="transition-logo-mark"><span>AI</span></div>
+        <div className={styles.journeyTransition} aria-live="polite">
+          <div className={styles.transitionLogoMark}><span>AI</span></div>
           <strong>AITourGuide</strong>
           <p>{copy.launchText}</p>
         </div>
       )}
 
-      <header className="tour-home-header">
-        <div className="tour-home-brand">
-          <div className="tour-home-mark brand-logo-mark" aria-hidden="true">
+      <header className={styles.header}>
+        <div className={styles.brand}>
+          <div className={styles.logoMark} aria-hidden="true">
             <span>AI</span>
           </div>
-          <div>
+          <div className={styles.brandText}>
             <h1>AITourGuide</h1>
-            <p>{isVi ? 'Hướng dẫn viên số cho chuyến tham quan' : 'A digital guide for your visit'}</p>
+            <p>{isVi ? 'Hướng dẫn viên số' : 'A digital guide'}</p>
           </div>
         </div>
 
-        <nav className="landing-nav" aria-label="Landing navigation">
+        <nav className={styles.nav} aria-label="Landing navigation">
           <a href="#places">{copy.navPlaces}</a>
           <a href="#features">{copy.navFeatures}</a>
           <a href="/blog" onClick={handleOpenBlog}>{copy.navBlog}</a>
         </nav>
 
-        <div className="tour-home-lang">
-          <button className={language === 'vi' ? 'active' : ''} onClick={() => setLanguage('vi')}>VI</button>
-          <button className={language === 'en' ? 'active' : ''} onClick={() => setLanguage('en')}>EN</button>
+        <div className={styles.langToggle} style={{ display: 'flex', gap: '12px' }}>
+          <div>
+            <button className={language === 'vi' ? styles.active : ''} onClick={() => setLanguage('vi')}>VI</button>
+            <button className={language === 'en' ? styles.active : ''} onClick={() => setLanguage('en')}>EN</button>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', background: 'var(--color-bg-surface-glass)', borderRadius: 'var(--radius-full)', padding: '2px' }}>
+            <button onClick={toggleTheme} style={{ padding: '6px 12px', border: 'none', background: 'transparent', color: 'var(--color-text-main)', cursor: 'pointer', display: 'flex', alignItems: 'center' }} aria-label="Toggle Theme">
+              {theme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
+            </button>
+          </div>
         </div>
       </header>
 
-      <main className="tour-home-main">
+      <main className={styles.main}>
         <section
-          className="landing-hero"
+          className={styles.hero}
           ref={setSectionRef('hero')}
           data-reveal="hero"
-          style={{ '--hero-image': `url(${REAL_IMAGES.hue})` }}
         >
-          <div className="hero-shade" />
-          <div className={revealClass('hero', 'landing-hero-copy')}>
-            <span className="landing-eyebrow">
+          <div className={styles.heroBackground} style={{ backgroundImage: `url(${REAL_IMAGES.hue})` }} />
+          <div className={styles.heroContent}>
+            <span className={styles.eyebrow}>
               <Sparkles size={16} />
               {copy.eyebrow}
             </span>
-            <h2>{copy.title}</h2>
-            <p>{copy.desc}</p>
+            <h2 className={styles.heroTitle}>{copy.title}</h2>
+            <p className={styles.heroDesc}>{copy.desc}</p>
             
-            <div className="landing-hero-ctas" style={{ marginTop: '40px', display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+            <div className={styles.ctas}>
                 <button
-                    className="hero-btn-primary"
+                    className={styles.btnPrimary}
                     type="button"
                     onClick={startMapExperience}
                 >
@@ -299,7 +323,7 @@ const HomeScreen = ({
                     <span>{isVi ? 'Mở bản đồ Đại Nội' : 'Open Citadel Map'}</span>
                 </button>
                 <button
-                    className="hero-btn-secondary"
+                    className={styles.btnSecondary}
                     type="button"
                     onClick={startChatExperience}
                 >
@@ -309,15 +333,15 @@ const HomeScreen = ({
             </div>
 
             {!isPhoneFrame && (
-              <div className="tour-home-actions phone-preview-actions" style={{ marginTop: '20px' }}>
-                <button className="secondary-link phone-preview-trigger" onClick={openPhonePreview}>
+              <div style={{ marginTop: '20px' }}>
+                <button className={styles.btnSecondary} onClick={openPhonePreview} style={{ fontSize: '14px', padding: '10px 20px' }}>
                   <Smartphone size={18} />
                   <span>{copy.secondary}</span>
                 </button>
               </div>
             )}
             
-            <div className="hero-route" aria-label={copy.heroMeta} style={{ marginTop: '30px' }}>
+            <div className={styles.heroRoute} aria-label={copy.heroMeta}>
               <MapPin size={16} />
               <span>{copy.heroMeta}</span>
             </div>
@@ -334,24 +358,23 @@ const HomeScreen = ({
         />
 
 
-        <footer className="landing-footer">
-          <div className="footer-brand">
-            <div className="brand-logo-mark"><span>AI</span></div>
+        <footer className={styles.footer}>
+          <div className={styles.footerBrand}>
+            <div className={styles.logoMark}><span>AI</span></div>
             <div>
               <strong>AITourGuide</strong>
               <p>{copy.footerNote}</p>
             </div>
           </div>
-          <div className="footer-contact">
+          <div className={styles.footerContact}>
             <strong>{copy.contactTitle}</strong>
             <p>{copy.contactText}</p>
             <span>{isVi ? '17 điểm dừng chính trong Đại Nội Huế' : '17 main stops inside Hue Imperial City'}</span>
             <span>{isVi ? 'Bản đồ, hỏi đáp, nhận diện ảnh và thuyết minh giọng nói' : 'Map, Q&A, image recognition, and spoken narration'}</span>
           </div>
-          <div className="footer-sources">
+          <div className={styles.footerSources}>
             <strong>{isVi ? 'Nguồn ảnh' : 'Image sources'}</strong>
-            <a href="https://commons.wikimedia.org/wiki/File:Meridian_Gate,_Hue_(I).jpg" target="_blank" rel="noreferrer">Hue Imperial City / Wikimedia Commons</a>
-            <span>{isVi ? 'Bản đồ và minh họa công trình thuộc bộ nội dung của ứng dụng' : 'Map and monument illustrations are part of the app content set'}</span>
+            <span>{isVi ? 'Ảnh công trình thuộc bộ nội dung của ứng dụng AI Tour Guide Đại Nội Huế' : 'Monument photos are part of the AI Tour Guide Hue Imperial City content set'}</span>
           </div>
         </footer>
       </main>

@@ -68,7 +68,7 @@ const buildAlbumHtml = (summary, language) => {
     main { max-width: 960px; margin: 0 auto; padding: 28px; }
     h1 { font-family: "Segoe UI", Arial, Roboto, sans-serif; font-size: clamp(34px, 7vw, 72px); margin: 0 0 28px; text-align: center; font-weight: 800; }
     .album { display: flex; flex-direction: column; gap: 24px; }
-    figure { margin: 0; background: #fffaf0; border: 1px solid #dfcfad; border-radius: 10px; overflow: hidden; box-shadow: 0 14px 38px rgba(0,0,0,.12); }
+    figure { margin: 0; background: var(--color-bg-surface); border: 1px solid #dfcfad; border-radius: 10px; overflow: hidden; box-shadow: 0 14px 38px rgba(0,0,0,.12); }
     figure img { width: 100%; display: block; object-fit: contain; background: #111; }
   </style>
 </head>

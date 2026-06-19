@@ -1002,60 +1002,7 @@ const MapExplore = ({
               }
             }}
           >
-            <Popup>
-              <div className="artifact-popup">
-                <h3>
-                  {getArtifactName(art)}
-                </h3>
-                <p>
-                  {isVi ? art.name_en : art.name_vi}
-                </p>
-                {art.images && art.images.length > 0 && (
-                  <ImageGallery
-                    images={art.images}
-                    className="artifact-popup-gallery"
-                    imgClassName="popup-gallery-img"
-                    clipContainer=".leaflet-container"
-                  />
-                )}
-                {art.highlightVi && (
-                  <p className="artifact-popup-highlight">
-                    {isVi ? art.highlightVi : art.highlightEn}
-                  </p>
-                )}
-                {(art.id === 16 || art.id === 17) && art.openHoursVi && (
-                  <div className="artifact-popup-info">
-                    <div className="popup-info-row">
-                      <span className="popup-info-label">{isVi ? 'Giờ mở cửa' : 'Open hours'}</span>
-                      <span className="popup-info-value">{isVi ? art.openHoursVi : art.openHoursEn}</span>
-                    </div>
-                    <div className="popup-info-row">
-                      <span className="popup-info-label">{isVi ? 'Giá vé' : 'Ticket'}</span>
-                      <span className="popup-info-value">{isVi ? art.ticketVi : art.ticketEn}</span>
-                    </div>
-                  </div>
-                )}
-                <div className="artifact-popup-actions">
-                  <button className="artifact-popup-primary" onClick={() => startNavigation(art)}>
-                    <Navigation size={14} />
-                    {isVi ? 'Chỉ đường đến đây' : 'Navigate here'}
-                  </button>
-                  <button className="artifact-popup-secondary" onClick={() => handleIntroduce(art)}>
-                    <Info size={14} />
-                    {isVi ? 'Nghe giới thiệu' : 'Hear intro'}
-                  </button>
-                  <button
-                    className="artifact-popup-secondary"
-                    onClick={() => hasPhotoBoothFrame(art.id) && onPhotoBooth?.(art)}
-                    disabled={!hasPhotoBoothFrame(art.id)}
-                    title={!hasPhotoBoothFrame(art.id) ? (isVi ? 'Khung check-in sẽ được bổ sung sau' : 'Photo frame coming later') : undefined}
-                  >
-                    {hasPhotoBoothFrame(art.id) ? <Camera size={14} /> : <Lock size={14} />}
-                    {hasPhotoBoothFrame(art.id) ? (isVi ? 'Check-in ảnh' : 'Photo check-in') : (isVi ? 'Đang khóa' : 'Locked')}
-                  </button>
-                </div>
-              </div>
-            </Popup>
+          
           </Marker>
           );
         })}

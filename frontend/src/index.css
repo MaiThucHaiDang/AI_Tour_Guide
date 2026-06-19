@@ -1,20 +1,26 @@
+@import './variables.css';
+
 :root {
-  --primary-color: #fece14;
-  --bg-color: #f7f7f4;
-  --card-bg: #ffffff;
-  --text-main: #111827;
-  --text-secondary: #6b7280;
-  --border-color: #e5e7eb;
-  --success-color: #16a34a;
-  --warning-color: #d97706;
-  --error-color: #dc2626;
+  --primary-color: var(--color-primary);
+  --bg-color: var(--color-bg-dark);
+  --card-bg: var(--color-bg-surface);
+  --text-main: var(--color-text-main);
+  --text-secondary: var(--color-text-muted);
+  --border-color: var(--color-border);
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --error-color: #ef4444;
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: 'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
 }
 
 body {
@@ -25,6 +31,8 @@ body {
   height: 100dvh; /* Use dynamic viewport height to avoid hiding under mobile nav bars */
   width: 100%;
   max-width: 100vw;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
@@ -537,7 +545,7 @@ button {
 .progress-bar {
   width: 100%;
   height: 6px;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--color-bg-surface-glass);
   border-radius: 3px;
   position: relative;
 }
@@ -551,7 +559,7 @@ button {
 .progress-thumb {
   width: 12px;
   height: 12px;
-  background: white;
+  background: var(--color-bg-surface);
   border-radius: 50%;
   position: absolute;
   top: 50%;
@@ -602,7 +610,7 @@ button {
 .speed-btn {
   font-size: 14px;
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--color-bg-surface-glass);
   padding: 4px 8px;
   border-radius: 8px;
 }
@@ -640,7 +648,7 @@ button {
 
 .divider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--color-bg-surface-glass);
   width: 80%;
   margin: 0 auto;
 }
@@ -737,7 +745,7 @@ body {
 .tour-home-lang {
   display: flex;
   gap: 4px;
-  background: #ffffff;
+  background: var(--color-bg-surface);
   border: 1px solid rgba(24, 32, 35, 0.12);
   border-radius: 8px;
   padding: 4px;
@@ -804,7 +812,7 @@ body {
   border-radius: 8px;
   background-image:
     linear-gradient(180deg, rgba(24, 32, 35, 0.08), rgba(24, 32, 35, 0.38)),
-    url('https://commons.wikimedia.org/wiki/Special:FilePath/Meridian%20Gate%2C%20Hue%20%28I%29.jpg');
+    url('/assets/images/art_17_1.jpg');
   background-position: center;
   background-size: cover;
   filter: saturate(0.96) contrast(1.03);
@@ -965,7 +973,7 @@ body {
   display: flex;
   align-items: center;
   color: var(--museum-ink);
-  background: #ffffff;
+  background: var(--color-bg-surface);
   border: 1px solid rgba(24, 32, 35, 0.1);
   border-radius: 8px;
   padding: 10px;
@@ -982,7 +990,7 @@ body {
   padding: clamp(22px, 4vw, 42px);
   border: 1px solid rgba(24, 32, 35, 0.12);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--color-bg-surface);
   box-shadow: var(--museum-soft-shadow);
 }
 
@@ -1030,7 +1038,7 @@ body {
 
 .experience-panel {
   padding: 18px;
-  background: #ffffff;
+  background: var(--color-bg-surface);
 }
 
 .panel-kicker {
@@ -1080,7 +1088,7 @@ body {
   gap: 10px;
   min-height: 150px;
   padding: 16px;
-  background: #ffffff;
+  background: var(--color-bg-surface);
   transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -1112,7 +1120,7 @@ body {
 }
 
 .artifact-card-mini {
-  background: #fff8d9;
+  background: var(--color-bg-surface);
 }
 
 .landing-use-cases {
@@ -1146,7 +1154,7 @@ body {
   gap: 10px;
   min-height: 190px;
   padding: 18px;
-  background: #ffffff;
+  background: var(--color-bg-surface);
 }
 
 .use-case-card svg {
@@ -1335,7 +1343,7 @@ body {
 .landing-page .tour-home-header {
   height: 72px;
   padding: 0 clamp(16px, 4vw, 52px);
-  background: rgba(255, 250, 240, 0.84);
+  background: var(--color-bg-surface-glass);
   border-bottom: 1px solid rgba(16, 24, 24, 0.1);
   backdrop-filter: blur(20px);
 }
@@ -1448,7 +1456,7 @@ body {
   margin-bottom: 18px;
   padding: 8px 11px;
   color: #fffaf0;
-  background: rgba(255, 250, 240, 0.12);
+  background: var(--color-bg-surface-glass);
   border: 1px solid rgba(255, 250, 240, 0.22);
   border-radius: 8px;
   backdrop-filter: blur(14px);
@@ -1673,13 +1681,13 @@ body {
   padding: clamp(24px, 4vw, 46px);
   border: 1px solid var(--travel-line);
   border-radius: 8px;
-  background: rgba(255, 250, 240, 0.88);
+  background: var(--color-bg-surface-glass);
   box-shadow: var(--travel-soft-shadow);
 }
 
 .story-card.active {
   border-color: rgba(7, 94, 85, 0.35);
-  background: #fffaf0;
+  background: var(--color-bg-surface);
   box-shadow: 0 22px 64px rgba(7, 94, 85, 0.18);
 }
 
@@ -1702,7 +1710,7 @@ body {
 .story-card p {
   max-width: 650px;
   margin: 18px 0 0;
-  color: #4c5b57;
+  color: var(--color-text-muted);
   font-size: 16px;
   line-height: 1.72;
 }
@@ -1766,7 +1774,7 @@ body {
   gap: 12px;
   border: 1px solid var(--travel-line);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--color-bg-surface);
   box-shadow: var(--travel-soft-shadow);
 }
 
@@ -2103,11 +2111,11 @@ body {
 }
 
 .story-card {
-  background: rgba(255, 250, 240, 0.78);
+  background: var(--color-bg-surface-glass);
 }
 
 .story-card.active {
-  background: rgba(255, 250, 240, 0.92);
+  background: var(--color-bg-surface-glass);
 }
 
 .place-carousel {
@@ -2312,16 +2320,16 @@ body {
 
 /* --- Mobile-first tour workspace shell --- */
 .mobile-tour-shell {
-  --tour-ink: #101818;
-  --tour-paper: #fffaf0;
-  --tour-paper-soft: #f6f0df;
-  --tour-line: rgba(16, 24, 24, 0.13);
-  --tour-muted: #60706b;
-  --tour-jade: #075e55;
-  --tour-jade-2: #0d7a68;
-  --tour-rust: #a83f2e;
-  --tour-gold: #ffd447;
-  --tour-shadow: 0 18px 48px rgba(16, 24, 24, 0.14);
+  --tour-ink: var(--color-text-main);
+  --tour-paper: var(--color-bg-dark);
+  --tour-paper-soft: var(--color-bg-surface);
+  --tour-line: var(--color-border);
+  --tour-muted: var(--color-text-muted);
+  --tour-jade: var(--color-primary);
+  --tour-jade-2: var(--color-primary-dark);
+  --tour-rust: var(--color-accent);
+  --tour-gold: var(--color-primary-light);
+  --tour-shadow: var(--shadow-lg);
   width: 100%;
   max-width: 100vw;
   height: 100dvh;
@@ -2331,12 +2339,8 @@ body {
   overflow: hidden;
   overflow-x: clip;
   color: var(--tour-ink);
-  background:
-    linear-gradient(90deg, rgba(16, 24, 24, 0.03) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(16, 24, 24, 0.024) 1px, transparent 1px),
-    linear-gradient(135deg, #f8f1df 0%, #fffaf0 46%, #e7f0ec 100%);
-  background-size: 36px 36px, 36px 36px, auto;
-  font-family: 'Segoe UI', 'Noto Sans', Arial, sans-serif;
+  background: var(--tour-paper);
+  font-family: var(--font-body);
 }
 
 .tour-shell-header {
@@ -2351,9 +2355,9 @@ body {
   min-height: 68px;
   padding: 10px 14px;
   border-bottom: 1px solid var(--tour-line);
-  background: rgba(255, 250, 240, 0.9);
+  background: var(--color-bg-surface-glass);
   backdrop-filter: blur(18px);
-  box-shadow: 0 10px 30px rgba(16, 24, 24, 0.06);
+  box-shadow: var(--shadow-sm);
 }
 
 .tour-shell-back {
@@ -2364,8 +2368,8 @@ body {
   border: 1px solid var(--tour-line);
   border-radius: 8px;
   color: var(--tour-ink);
-  background: #ffffff;
-  box-shadow: 0 8px 20px rgba(16, 24, 24, 0.08);
+  background: var(--color-bg-surface);
+  box-shadow: var(--shadow-sm);
 }
 
 .tour-shell-title {
@@ -2386,7 +2390,7 @@ body {
   margin: 2px 0 0;
   overflow: hidden;
   color: var(--tour-ink);
-  font-family: Cambria, 'Times New Roman', serif;
+  font-family: var(--font-heading);
   font-size: 21px;
   line-height: 1.05;
   font-weight: 800;
@@ -2396,7 +2400,7 @@ body {
 
 .mobile-tour-shell .language-toggle {
   min-height: 40px;
-  background: #ffffff;
+  background: var(--color-bg-surface);
   border: 1px solid var(--tour-line);
   box-shadow: 0 8px 20px rgba(16, 24, 24, 0.08);
 }
@@ -2440,7 +2444,7 @@ body {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: rgba(255, 250, 240, 0.72);
+  background: var(--color-bg-surface-glass);
   will-change: transform, opacity;
 }
 
@@ -2611,7 +2615,7 @@ body {
 .map-action-secondary,
 .artifact-popup-secondary {
   color: var(--map-ink);
-  background: #ffffff;
+  background: var(--color-bg-surface);
   border-color: var(--map-line);
 }
 
@@ -2653,7 +2657,7 @@ body {
 
 .map-icon-button.is-paper {
   color: var(--map-jade);
-  background: rgba(255, 250, 240, 0.96);
+  background: var(--color-bg-surface-glass);
 }
 
 .map-manual-hint {
@@ -2726,7 +2730,7 @@ body {
   border: 1px solid var(--map-line);
   border-radius: 8px;
   color: var(--map-ink);
-  background: rgba(255, 250, 240, 0.96);
+  background: var(--color-bg-surface-glass);
   box-shadow: 0 20px 52px rgba(16, 24, 24, 0.22);
   backdrop-filter: blur(16px);
 }
@@ -2791,7 +2795,7 @@ body {
 
 .artifact-mobile-screen p {
   margin: 0;
-  color: #4c5b57;
+  color: var(--color-text-muted);
   font-size: 15px;
   line-height: 1.65;
 }
@@ -2806,7 +2810,7 @@ body {
 .artifact-summary-block {
   border: 1px solid var(--tour-line);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--color-bg-surface-glass);
   box-shadow: 0 10px 26px rgba(16, 24, 24, 0.07);
 }
 
@@ -2892,7 +2896,7 @@ body {
 
 .tour-secondary-action {
   color: var(--tour-ink);
-  background: #ffffff;
+  background: var(--color-bg-surface);
   border: 1px solid var(--tour-line);
   box-shadow: 0 10px 24px rgba(16, 24, 24, 0.07);
 }
@@ -2908,7 +2912,7 @@ body {
   gap: 10px;
   border: 1px solid rgba(7, 94, 85, 0.2);
   border-radius: 8px;
-  background: rgba(255, 250, 240, 0.95);
+  background: var(--color-bg-surface-glass);
   box-shadow: var(--tour-shadow);
   padding: 12px;
   backdrop-filter: blur(16px);
@@ -2963,7 +2967,7 @@ body {
   border: 1px solid rgba(7, 94, 85, 0.18);
   border-radius: 8px;
   color: var(--tour-jade);
-  background: #ffffff;
+  background: var(--color-bg-surface);
   padding: 8px 6px;
   font-size: 11.5px;
   font-weight: 900;
@@ -2997,7 +3001,7 @@ body {
   border: 1px solid rgba(7, 94, 85, 0.24);
   border-radius: 8px;
   color: var(--tour-ink);
-  background: rgba(255, 250, 240, 0.94);
+  background: var(--color-bg-surface-glass);
   box-shadow: var(--tour-shadow);
   padding: 10px 12px;
   text-align: left;
@@ -3029,7 +3033,7 @@ body {
   gap: 6px;
   padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--tour-line);
-  background: rgba(255, 250, 240, 0.94);
+  background: var(--color-bg-surface-glass);
   box-shadow: 0 -16px 36px rgba(16, 24, 24, 0.1);
   backdrop-filter: blur(18px);
 }
@@ -3119,7 +3123,7 @@ body {
   }
 
   .tour-shell-stage {
-    padding-bottom: calc(70px + env(safe-area-inset-bottom));
+    /* Padding removed because TourBottomNav was moved to the header */
   }
 
   .tour-bottom-nav {
@@ -3249,13 +3253,13 @@ body {
   border: 1px solid rgba(255, 250, 240, 0.28);
   border-radius: 8px;
   padding: 0 14px;
-  background: rgba(255, 250, 240, 0.1);
+  background: var(--color-bg-surface-glass);
   backdrop-filter: blur(14px);
   cursor: pointer;
 }
 
 .phone-preview-trigger:hover {
-  background: rgba(255, 250, 240, 0.18);
+  background: var(--color-bg-surface-glass);
 }
 
 .landing-final-actions {
@@ -3316,12 +3320,12 @@ body {
   color: var(--preview-paper);
   border: 1px solid rgba(255, 250, 240, 0.2);
   border-radius: 8px;
-  background: rgba(255, 250, 240, 0.08);
+  background: var(--color-bg-surface-glass);
   backdrop-filter: blur(12px);
 }
 
 .phone-preview-back:hover {
-  background: rgba(255, 250, 240, 0.15);
+  background: var(--color-bg-surface-glass);
 }
 
 .phone-preview-kicker {
@@ -3370,7 +3374,7 @@ body {
   color: rgba(255, 250, 240, 0.78);
   border: 1px solid rgba(255, 250, 240, 0.16);
   border-radius: 8px;
-  background: rgba(255, 250, 240, 0.07);
+  background: var(--color-bg-surface-glass);
 }
 
 .phone-preview-facts strong {
@@ -3425,7 +3429,7 @@ body {
   width: 72px;
   height: 6px;
   border-radius: 999px;
-  background: rgba(255, 250, 240, 0.22);
+  background: var(--color-bg-surface-glass);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12);
   transform: translateX(-50%);
 }
@@ -3435,14 +3439,14 @@ body {
   height: 100%;
   display: block;
   border: 0;
-  background: #fffaf0;
+  background: var(--color-bg-surface);
 }
 
 .phone-device-side {
   position: absolute;
   width: 4px;
   border-radius: 999px;
-  background: rgba(255, 250, 240, 0.26);
+  background: var(--color-bg-surface-glass);
 }
 
 .phone-device-side-left {
@@ -3592,7 +3596,7 @@ body {
   text-align: left;
   border: 1px solid rgba(255, 250, 240, 0.22);
   border-radius: 8px;
-  background: rgba(255, 250, 240, 0.12);
+  background: var(--color-bg-surface-glass);
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
   backdrop-filter: blur(14px);
   transition: transform 0.22s ease, background 0.22s ease, border-color 0.22s ease;
@@ -3600,7 +3604,7 @@ body {
 
 .location-card-hero:hover {
   transform: translateY(-2px);
-  background: rgba(255, 250, 240, 0.18);
+  background: var(--color-bg-surface-glass);
   border-color: rgba(254, 206, 20, 0.42);
 }
 
@@ -3666,7 +3670,7 @@ body {
 .destination-section-heading h2 {
   max-width: 780px;
   margin: 14px 0 0;
-  color: var(--travel-ink, #101818);
+  color: var(--color-text-main);
   font-size: clamp(34px, 4.8vw, 68px);
   font-weight: 780;
   line-height: 1.02;
@@ -3676,7 +3680,7 @@ body {
 .destination-section-heading p {
   max-width: 760px;
   margin: 16px 0 0;
-  color: #4c5b57;
+  color: var(--color-text-muted);
   font-size: clamp(15px, 1.5vw, 18px);
   line-height: 1.7;
 }
@@ -3933,7 +3937,7 @@ body {
   gap: 16px;
   padding: 12px clamp(16px, 4vw, 52px);
   border-bottom: 1px solid rgba(16, 24, 24, 0.1);
-  background: rgba(255, 250, 240, 0.88);
+  background: var(--color-bg-surface-glass);
   backdrop-filter: blur(18px);
 }
 
@@ -3955,7 +3959,7 @@ body {
   border-radius: 8px;
   padding: 0 13px;
   color: var(--travel-ink, #101818);
-  background: rgba(255, 255, 255, 0.76);
+  background: var(--color-bg-surface-glass);
   box-shadow: 0 10px 24px rgba(16, 24, 24, 0.07);
   font-size: 14px;
   font-weight: 900;
@@ -4005,7 +4009,7 @@ body {
   padding: clamp(22px, 4vw, 46px);
   border: 1px solid rgba(16, 24, 24, 0.12);
   border-radius: 8px;
-  background: rgba(255, 250, 240, 0.82);
+  background: var(--color-bg-surface-glass);
   box-shadow: 0 16px 42px rgba(16, 24, 24, 0.08);
   backdrop-filter: blur(18px);
 }
@@ -4077,7 +4081,7 @@ body {
 .destination-detail-content article {
   border: 1px solid rgba(16, 24, 24, 0.12);
   border-radius: 8px;
-  background: rgba(255, 250, 240, 0.84);
+  background: var(--color-bg-surface-glass);
   box-shadow: 0 12px 32px rgba(16, 24, 24, 0.07);
 }
 
@@ -4146,7 +4150,7 @@ body {
   padding: 12px;
   border: 1px solid rgba(16, 24, 24, 0.1);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.58);
+  background: var(--color-bg-surface-glass);
 }
 
 .destination-history-meta dd {
@@ -4311,7 +4315,7 @@ body {
 /* --- More robust phone frame and iframe content layout --- */
 .app-root {
   min-width: 0;
-  background: #fffaf0;
+  background: var(--color-bg-surface);
 }
 
 .app-view-transition-stage {
@@ -4319,7 +4323,7 @@ body {
   inset: 0;
   isolation: isolate;
   overflow: hidden;
-  background: #fffaf0;
+  background: var(--bg-color);
 }
 
 .app-view-transition-layer {
@@ -4328,7 +4332,7 @@ body {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: #fffaf0;
+  background: var(--bg-color);
   backface-visibility: hidden;
   animation-fill-mode: both;
 }
@@ -4350,20 +4354,16 @@ body {
   display: grid;
   place-items: center;
   gap: 12px;
-  color: #101818;
-  background:
-    linear-gradient(90deg, rgba(16, 24, 24, 0.03) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(16, 24, 24, 0.025) 1px, transparent 1px),
-    #fffaf0;
-  background-size: 42px 42px;
+  color: var(--text-main);
+  background: var(--bg-color);
   text-align: center;
 }
 
 .app-route-loader-mark {
   width: 34px;
   height: 34px;
-  border: 3px solid rgba(7, 94, 85, 0.18);
-  border-top-color: #075e55;
+  border: 3px solid rgba(59, 130, 246, 0.18);
+  border-top-color: var(--primary-color);
   border-radius: 999px;
   animation: app-route-loader-spin 0.8s linear infinite;
 }
@@ -4450,7 +4450,7 @@ body {
   border-radius: 8px;
   padding: 7px 9px;
   color: #075e55;
-  background: rgba(255, 250, 240, 0.92);
+  background: var(--color-bg-surface-glass);
   box-shadow: 0 8px 18px rgba(16, 24, 24, 0.07);
   font-size: 11px;
   font-weight: 950;
@@ -4722,7 +4722,6 @@ body {
 
 .is-phone-frame .tour-shell-stage {
   min-height: 0;
-  padding-bottom: calc(72px + env(safe-area-inset-bottom));
 }
 
 .is-phone-frame .tour-shell-panel {
@@ -4956,7 +4955,7 @@ body {
   gap: 12px;
   padding: 12px clamp(16px, 4vw, 52px);
   border-bottom: 1px solid rgba(16, 24, 24, 0.1);
-  background: rgba(255, 250, 240, 0.9);
+  background: var(--color-bg-surface-glass);
   backdrop-filter: blur(18px);
 }
 
@@ -4973,7 +4972,7 @@ body {
   border-radius: 8px;
   padding: 0 14px;
   color: var(--travel-ink, #101818);
-  background: rgba(255, 255, 255, 0.76);
+  background: var(--color-bg-surface-glass);
   box-shadow: 0 10px 24px rgba(16, 24, 24, 0.07);
   font-size: 14px;
   font-weight: 900;
@@ -5021,7 +5020,7 @@ body {
 .blog-editor-form {
   border: 1px solid rgba(16, 24, 24, 0.12);
   border-radius: 8px;
-  background: rgba(255, 250, 240, 0.84);
+  background: var(--color-bg-surface-glass);
   box-shadow: 0 14px 36px rgba(16, 24, 24, 0.08);
 }
 
@@ -5117,7 +5116,7 @@ body {
   border: 1px solid rgba(16, 24, 24, 0.13);
   border-radius: 8px;
   padding: 0 13px;
-  background: #ffffff;
+  background: var(--color-bg-surface);
 }
 
 .blog-search-field svg {
@@ -5135,7 +5134,7 @@ body {
   border: 1px solid rgba(16, 24, 24, 0.14);
   border-radius: 8px;
   color: var(--travel-ink, #101818);
-  background: #ffffff;
+  background: var(--color-bg-surface);
   font: inherit;
 }
 
@@ -5207,7 +5206,7 @@ body {
   overflow: hidden;
   border: 1px solid rgba(16, 24, 24, 0.12);
   border-radius: 8px;
-  background: rgba(255, 250, 240, 0.88);
+  background: var(--color-bg-surface-glass);
   box-shadow: 0 12px 32px rgba(16, 24, 24, 0.08);
   transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
 }
@@ -5482,7 +5481,7 @@ body {
   border-radius: 8px;
   padding: 9px 11px;
   color: var(--travel-ink, #101818);
-  background: rgba(255, 255, 255, 0.74);
+  background: var(--color-bg-surface-glass);
   font-size: 14px;
   font-weight: 900;
   text-align: left;
@@ -5548,7 +5547,7 @@ body {
   padding: 14px;
   border: 1px solid rgba(16, 24, 24, 0.1);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.58);
+  background: var(--color-bg-surface-glass);
 }
 
 .blog-comment-form label,
@@ -5604,7 +5603,7 @@ body {
   padding: 13px;
   border: 1px solid rgba(16, 24, 24, 0.1);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.62);
+  background: var(--color-bg-surface-glass);
 }
 
 .blog-comment div {
@@ -5877,7 +5876,7 @@ body {
 .passport-journal-card {
   border: 1px solid rgba(16, 24, 24, 0.12);
   border-radius: 8px;
-  background: rgba(255, 250, 240, 0.84);
+  background: var(--color-bg-surface-glass);
   box-shadow: 0 14px 34px rgba(16, 24, 24, 0.08);
 }
 
@@ -5947,7 +5946,7 @@ body {
   place-items: center;
   gap: 8px;
   padding: 12px 8px;
-  background: rgba(255, 250, 240, 0.95);
+  background: var(--color-bg-surface-glass);
 }
 
 .passport-progress-ring {
@@ -6048,7 +6047,7 @@ body {
 
 .passport-actions button:nth-child(2) {
   color: #075e55;
-  background: #ffffff;
+  background: var(--color-bg-surface);
   border: 1px solid rgba(7, 94, 85, 0.18);
 }
 
@@ -6228,7 +6227,7 @@ body {
   overflow: hidden;
   border: 1px solid rgba(16, 24, 24, 0.1);
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--color-bg-surface);
 }
 
 .passport-photo-grid img {
@@ -6262,7 +6261,7 @@ body {
   border-left: 3px solid rgba(7, 94, 85, 0.22);
   padding: 8px 10px;
   border-radius: 0 8px 8px 0;
-  background: rgba(255, 255, 255, 0.66);
+  background: var(--color-bg-surface-glass);
 }
 
 .passport-note-list p {
@@ -6278,7 +6277,7 @@ body {
   padding: 12px;
   border: 1px dashed rgba(7, 94, 85, 0.22);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.58);
+  background: var(--color-bg-surface-glass);
 }
 
 .trip-completion-screen {
@@ -6305,7 +6304,7 @@ body {
   gap: 12px;
   padding: 12px clamp(14px, 3vw, 28px);
   border-bottom: 1px solid rgba(16, 24, 24, 0.12);
-  background: rgba(255, 250, 240, 0.92);
+  background: var(--color-bg-surface-glass);
   box-shadow: 0 16px 34px rgba(16, 24, 24, 0.08);
   backdrop-filter: blur(18px);
 }
@@ -6321,7 +6320,7 @@ body {
   border-radius: 8px;
   padding: 9px 12px;
   color: #182023;
-  background: #ffffff;
+  background: var(--color-bg-surface);
   box-shadow: 0 8px 18px rgba(16, 24, 24, 0.06);
   font-size: 13px;
   font-weight: 950;
@@ -6373,7 +6372,7 @@ body {
   border: 1px solid rgba(16, 24, 24, 0.1);
   border-radius: 8px;
   padding: 12px;
-  background: rgba(255, 250, 240, 0.78);
+  background: var(--color-bg-surface-glass);
   box-shadow: 0 12px 28px rgba(16, 24, 24, 0.07);
 }
 
@@ -6556,7 +6555,7 @@ body {
   right: 0;
   background: none;
   border: none;
-  color: #333;
+  color: var(--color-text-main);
   font-size: 28px;
   cursor: pointer;
   line-height: 1;
@@ -6622,7 +6621,7 @@ body {
   margin-top: 10px;
   border: 1px solid rgba(7, 94, 85, 0.2);
   border-radius: 8px;
-  background: #fffaf0;
+  background: var(--color-bg-surface);
   color: #075e55;
   font-weight: 800;
   display: flex;
@@ -6653,7 +6652,7 @@ body {
 .photo-booth-modal {
   width: min(940px, 100%);
   max-height: min(920px, 96vh);
-  background: #fffaf0;
+  background: var(--color-bg-surface);
   border-radius: 10px;
   overflow: hidden;
   display: flex;
@@ -6690,7 +6689,7 @@ body {
   height: 36px;
   border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 8px;
-  background: #fff;
+  background: var(--color-bg-surface);
   color: #24302f;
   display: grid;
   place-items: center;
@@ -6811,7 +6810,7 @@ body {
   margin: 0;
   border-radius: 10px;
   overflow: hidden;
-  background: #fffaf0;
+  background: var(--color-bg-surface);
   border: 1px solid #dfcfad;
 }
 
@@ -7009,7 +7008,7 @@ body {
 }
 
 .lang-buttons button.active {
-  background: #fff;
+  background: var(--color-bg-surface);
   color: var(--tour-jade);
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
@@ -7153,7 +7152,7 @@ body {
 
 .sheet-btn-secondary {
   flex: 1.5;
-  background: #fff;
+  background: var(--color-bg-surface);
   border-color: rgba(15, 95, 89, 0.24) !important;
   color: var(--tour-jade);
 }
@@ -7217,7 +7216,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #fff;
+  background: var(--color-bg-surface);
   border: 1px solid rgba(24, 32, 35, 0.08);
   padding: 8px 10px;
   border-radius: 8px;
@@ -7280,7 +7279,7 @@ body {
 }
 
 .sheet-action-btn.secondary {
-  background: #fff;
+  background: var(--color-bg-surface);
   border-color: rgba(15, 95, 89, 0.24) !important;
   color: var(--tour-jade);
 }
@@ -7386,7 +7385,7 @@ body {
 }
 
 .context-action-btn.map-btn {
-  background: #fff;
+  background: var(--color-bg-surface);
   border-color: rgba(15, 95, 89, 0.2);
   color: var(--tour-jade);
 }
@@ -7401,7 +7400,7 @@ body {
 }
 
 .context-action-btn.clear-btn:hover {
-  color: #333;
+  color: var(--color-text-main);
 }
 
 
@@ -7443,7 +7442,7 @@ body {
 
 .quick-prompt-chip {
   flex-shrink: 0;
-  background: #ffffff;
+  background: var(--color-bg-surface);
   border: 1px solid rgba(15, 95, 89, 0.15);
   border-radius: 16px;
   padding: 6px 12px;
@@ -7498,14 +7497,14 @@ body {
 }
 
 .hero-btn-secondary {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--color-bg-surface-glass);
   backdrop-filter: blur(10px);
   border-color: rgba(255, 255, 255, 0.25);
   color: #fff;
 }
 
 .hero-btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: var(--color-bg-surface-glass);
   transform: translateY(-2px);
 }
 

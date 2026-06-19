@@ -134,8 +134,29 @@ async def recognize_artifact(
         llm_response = await generate_response(artifact_data=artifact_data, lang=lang)
     except Exception as e:
         logger.error("LLM error: %s", e, exc_info=True)
-        raise HTTPException(
-            status_code=502, detail="LLM service tạm thời không khả dụng"
+        artifact_name = artifact_data.name_vi if lang == "vi" else artifact_data.name_en
+        fallback_text = (
+            f"Đã nhận diện ảnh là {artifact_name}, nhưng phần tạo thuyết minh AI đang tạm thời quá tải. "
+            "Bạn có thể mở địa điểm này để xem thông tin chi tiết hoặc thử hỏi lại sau ít phút."
+            if lang == "vi"
+            else f"The image was recognized as {artifact_name}, but the AI narration service is temporarily overloaded. "
+            "You can open this stop for details or try again in a few minutes."
+        )
+        if session_id:
+            await memory.add_turn(session_id, "user", f"[User sent an image of {artifact_name}]")
+            await memory.add_turn(session_id, "assistant", fallback_text)
+        return RecognizeResponse(
+            success=True,
+            artifact_id=artifact_id,
+            artifact_name=artifact_name,
+            response_text=fallback_text,
+            confidence_score=vision_result.confidence_score,
+            error_code="LLM_UNAVAILABLE",
+            message=(
+                "Đã nhận diện ảnh, nhưng AI thuyết minh đang quá tải."
+                if lang == "vi"
+                else "Image recognized, but AI narration is overloaded."
+            ),
         )
 
     # 4. Return result

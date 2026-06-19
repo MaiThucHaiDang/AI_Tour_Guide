@@ -93,9 +93,18 @@ def get_image_quality_estimate(image: Image.Image) -> float:
     """
     width, height = image.size
     
-    # Base score from resolution (higher is better)
+    # Base score from resolution. The old scale was megapixels * 10, which made
+    # normal 720p/1080p mobile images look "very low quality" even when usable.
     megapixels = (width * height) / 1_000_000
-    resolution_score = min(100, megapixels * 10)
+    short_side = min(width, height)
+    if short_side < MIN_IMAGE_DIMENSION:
+        resolution_score = 0
+    elif megapixels < 0.08:
+        resolution_score = 20
+    elif megapixels < 0.30:
+        resolution_score = 38
+    else:
+        resolution_score = min(100, 45 + megapixels * 32)
     
     # Penalty for unusual modes
     mode_penalty = 0
@@ -104,7 +113,7 @@ def get_image_quality_estimate(image: Image.Image) -> float:
     
     # Penalty for extreme aspect ratios
     aspect_ratio = max(width, height) / min(width, height)
-    aspect_penalty = max(0, (aspect_ratio - 2) * 5)
+    aspect_penalty = max(0, (aspect_ratio - 2) * 8)
     
     quality = resolution_score - mode_penalty - aspect_penalty
     return max(0, min(100, quality))

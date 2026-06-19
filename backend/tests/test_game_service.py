@@ -9,6 +9,7 @@ if str(BACKEND_ROOT) not in sys.path:
     sys.path.insert(0, str(BACKEND_ROOT))
 
 from main import app
+from services.map.game_service import QUESTION_TIME_LIMIT
 
 client = TestClient(app, raise_server_exceptions=False)
 
@@ -39,12 +40,15 @@ def mock_llm():
 
 def test_multiplayer_game_flow(mock_llm):
     # 1. Create room
-    resp = client.post("/api/v1/game/create", json={"visited_ids": [8, 17], "lang": "vi"})
+    resp = client.post("/api/v1/game/create", json={"visited_ids": [8, 17], "lang": "vi", "host_nickname": "Host"})
     assert resp.status_code == 200
     data = resp.json()
     assert data["success"] is True
     room_code = data["room_code"]
     assert len(room_code) == 4
+    assert data["room"]["players"][0]["nickname"] == "Host"
+    assert data["room"]["players"][0]["is_host"] is True
+    assert data["room"]["current_question"] is None
 
     # 2. Join players
     resp1 = client.post("/api/v1/game/join", json={"room_code": room_code, "nickname": "An"})
@@ -64,14 +68,24 @@ def test_multiplayer_game_flow(mock_llm):
     assert status_resp.status_code == 200
     status_data = status_resp.json()
     assert status_data["room"]["status"] == "lobby"
-    assert len(status_data["room"]["players"]) == 2
+    assert len(status_data["room"]["players"]) == 3
 
     # 4. Start game
     start_resp = client.post("/api/v1/game/start", json={"room_code": room_code})
     assert start_resp.status_code == 200
     assert start_resp.json()["success"] is True
+    assert start_resp.json()["room"]["current_question"]["time_limit"] == QUESTION_TIME_LIMIT
+    assert QUESTION_TIME_LIMIT == 25
 
     # 5. Submit answers
+    host_ans = client.post("/api/v1/game/answer", json={
+        "room_code": room_code,
+        "nickname": "Host",
+        "question_index": 0,
+        "selected_option": 0
+    })
+    assert host_ans.status_code == 200
+
     ans_resp1 = client.post("/api/v1/game/answer", json={
         "room_code": room_code,
         "nickname": "An",
@@ -92,9 +106,9 @@ def test_multiplayer_game_flow(mock_llm):
     assert ans_resp2.json()["is_correct"] is False
     assert ans_resp2.json()["score_awarded"] == 0
 
-    # 6. Next to scoreboard
-    next_resp = client.post("/api/v1/game/next", json={"room_code": room_code})
-    assert next_resp.json()["room"]["status"] == "scoreboard"
+    # 6. All players answered, room automatically moves to scoreboard
+    status_resp = client.get(f"/api/v1/game/room/{room_code}/status")
+    assert status_resp.json()["room"]["status"] == "scoreboard"
 
     # 7. Next to question 1
     next_resp = client.post("/api/v1/game/next", json={"room_code": room_code})

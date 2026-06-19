@@ -16,6 +16,7 @@ router = APIRouter(
 class CreateRoomRequest(BaseModel):
     visited_ids: List[int] = Field(..., description="List of visited artifact IDs to generate questions from.")
     lang: str = Field("vi", description="Language code: vi or en")
+    host_nickname: Optional[str] = Field(default=None, description="Nickname of the room creator/player", max_length=20)
 
 class JoinRoomRequest(BaseModel):
     room_code: str = Field(..., description="4-character room code")
@@ -43,8 +44,14 @@ class EndGameRequest(BaseModel):
 async def create_room(req: CreateRoomRequest):
     """Create a new quiz room with AI-generated trivia questions."""
     try:
-        room_code = await game_service.create_room(req.visited_ids, req.lang)
-        return {"success": True, "room_code": room_code}
+        room_code = await game_service.create_room(req.visited_ids, req.lang, req.host_nickname)
+        room = await game_service.get_room_status(room_code)
+        return {
+            "success": True,
+            "room_code": room_code,
+            "host_nickname": req.host_nickname,
+            "room": room,
+        }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:

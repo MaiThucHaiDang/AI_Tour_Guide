@@ -45,7 +45,7 @@ _LOGGER = logging.getLogger(__name__)
 
 # Timeouts in seconds
 STT_TIMEOUT = 20
-VISION_TIMEOUT = 25
+VISION_TIMEOUT = max(10, get_settings().VISION_TIMEOUT_SECONDS)
 LLM_TIMEOUT = 30
 FOLLOWUP_LLM_TIMEOUT = 25
 MIN_AUDIO_BYTES = 800

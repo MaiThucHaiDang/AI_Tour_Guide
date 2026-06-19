@@ -19,20 +19,35 @@ from core.dependencies import get_llm_provider
 logger = logging.getLogger(__name__)
 
 # Game time limit per question in seconds
-QUESTION_TIME_LIMIT = 30
+QUESTION_TIME_LIMIT = 25
 
 class GameRoom:
-    def __init__(self, room_code: str, questions: List[Dict[str, Any]], visited_artifacts_summary: str, lang: str):
+    def __init__(
+        self,
+        room_code: str,
+        questions: List[Dict[str, Any]],
+        visited_artifacts_summary: str,
+        lang: str,
+        host_nickname: str | None = None,
+    ):
         self.room_code = room_code
         self.status = "lobby" # lobby, playing, scoreboard, finished
         self.questions = questions
         self.visited_artifacts_summary = visited_artifacts_summary
         self.lang = lang
+        self.host_nickname = (host_nickname or "").strip()
         self.current_question_index = 0
         self.question_start_time = 0.0
         self.players: Dict[str, Dict[str, Any]] = {} # nickname -> {score, answers: dict}
         self.created_at = time.time()
         self.ai_praise_speech: Optional[str] = None
+
+        if self.host_nickname:
+            self.players[self.host_nickname] = {
+                "score": 0,
+                "answers": {},
+                "is_host": True,
+            }
 
     def to_dict(self, include_answers: bool = False) -> Dict[str, Any]:
         """Serialize room state for API response."""
@@ -41,7 +56,8 @@ class GameRoom:
             player_list.append({
                 "nickname": name,
                 "score": p_data["score"],
-                "answers_count": len(p_data["answers"])
+                "answers_count": len(p_data["answers"]),
+                "is_host": bool(p_data.get("is_host", False)),
             })
         
         # Sort players by score descending
@@ -78,6 +94,7 @@ class GameRoom:
             "current_question_index": self.current_question_index,
             "total_questions": len(self.questions),
             "lang": self.lang,
+            "host_nickname": self.host_nickname,
             "ai_praise_speech": self.ai_praise_speech
         }
 
@@ -93,10 +110,16 @@ class GameService:
             if code not in self.active_rooms:
                 return code
 
-    async def create_room(self, visited_ids: List[int], lang: str = "vi") -> str:
+    async def create_room(self, visited_ids: List[int], lang: str = "vi", host_nickname: str | None = None) -> str:
         """Create a new game room and generate quiz questions via Gemini."""
         if not visited_ids:
             raise ValueError("Danh sách địa điểm đã đi qua không được rỗng.")
+        if host_nickname is not None:
+            host_nickname = host_nickname.strip()
+            if not host_nickname:
+                raise ValueError("Tên chủ phòng không được để trống.")
+            if len(host_nickname) > 20:
+                raise ValueError("Tên chủ phòng quá dài (tối đa 20 ký tự).")
 
         # 1. Fetch artifacts and their facts from Database
         artifacts_data = []
@@ -190,7 +213,8 @@ class GameService:
                 room_code=room_code,
                 questions=questions,
                 visited_artifacts_summary=visited_summary,
-                lang=lang
+                lang=lang,
+                host_nickname=host_nickname,
             )
             
         logger.info("Created game room %s with %d questions.", room_code, len(questions))
@@ -231,7 +255,8 @@ class GameService:
 
             room.players[nickname] = {
                 "score": 0,
-                "answers": {}
+                "answers": {},
+                "is_host": False,
             }
 
         return {"room_code": room_code, "nickname": nickname}
@@ -292,6 +317,8 @@ class GameService:
                 "score_awarded": score_awarded,
                 "elapsed_time": elapsed_time
             }
+            if room.players and all(question_idx in p_data["answers"] for p_data in room.players.values()):
+                room.status = "scoreboard"
 
         return {
             "nickname": nickname,

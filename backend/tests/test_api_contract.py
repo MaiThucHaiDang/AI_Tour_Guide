@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 from fastapi.testclient import TestClient
 
@@ -12,6 +12,7 @@ if str(BACKEND_ROOT) not in sys.path:
 
 from core.database import get_db_session
 from main import app
+from schemas.vision import ArtifactInfo, VisionResult
 
 
 def test_unified_chat_text_greeting_contract() -> None:
@@ -110,3 +111,38 @@ def test_unified_chat_tiny_audio_does_not_require_voice_provider() -> None:
     assert data["success"] is True
     assert "chưa nghe rõ" in data["response_text"].lower()
     assert data["audio_base64"] is None
+
+
+def test_recognize_returns_artifact_when_llm_generation_fails() -> None:
+    client = TestClient(app, raise_server_exceptions=False)
+    artifact = ArtifactInfo(
+        art_id="16",
+        name_vi="Điện Long An",
+        name_en="Long An Palace",
+        history_text_vi="Dữ liệu thử nghiệm",
+        history_text_en="Test data",
+        loc_id="loc-16",
+    )
+    vision = VisionResult(
+        recognized=True,
+        artifact_id="16",
+        raw_label="Điện Long An",
+        confidence_score=0.8,
+    )
+
+    with patch("api.routers.vision_router.recognize_image", AsyncMock(return_value=vision)), \
+         patch("api.routers.vision_router.get_artifact_by_id", AsyncMock(return_value=artifact)), \
+         patch("api.routers.vision_router.generate_response", AsyncMock(side_effect=RuntimeError("503 UNAVAILABLE"))):
+        response = client.post(
+            "/api/v1/recognize",
+            json={"image_base64": "abcd", "lang": "vi", "session_id": "vision-fallback"},
+        )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["success"] is True
+    assert data["artifact_id"] == "16"
+    assert data["artifact_name"] == "Điện Long An"
+    assert data["confidence_score"] == 0.8
+    assert data["error_code"] == "LLM_UNAVAILABLE"
+    assert "Đã nhận diện ảnh" in data["response_text"]

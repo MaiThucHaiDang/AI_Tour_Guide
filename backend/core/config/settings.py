@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     LLM_MAX_TOKENS_FOLLOWUP: int = 800
     LLM_MAX_TOKENS_IMAGE: int = 650
     VISION_CONFIDENCE_THRESHOLD: float = 0.6
+    VISION_TIMEOUT_SECONDS: int = 40
 
     TEXT_MAX_CHARS: int = 5000
     IMAGE_MAX_BYTES: int = 5_000_000

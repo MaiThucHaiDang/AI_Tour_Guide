@@ -646,7 +646,7 @@ export const getNextSuggestionAPI = async ({ currentArtifactId, visitedIds = [],
   }
 };
 
-export const createGameRoomAPI = async (visitedIds, lang = 'vi') => {
+export const createGameRoomAPI = async (visitedIds, lang = 'vi', hostNickname = '') => {
   try {
     const response = await fetch('/api/v1/game/create', {
       method: 'POST',
@@ -655,7 +655,8 @@ export const createGameRoomAPI = async (visitedIds, lang = 'vi') => {
       },
       body: JSON.stringify({
         visited_ids: visitedIds,
-        lang
+        lang,
+        host_nickname: hostNickname || undefined
       })
     });
     const data = await response.json();

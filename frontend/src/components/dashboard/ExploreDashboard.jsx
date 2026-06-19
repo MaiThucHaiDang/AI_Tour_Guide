@@ -158,6 +158,9 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
   
   // Game states
   const [activeRoomCode, setActiveRoomCode] = useState(null);
+  const [activeHostNickname, setActiveHostNickname] = useState('');
+  const [showGameNameDialog, setShowGameNameDialog] = useState(false);
+  const [gameHostNameInput, setGameHostNameInput] = useState('');
   const [loadingGame, setLoadingGame] = useState(false);
   const [gameMinimized, setGameMinimized] = useState(false);
   const [hasInteractedMap, setHasInteractedMap] = useState(false);
@@ -355,11 +358,23 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
   const handleCreateGame = async () => {
     if (visitedIds.length < 2) return;
     GameHost.preload();
+    setGameHostNameInput(activeHostNickname || '');
+    setShowGameNameDialog(true);
+  };
+
+  const handleConfirmCreateGame = async (event) => {
+    event?.preventDefault();
+    if (visitedIds.length < 2) return;
+    const hostNickname = gameHostNameInput.trim();
+    if (!hostNickname) return;
     try {
       setLoadingGame(true);
-      const res = await createGameRoomAPI(visitedIds, language);
+      const res = await createGameRoomAPI(visitedIds, language, hostNickname);
       if (res.success && res.room_code) {
+        setActiveHostNickname(hostNickname);
         setActiveRoomCode(res.room_code);
+        setShowGameNameDialog(false);
+        setGameMinimized(false);
       }
     } catch (err) {
       console.error("Failed to create quiz room:", err);
@@ -427,15 +442,18 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
 
   const tabs = [
     { key: 'map', label: isVi ? 'Bản đồ' : 'Map', icon: MapIcon },
-    { key: 'ask', label: isVi ? 'Hỏi AI' : 'Ask AI', icon: MessageSquare }
+    { key: 'ask', label: isVi ? 'Hỏi AI' : 'Ask AI', icon: MessageSquare },
+    {
+      key: 'game',
+      label: loadingGame ? (isVi ? 'Đang tạo' : 'Creating') : (isVi ? 'Chơi game' : 'Game'),
+      icon: Gamepad2,
+      onSelect: handleCreateGame,
+      disabled: loadingGame || visitedIds.length < 2,
+      title: visitedIds.length < 2
+        ? (isVi ? 'Check-in ít nhất 2 địa điểm để chơi game' : 'Check in at least 2 stops to play')
+        : (isVi ? 'Mở chế độ chơi game' : 'Open game mode')
+    }
   ];
-
-  const handleArtifactSelect = useCallback((artifact) => {
-    setHasInteractedMap(true);
-    // When an artifact is selected on the map, don't auto-switch to ask tab yet.
-    // Let the user look at the map sheet.
-    setFocusedArtifact(artifact);
-  }, []);
 
   const handleArtifactFocus = useCallback((artifact) => {
     const nextArtifact = buildTourArtifact(artifact, language, 'context') || artifact;
@@ -507,7 +525,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           <h1>{locationName}</h1>
         </div>
 
-        <div className="tour-shell-actions-simplified" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="tour-shell-actions-simplified">
           
           <button 
             onClick={() => setIsPassportModalOpen(true)}
@@ -522,6 +540,29 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           >
             <BookOpen size={16} />
             <span>{passportSummary.completedCount}/{passportSummary.totalCount}</span>
+          </button>
+
+          <button
+            onClick={handleCreateGame}
+            disabled={loadingGame || visitedIds.length < 2}
+            className="tour-header-game-button"
+            title={visitedIds.length < 2
+              ? (isVi ? 'Check-in ít nhất 2 địa điểm để chơi game' : 'Check in at least 2 stops to play')
+              : (isVi ? 'Chơi game' : 'Play game')}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+              minWidth: '34px', height: '34px', borderRadius: 'var(--radius-full)',
+              padding: '0 10px',
+              background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
+              color: '#101818', border: '1px solid rgba(212, 175, 55, 0.35)',
+              boxShadow: 'var(--shadow-sm)',
+              cursor: loadingGame || visitedIds.length < 2 ? 'not-allowed' : 'pointer',
+              opacity: loadingGame || visitedIds.length < 2 ? 0.58 : 1,
+              fontSize: '12px', fontWeight: '900'
+            }}
+          >
+            <Gamepad2 size={16} />
+            <span className="tour-header-game-label">{loadingGame ? (isVi ? 'Tạo' : 'New') : (isVi ? 'Game' : 'Game')}</span>
           </button>
 
           <button 
@@ -685,9 +726,9 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           bottom: '80px', /* Above BottomNav */
           left: '16px',
           right: '16px',
-          background: 'var(--color-bg-surface-glass)',
+          background: 'rgba(255, 253, 246, 0.96)',
           backdropFilter: 'blur(12px)',
-          border: '1px solid var(--color-border)',
+          border: '1px solid rgba(16, 24, 24, 0.12)',
           borderRadius: 'var(--radius-md)',
           padding: '12px 16px',
           display: 'flex',
@@ -705,19 +746,19 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
             <Volume2 size={18} />
           </div>
           <div style={{ flex: 1, overflow: 'hidden' }}>
-            <div style={{ fontSize: '10px', color: 'var(--color-primary)', textTransform: 'uppercase', fontWeight: 'bold' }}>
-              {isVi ? 'Đang phát thuyết minh' : 'Playing narration'}
+            <div style={{ fontSize: '10px', color: '#7a4f00', textTransform: 'uppercase', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+              {isVi ? 'Đang đọc' : 'Reading'}
             </div>
-            <div style={{ fontSize: '13px', color: 'var(--color-text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <div style={{ fontSize: '13px', color: '#101818', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {globalAudio.title}
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
             <button 
               onClick={() => window.dispatchEvent(new CustomEvent('tour:audio:toggle'))}
               style={{
                 width: '32px', height: '32px', borderRadius: '50%', border: 'none',
-                background: 'rgba(255,255,255,0.1)', color: 'var(--color-text-main)',
+                background: 'rgba(16,24,24,0.08)', color: '#101818',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
               }}
             >
@@ -727,7 +768,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
               onClick={() => window.dispatchEvent(new CustomEvent('tour:audio:stop'))}
               style={{
                 width: '32px', height: '32px', borderRadius: '50%', border: 'none',
-                background: 'transparent', color: 'var(--color-text-muted)',
+                background: 'transparent', color: '#33413d',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
               }}
             >
@@ -806,12 +847,12 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           transform: 'translateX(-50%)',
           width: 'calc(100% - 32px)',
           maxWidth: '380px',
-          backgroundColor: 'var(--color-bg-surface-glass)',
+          backgroundColor: 'rgba(255, 253, 246, 0.96)',
           backdropFilter: 'blur(12px)',
+          border: '1px solid rgba(16, 24, 24, 0.12)',
           borderRadius: 'var(--radius-lg)',
           padding: '12px 16px',
           boxShadow: 'var(--shadow-lg)',
-          border: '1px solid var(--color-border)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -820,13 +861,13 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           animation: 'slideUp 0.3s ease-out'
         }}>
           <div style={{ flex: 1, textAlign: 'left' }}>
-            <span style={{ fontSize: '10px', color: 'var(--color-primary)', fontWeight: '700', textTransform: 'uppercase', display: 'block', letterSpacing: '0.5px' }}>
+            <span style={{ fontSize: '10px', color: '#7a4f00', fontWeight: '700', textTransform: 'uppercase', display: 'block', letterSpacing: '0.5px' }}>
               {isVi ? 'GỢI Ý ĐIỂM TIẾP THEO' : 'RECOMMENDED NEXT STOP'}
             </span>
-            <strong style={{ fontSize: '14px', color: 'var(--color-text-main)', display: 'block', margin: '2px 0' }}>
+            <strong style={{ fontSize: '14px', color: '#101818', display: 'block', margin: '2px 0' }}>
               {isVi ? nextSuggestion.name_vi : nextSuggestion.name_en}
             </strong>
-            <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', display: 'block' }}>
+            <span style={{ fontSize: '11px', color: '#42524f', display: 'block' }}>
               {nextSuggestion.reason} ({nextSuggestion.distance}m · {Math.ceil(nextSuggestion.walk_duration_min)} {isVi ? 'phút đi bộ' : 'min walk'})
             </span>
           </div>
@@ -836,7 +877,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
               onClick={() => handleUseNextSuggestion(nextSuggestion, 'route')}
               style={{
                 background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
-                color: 'white',
+                color: '#101818',
                 border: 'none',
                 padding: '8px 14px',
                 borderRadius: 'var(--radius-sm)',
@@ -855,9 +896,9 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
             <button 
               onClick={() => handleUseNextSuggestion(nextSuggestion, 'intro')}
               style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                color: 'var(--color-text-main)',
-                border: '1px solid var(--color-border)',
+                backgroundColor: '#fffdf6',
+                color: '#0f5f59',
+                border: '1px solid rgba(15, 95, 89, 0.22)',
                 padding: '8px 12px',
                 borderRadius: 'var(--radius-sm)',
                 fontSize: '12px',
@@ -905,6 +946,106 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
         isVi={isVi}
         onPreloadChat={UnifiedChatPage.preload}
       />
+
+      {showGameNameDialog && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={isVi ? 'Đặt tên người chơi' : 'Set player name'}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 5200,
+            display: 'grid',
+            placeItems: 'center',
+            padding: '20px',
+            background: 'rgba(16, 24, 24, 0.62)',
+            backdropFilter: 'blur(8px)'
+          }}
+        >
+          <form
+            onSubmit={handleConfirmCreateGame}
+            style={{
+              width: 'min(420px, 100%)',
+              display: 'grid',
+              gap: '14px',
+              padding: '22px',
+              borderRadius: '8px',
+              background: '#fffdf6',
+              border: '1px solid rgba(16,24,24,0.12)',
+              boxShadow: '0 24px 70px rgba(0,0,0,0.24)'
+            }}
+          >
+            <div style={{ display: 'grid', gap: '6px' }}>
+              <span style={{ color: '#7a4f00', fontSize: '12px', fontWeight: 900, textTransform: 'uppercase' }}>
+                {isVi ? 'Chủ phòng cùng tham gia' : 'Host joins as player'}
+              </span>
+              <h2 style={{ margin: 0, color: '#101818', fontSize: '22px', lineHeight: 1.15 }}>
+                {isVi ? 'Đặt tên để vào phòng chơi' : 'Name yourself to start'}
+              </h2>
+              <p style={{ margin: 0, color: '#42524f', fontSize: '13px', lineHeight: 1.5 }}>
+                {isVi
+                  ? 'Tên này sẽ xuất hiện trong bảng điểm và được gắn nhãn Chủ phòng.'
+                  : 'This name appears on the scoreboard with a Host tag.'}
+              </p>
+            </div>
+            <input
+              value={gameHostNameInput}
+              maxLength={20}
+              autoFocus
+              onChange={(event) => setGameHostNameInput(event.target.value)}
+              placeholder={isVi ? 'Tên của bạn...' : 'Your name...'}
+              style={{
+                width: '100%',
+                minHeight: '46px',
+                padding: '0 13px',
+                borderRadius: '8px',
+                border: '1.5px solid rgba(16,24,24,0.18)',
+                color: '#101818',
+                background: '#ffffff',
+                fontSize: '15px',
+                fontWeight: 800,
+                outline: 'none'
+              }}
+            />
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => setShowGameNameDialog(false)}
+                disabled={loadingGame}
+                style={{
+                  minHeight: '42px',
+                  padding: '0 14px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(16,24,24,0.14)',
+                  color: '#101818',
+                  background: '#fffdf6',
+                  fontWeight: 850,
+                  cursor: 'pointer'
+                }}
+              >
+                {isVi ? 'Hủy' : 'Cancel'}
+              </button>
+              <button
+                type="submit"
+                disabled={loadingGame || !gameHostNameInput.trim()}
+                style={{
+                  minHeight: '42px',
+                  padding: '0 16px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  color: '#fffaf0',
+                  background: loadingGame || !gameHostNameInput.trim() ? '#9aa4a0' : '#0f5f59',
+                  fontWeight: 900,
+                  cursor: loadingGame || !gameHostNameInput.trim() ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {loadingGame ? (isVi ? 'Đang tạo...' : 'Creating...') : (isVi ? 'Vào chơi' : 'Join game')}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* Floating banner when game is minimized */}
       {activeRoomCode && gameMinimized && (
@@ -966,9 +1107,11 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           <Suspense fallback={<PanelLoader language={language} />}>
             <GameHost
               roomCode={activeRoomCode}
+              hostNickname={activeHostNickname}
               language={language}
               onBack={() => {
                 setActiveRoomCode(null);
+                setActiveHostNickname('');
                 setGameMinimized(false);
               }}
               onMinimize={() => setGameMinimized(true)}

@@ -1160,9 +1160,13 @@ const UnifiedChatPage = ({
         }
 
         .brand-block h1,
-        .conversation-header h2,
         .artifact-card h3 {
           font-family: Cambria, 'Times New Roman', serif;
+          letter-spacing: 0;
+        }
+
+        .conversation-header h2 {
+          font-family: var(--font-heading), 'Outfit', sans-serif;
           letter-spacing: 0;
         }
 
@@ -2125,8 +2129,21 @@ const UnifiedChatPage = ({
           }
 
           .conversation-header {
-            align-items: flex-start;
-            flex-direction: column;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            gap: 12px;
+          }
+
+          .conversation-header h2 {
+            font-size: 16px;
+            margin: 0;
+          }
+
+          .conversation-header .eyebrow {
+            font-size: 9px;
           }
 
           .conversation-context-strip {
@@ -2143,15 +2160,22 @@ const UnifiedChatPage = ({
           }
 
           .conversation-tools {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            width: 100%;
+            display: flex;
+            gap: 8px;
+            width: auto;
           }
 
-          .conversation-tools button {
-            min-width: 0;
+          .conversation-tools button,
+          .tour-workspace.embedded-mode .conversation-tools button {
+            width: 34px;
+            height: 34px;
+            min-width: 34px;
+            min-height: 34px;
+            padding: 0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
             justify-content: center;
-            white-space: nowrap;
           }
 
           .message {
@@ -2163,12 +2187,69 @@ const UnifiedChatPage = ({
           }
 
           .composer-row {
-            flex-wrap: wrap;
+            flex-wrap: nowrap !important;
+            gap: 6px;
+          }
+
+          .composer-row button {
+            width: 38px !important;
+            height: 38px !important;
+            min-width: 38px !important;
           }
 
           .composer-row input {
-            flex: 1 1 100%;
-            order: -1;
+            height: 38px !important;
+            font-size: 13px !important;
+          }
+
+          .composer-row .mic-button {
+            width: 38px !important;
+            height: 38px !important;
+            min-width: 38px !important;
+          }
+
+          .bottom-audio-player {
+            padding: 10px 12px;
+          }
+
+          .audio-player-layout {
+            flex-wrap: nowrap !important;
+            gap: 10px;
+          }
+
+          .audio-player-meta {
+            min-width: 0;
+            flex: 1;
+            gap: 8px;
+          }
+
+          .audio-meta-text strong {
+            font-size: 12px;
+            max-width: 100%;
+          }
+
+          .audio-meta-text span {
+            display: none;
+          }
+
+          .audio-player-controls-section {
+            min-width: auto;
+            flex: 0 0 auto;
+            gap: 8px;
+          }
+
+          .audio-playback-buttons {
+            gap: 6px;
+          }
+
+          .audio-playback-buttons button {
+            width: 28px;
+            height: 28px;
+          }
+
+          .audio-playback-buttons .play-pause-toggle-btn {
+            width: 32px;
+            height: 32px;
           }
         }
 

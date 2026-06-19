@@ -213,14 +213,6 @@ const HomeScreen = ({
     }, 720);
   };
 
-  const startChatExperience = () => {
-    if (isLaunching) return;
-    setIsLaunching(true);
-    window.setTimeout(() => {
-      onSelectFeature('dashboard', { id: 1, name_vi: "Kinh thành Huế (Đại Nội)", initialTab: 'ask' });
-    }, 720);
-  };
-
   const openPhonePreview = () => {
     if (isLaunching) return;
     onSelectFeature('phone', { id: 1, name_vi: "Kinh thành Huế (Đại Nội)", initialTab: 'map' });
@@ -320,15 +312,7 @@ const HomeScreen = ({
                     onClick={startMapExperience}
                 >
                     <Landmark size={20} />
-                    <span>{isVi ? 'Mở bản đồ Đại Nội' : 'Open Citadel Map'}</span>
-                </button>
-                <button
-                    className={styles.btnSecondary}
-                    type="button"
-                    onClick={startChatExperience}
-                >
-                    <Sparkles size={20} />
-                    <span>{isVi ? 'Hỏi AI ngay' : 'Ask AI Guide'}</span>
+                    <span>{isVi ? 'Khám phá ngay' : 'Explore now'}</span>
                 </button>
             </div>
 

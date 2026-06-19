@@ -103,8 +103,8 @@ const ChatMessageList = ({
           .slice(-3);
 
         const displayTitle = activeMsg.content 
-          ? (activeMsg.content.length > 50 ? activeMsg.content.slice(0, 50) + '...' : activeMsg.content)
-          : (isVi ? 'Đang phát thuyết minh di tích' : 'Playing narration');
+          ? (activeMsg.content.length > 24 ? activeMsg.content.slice(0, 24) + '...' : activeMsg.content)
+          : (isVi ? 'Đang đọc' : 'Reading');
 
         return (
           <div className="bottom-audio-player">
@@ -115,7 +115,7 @@ const ChatMessageList = ({
                 </div>
                 <div className="audio-meta-text">
                   <strong>{displayTitle}</strong>
-                  <span>{isVi ? 'Giọng đọc trên thiết bị' : 'Device voice'}</span>
+                  <span>{isVi ? 'Đang đọc' : 'Reading'}</span>
                 </div>
               </div>
 

@@ -9,39 +9,11 @@ import {
 } from 'lucide-react';
 import { buildTourSummary } from '../../services/tourMemoryService';
 import {
-  buildRoutePoints,
   formatAudioTime,
   formatDateTime,
   getName,
   xmlEscape
 } from './passportDisplayUtils';
-
-const RouteMiniMap = ({ routeStops, language }) => {
-  const points = buildRoutePoints(routeStops);
-  const path = points.map((point) => `${point.x},${point.y}`).join(' ');
-
-  return (
-    <div className="passport-route-map" aria-label={language === 'vi' ? 'Bản đồ hành trình' : 'Journey map'}>
-      {points.length > 0 ? (
-        <svg viewBox="0 0 320 180" role="img">
-          <rect x="1" y="1" width="318" height="178" rx="8" />
-          {points.length > 1 && <polyline points={path} />}
-          {points.map((point, index) => (
-            <g key={`${point.x}-${point.y}-${index}`}>
-              <circle cx={point.x} cy={point.y} r={index === points.length - 1 ? 8 : 6} />
-              <text x={point.x} y={point.y + 4}>{index + 1}</text>
-            </g>
-          ))}
-        </svg>
-      ) : (
-        <div className="passport-empty-map">
-          <Map size={30} />
-          <span>{language === 'vi' ? 'Hành trình sẽ hiện sau khi bạn check-in.' : 'Your route appears after check-ins.'}</span>
-        </div>
-      )}
-    </div>
-  );
-};
 
 const buildAlbumHtml = (summary, language) => {
   const title = 'Về với kinh thành';
@@ -95,8 +67,8 @@ const TripJournal = ({ language, catalog, memory, onResetMemory }) => {
       : 'A full summary of visited stops, captured photos, questions, and narration listened to.',
     journey: isVi ? 'Nhật ký sau chuyến đi' : 'Post-trip journal',
     exportAlbum: isVi ? 'Tải album' : 'Download album',
+    saveAll: isVi ? 'Lưu tất cả ảnh' : 'Save all photos',
     reset: isVi ? 'Làm mới' : 'Reset',
-    route: isVi ? 'Bản đồ lộ trình' : 'Route map',
     photos: isVi ? 'Ảnh đã chụp' : 'Captured photos',
     coverPhoto: isVi ? 'Ảnh bìa chuyến đi' : 'Trip cover photo',
     checkinPhotos: isVi ? 'Album check-in' : 'Check-in album',
@@ -118,6 +90,35 @@ const TripJournal = ({ language, catalog, memory, onResetMemory }) => {
     URL.revokeObjectURL(url);
   };
 
+  const handleDownloadPhoto = (base64Data, filename) => {
+    try {
+      const link = document.createElement('a');
+      link.href = base64Data;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error("Failed to download image:", err);
+    }
+  };
+
+  const handleDownloadAllPhotos = async () => {
+    const photosToDownload = [
+      ...(summary.coverPhoto ? [{ data: summary.coverPhoto.imageBase64, name: `cover-photo-${summary.coverPhoto.id || 'main'}.png` }] : []),
+      ...(summary.checkInPhotos || []).map((photo, idx) => ({
+        data: photo.imageBase64,
+        name: `checkin-photo-${photo.id || idx}.png`
+      }))
+    ];
+
+    for (let i = 0; i < photosToDownload.length; i++) {
+      const photo = photosToDownload[i];
+      handleDownloadPhoto(photo.data, photo.name);
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+  };
+
   return (
     <div className="passport-page trip-journal-page">
       <section className="passport-hero">
@@ -131,8 +132,10 @@ const TripJournal = ({ language, catalog, memory, onResetMemory }) => {
         </div>
         <div className="passport-progress-card">
           <div className="passport-progress-ring" style={{ '--progress': `${summary.progressPercent}%` }}>
-            <strong>{summary.completedCount}</strong>
-            <span>/{summary.totalCount}</span>
+            <div className="passport-progress-value">
+              <strong>{summary.completedCount}</strong>
+              <span>/{summary.totalCount}</span>
+            </div>
           </div>
         </div>
       </section>
@@ -142,7 +145,13 @@ const TripJournal = ({ language, catalog, memory, onResetMemory }) => {
           <Download size={17} />
           {copy.exportAlbum}
         </button>
-        <button type="button" onClick={onResetMemory}>
+        {summary.photos.length > 0 && (
+          <button type="button" onClick={handleDownloadAllPhotos} className="passport-action-save-all">
+            <Download size={17} />
+            {copy.saveAll}
+          </button>
+        )}
+        <button type="button" onClick={onResetMemory} className="passport-action-reset">
           <RotateCcw size={17} />
           {copy.reset}
         </button>
@@ -151,20 +160,22 @@ const TripJournal = ({ language, catalog, memory, onResetMemory }) => {
       <section className="passport-journal-section">
         <article className="passport-journal-card">
           <div className="passport-card-title">
-            <Map size={18} />
-            <strong>{copy.route}</strong>
-          </div>
-          <RouteMiniMap routeStops={summary.routeStops} language={language} />
-        </article>
-
-        <article className="passport-journal-card">
-          <div className="passport-card-title">
             <Camera size={18} />
             <strong>{copy.coverPhoto}</strong>
           </div>
           {summary.coverPhoto ? (
             <figure className="passport-cover-photo">
-              <img src={summary.coverPhoto.imageBase64} alt={copy.coverPhoto} />
+              <div className="passport-photo-wrapper">
+                <img src={summary.coverPhoto.imageBase64} alt={copy.coverPhoto} />
+                <button 
+                  type="button" 
+                  className="passport-photo-download-btn"
+                  onClick={() => handleDownloadPhoto(summary.coverPhoto.imageBase64, `cover-photo-${summary.coverPhoto.id}.png`)}
+                  title={isVi ? 'Tải ảnh này về' : 'Download this photo'}
+                >
+                  <Download size={16} />
+                </button>
+              </div>
               <figcaption>{formatDateTime(summary.coverPhoto.createdAt, language)}</figcaption>
             </figure>
           ) : (
@@ -181,7 +192,17 @@ const TripJournal = ({ language, catalog, memory, onResetMemory }) => {
             <div className="passport-photo-grid">
               {summary.checkInPhotos.slice().reverse().map((photo) => (
                 <figure key={photo.id}>
-                  <img src={photo.imageBase64} alt={getName(photo, language) || copy.photos} />
+                  <div className="passport-photo-wrapper">
+                    <img src={photo.imageBase64} alt={getName(photo, language) || copy.photos} />
+                    <button 
+                      type="button" 
+                      className="passport-photo-download-btn"
+                      onClick={() => handleDownloadPhoto(photo.imageBase64, `checkin-photo-${photo.id}.png`)}
+                      title={isVi ? 'Tải ảnh này về' : 'Download this photo'}
+                    >
+                      <Download size={14} />
+                    </button>
+                  </div>
                   <figcaption>{getName(photo, language) || formatDateTime(photo.createdAt, language)}</figcaption>
                 </figure>
               ))}
@@ -229,7 +250,6 @@ const TripJournal = ({ language, catalog, memory, onResetMemory }) => {
           )}
         </article>
       </section>
-
     </div>
   );
 };

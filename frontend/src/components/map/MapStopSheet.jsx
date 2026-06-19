@@ -85,18 +85,34 @@ const MapStopSheet = ({
 
       {/* Collapsed quick actions */}
       {!isExpanded && (
-        <div className="sheet-quick-actions">
-          <button className="sheet-btn-primary" onClick={() => onAsk(artifact.raw || artifact)}>
-            <Volume2 size={16} />
-            <span>{isVi ? 'Nghe giới thiệu' : 'Hear intro'}</span>
+        <div className="sheet-collapsed-content">
+          <button className="sheet-detail-hint" type="button" onClick={() => setIsExpanded(true)}>
+            {isVi ? 'Nhấn vào để xem chi tiết' : 'Tap to view details'}
           </button>
-          <button className="sheet-btn-secondary" onClick={() => onAskAI(artifact.raw || artifact)}>
-            <MessageSquare size={16} />
-            <span>{isVi ? 'Hỏi AI' : 'Ask AI'}</span>
-          </button>
-          <button className="sheet-btn-secondary icon-only" onClick={onNavigate} title={isVi ? 'Chỉ đường' : 'Route'}>
-            <Navigation size={16} />
-          </button>
+          <div className="sheet-quick-actions">
+            <button className="sheet-btn-primary" onClick={() => onAsk(artifact.raw || artifact)}>
+              <Volume2 size={16} />
+              <span>{isVi ? 'Nghe giới thiệu' : 'Hear intro'}</span>
+            </button>
+            <button className="sheet-btn-secondary" onClick={() => onAskAI(artifact.raw || artifact)}>
+              <MessageSquare size={16} />
+              <span>{isVi ? 'Hỏi AI' : 'Ask AI'}</span>
+            </button>
+            {onPhotoBooth && (
+              <button
+                className={`sheet-btn-secondary sheet-btn-checkin ${hasPhotoFrame ? '' : 'disabled'}`}
+                onClick={() => hasPhotoFrame && onPhotoBooth(artifact.raw || artifact)}
+                disabled={!hasPhotoFrame}
+                title={hasPhotoFrame ? (isVi ? 'Check-in ảnh' : 'Photo check-in') : (isVi ? 'Khung sắp có' : 'No photo frame')}
+              >
+                <Camera size={16} />
+                <span>{hasPhotoFrame ? (isVi ? 'Check-in' : 'Check-in') : (isVi ? 'Sắp có' : 'Soon')}</span>
+              </button>
+            )}
+            <button className="sheet-btn-secondary icon-only" onClick={onNavigate} title={isVi ? 'Chỉ đường' : 'Route'}>
+              <Navigation size={16} />
+            </button>
+          </div>
         </div>
       )}
 

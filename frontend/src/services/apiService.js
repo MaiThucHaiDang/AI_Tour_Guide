@@ -646,7 +646,7 @@ export const getNextSuggestionAPI = async ({ currentArtifactId, visitedIds = [],
   }
 };
 
-export const createGameRoomAPI = async (visitedIds, lang = 'vi') => {
+export const createGameRoomAPI = async (visitedIds, lang = 'vi', hostNickname = '') => {
   try {
     const response = await fetch('/api/v1/game/create', {
       method: 'POST',
@@ -655,7 +655,8 @@ export const createGameRoomAPI = async (visitedIds, lang = 'vi') => {
       },
       body: JSON.stringify({
         visited_ids: visitedIds,
-        lang
+        lang,
+        host_nickname: hostNickname || undefined
       })
     });
     const data = await response.json();
@@ -830,8 +831,8 @@ const normalizeBlogPost = (post = {}) => ({
   title: post.title || '',
   excerpt: post.excerpt || '',
   content: post.content || '',
-  coverImage: post.cover_image || '/assets/icons/palace.png',
-  coverAlt: post.cover_alt || 'Ảnh minh họa bài viết du lịch Huế',
+  coverImage: post.cover_image || '/assets/images/art_17_1.jpg',
+  coverAlt: post.cover_alt || 'Ảnh bìa mặc định bài viết du lịch Huế',
   authorName: post.author_name || 'AITourGuide',
   sourceType: post.source_type || 'user',
   sourceName: post.source_name || '',

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Gamepad2, Award, CheckCircle2, XCircle, Timer, Loader2 } from 'lucide-react';
-import { joinGameRoomAPI, getGameRoomStatusAPI, submitAnswerAPI } from '../../services/apiService';
+import { joinGameRoomAPI, getGameRoomStatusAPI, submitAnswerAPI, getGameRoomPraiseAPI } from '../../services/apiService';
 
 const GamePlayer = ({ roomCode, language, onBack }) => {
   const isVi = language === 'vi';
@@ -14,7 +14,9 @@ const GamePlayer = ({ roomCode, language, onBack }) => {
   const [selectedOption, setSelectedOption] = useState(null);
   const [answerResult, setAnswerResult] = useState(null); // { is_correct, score_awarded, total_score }
   const [hasAnswered, setHasAnswered] = useState(false);
-  const [timerVal, setTimerVal] = useState(30);
+  const [timerVal, setTimerVal] = useState(25);
+  const [praiseText, setPraiseText] = useState('');
+  const [loadingPraise, setLoadingPraise] = useState(false);
 
   const prevStatusRef = useRef('lobby');
   const prevQuestionIndexRef = useRef(0);
@@ -64,6 +66,34 @@ const GamePlayer = ({ roomCode, language, onBack }) => {
     }, 1000);
     return () => clearTimeout(tId);
   }, [timerVal, roomState?.status, hasAnswered]);
+
+  useEffect(() => {
+    if (roomState?.status !== 'finished' || !roomCode || praiseText || loadingPraise) return;
+
+    const fetchPraise = async () => {
+      try {
+        setLoadingPraise(true);
+        const res = await getGameRoomPraiseAPI(roomCode);
+        if (res.success && res.praise) {
+          setPraiseText(res.praise);
+        }
+      } catch (err) {
+        console.error('Error fetching AI praise for player:', err);
+        const winner = roomState?.players?.[0]?.nickname;
+        setPraiseText(
+          winner
+            ? (isVi
+              ? `Xin chúc mừng ${winner} đã giành ngôi đầu bảng! Cảm ơn tất cả bằng hữu đã cùng tham gia đấu trí trong Đại Nội.`
+              : `Congratulations to ${winner} for topping the leaderboard. Thank you all for playing the Imperial City trivia.`)
+            : (isVi ? 'Cảm ơn bạn đã tham gia trò chơi Đại Nội.' : 'Thank you for playing the Imperial City trivia.')
+        );
+      } finally {
+        setLoadingPraise(false);
+      }
+    };
+
+    fetchPraise();
+  }, [roomState?.status, roomCode, praiseText, loadingPraise, roomState?.players, isVi]);
 
   const handleJoin = async (e) => {
     e.preventDefault();
@@ -127,7 +157,7 @@ const GamePlayer = ({ roomCode, language, onBack }) => {
   ];
 
   return (
-    <div className="mobile-tour-shell" style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#f4f6f8' }}>
+    <div className="mobile-tour-shell game-shell game-player-shell" style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#f4f6f8' }}>
       
       {/* Header */}
       <header className="tour-shell-header">
@@ -142,11 +172,11 @@ const GamePlayer = ({ roomCode, language, onBack }) => {
       </header>
 
       {/* Main Content Area */}
-      <main style={{ flex: 1, padding: '20px', display: 'flex', flexDirection: 'column', overflowY: 'auto', position: 'relative' }}>
+      <main className="game-main game-player-main" style={{ flex: 1, padding: '20px', display: 'flex', flexDirection: 'column', overflowY: 'auto', position: 'relative' }}>
         
         {/* Step 1: Join Room Nickname Form */}
         {!isJoined && (
-          <div style={{
+          <div className="game-panel game-join-panel" style={{
             margin: 'auto 0',
             backgroundColor: '#ffffff',
             borderRadius: '24px',
@@ -173,7 +203,7 @@ const GamePlayer = ({ roomCode, language, onBack }) => {
                 : 'Enter a nickname to join the trivia room with your friends.'}
             </p>
 
-            <form onSubmit={handleJoin} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <form className="game-join-form" onSubmit={handleJoin} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <input
                 type="text"
                 maxLength={20}
@@ -199,6 +229,7 @@ const GamePlayer = ({ roomCode, language, onBack }) => {
               )}
 
               <button
+                className="game-primary-action game-join-button"
                 type="submit"
                 disabled={loading}
                 style={{
@@ -226,7 +257,7 @@ const GamePlayer = ({ roomCode, language, onBack }) => {
 
         {/* Step 2: Lobby Screen (Waiting for Host to start) */}
         {isJoined && roomState?.status === 'lobby' && (
-          <div style={{
+          <div className="game-player-waiting" style={{
             margin: 'auto 0',
             textAlign: 'center',
             display: 'flex',
@@ -272,10 +303,10 @@ const GamePlayer = ({ roomCode, language, onBack }) => {
 
         {/* Step 3: Question Answer Controller (Active Game) */}
         {isJoined && roomState?.status === 'playing' && (
-          <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '16px' }}>
+          <div className="game-play-layout game-player-play-layout" style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '16px' }}>
             
             {/* Top row status */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="game-question-meta" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '13px', fontWeight: '700', color: '#555' }}>
                 {isVi ? `Câu hỏi ${roomState.current_question.question_index + 1}/${roomState.total_questions}` : `Question ${roomState.current_question.question_index + 1}/${roomState.total_questions}`}
               </span>
@@ -286,7 +317,7 @@ const GamePlayer = ({ roomCode, language, onBack }) => {
             </div>
 
             {/* Question Text block */}
-            <div style={{
+            <div className="game-panel game-question-card" style={{
               backgroundColor: '#fff', borderRadius: '16px', padding: '16px',
               border: '1px solid #eef2f5', textAlign: 'center',
               boxShadow: '0 2px 8px rgba(0,0,0,0.02)', margin: '4px 0'
@@ -298,7 +329,7 @@ const GamePlayer = ({ roomCode, language, onBack }) => {
 
             {/* Answer Options Grid */}
             {!hasAnswered ? (
-              <div style={{
+              <div className="game-answer-grid game-player-answer-list" style={{
                 flex: 1,
                 display: 'flex',
                 flexDirection: 'column',
@@ -307,6 +338,7 @@ const GamePlayer = ({ roomCode, language, onBack }) => {
               }}>
                 {optionStyles.map((style, idx) => (
                   <button
+                    className="game-answer-button"
                     key={idx}
                     onClick={() => handleSelectOption(idx)}
                     style={{
@@ -338,7 +370,7 @@ const GamePlayer = ({ roomCode, language, onBack }) => {
               </div>
             ) : (
               /* Waiting Screen after player chooses an option */
-              <div style={{
+              <div className="game-panel game-answer-waiting-card" style={{
                 flex: 1,
                 backgroundColor: '#ffffff',
                 borderRadius: '24px',
@@ -387,7 +419,7 @@ const GamePlayer = ({ roomCode, language, onBack }) => {
             )}
             
             {/* Player's Current Score Footer */}
-            <div style={{
+            <div className="game-score-footer" style={{
               backgroundColor: '#fff', borderRadius: '12px', padding: '12px 16px',
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               border: '1px solid #e0e0e0'
@@ -400,7 +432,7 @@ const GamePlayer = ({ roomCode, language, onBack }) => {
 
         {/* Step 4: Scoreboard Step feedback (Show result) */}
         {isJoined && roomState?.status === 'scoreboard' && (
-          <div style={{
+          <div className="game-panel game-player-scoreboard-card" style={{
             margin: 'auto 0',
             backgroundColor: '#ffffff',
             borderRadius: '24px',
@@ -475,7 +507,7 @@ const GamePlayer = ({ roomCode, language, onBack }) => {
 
         {/* Step 5: Finished Screen (Show final podium place) */}
         {isJoined && roomState?.status === 'finished' && (
-          <div style={{
+          <div className="game-panel game-player-finished-card" style={{
             margin: 'auto 0',
             backgroundColor: '#ffffff',
             borderRadius: '24px',
@@ -514,13 +546,67 @@ const GamePlayer = ({ roomCode, language, onBack }) => {
               {isVi ? `Tổng điểm: ${currentPlayerInfo?.score || 0} điểm` : `Final Score: ${currentPlayerInfo?.score || 0} pts`}
             </div>
 
-            <p style={{ fontSize: '13px', color: '#666', lineHeight: '1.4', margin: '8px 0 0 0' }}>
-              {playerRank === 1
-                ? (isVi ? '🎉 Thật xuất sắc! Bạn đã đánh bại tất cả để dẫn đầu cuộc chơi!' : '🎉 Amazing! You have won the game!')
-                : (isVi ? 'Cảm ơn bạn đã tham gia! Hãy nghe AI tổng kết cuộc đấu.' : 'Thank you for playing! Check host screen for summary.')}
-            </p>
+            <div className="game-leaderboard-section" style={{ width: '100%', display: 'grid', gap: '8px', marginTop: '6px' }}>
+              <h4 style={{ margin: 0, color: '#101818', fontSize: '14px', textAlign: 'left' }}>
+                {isVi ? 'Bảng xếp hạng' : 'Leaderboard'}
+              </h4>
+              {(roomState.players || []).map((player, index) => (
+                <div
+                  key={player.nickname}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '10px',
+                    padding: '9px 10px',
+                    borderRadius: '10px',
+                    background: player.nickname === nickname.trim() ? '#edf5ef' : '#f8f9fa',
+                    border: index === 0 ? '1.5px solid #ffd447' : '1px solid #e5e9e7'
+                  }}
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                    <strong style={{
+                      width: '24px',
+                      height: '24px',
+                      borderRadius: '999px',
+                      display: 'grid',
+                      placeItems: 'center',
+                      background: index === 0 ? '#ffb300' : '#dfe5e2',
+                      color: index === 0 ? '#101818' : '#42524f',
+                      fontSize: '12px'
+                    }}>
+                      {index + 1}
+                    </strong>
+                    <span style={{ color: '#101818', fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {player.nickname}
+                      {player.is_host ? ` ${isVi ? '(Chủ phòng)' : '(Host)'}` : ''}
+                    </span>
+                  </span>
+                  <strong style={{ color: '#b2820a', flex: '0 0 auto' }}>{player.score} pts</strong>
+                </div>
+              ))}
+            </div>
+
+            <div style={{
+              width: '100%',
+              padding: '12px',
+              borderRadius: '12px',
+              background: '#fffdf6',
+              border: '1px solid rgba(15,95,89,0.16)',
+              color: '#263632',
+              fontSize: '13px',
+              lineHeight: 1.5,
+              textAlign: 'left'
+            }}>
+              {loadingPraise
+                ? (isVi ? 'AI đang viết lời chúc mừng...' : 'AI is writing the congratulations...')
+                : (praiseText || (playerRank === 1
+                  ? (isVi ? 'Thật xuất sắc! Bạn đã dẫn đầu cuộc chơi.' : 'Amazing! You topped the game.')
+                  : (isVi ? 'Cảm ơn bạn đã tham gia cuộc đấu trí.' : 'Thank you for playing.')))}
+            </div>
 
             <button
+              className="game-primary-action game-finish-button"
               onClick={onBack}
               style={{
                 width: '100%',

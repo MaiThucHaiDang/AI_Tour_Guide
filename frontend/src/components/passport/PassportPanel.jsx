@@ -54,10 +54,12 @@ const PassportPanel = ({
         </div>
         <div className="passport-progress-card">
           <div className="passport-progress-ring" style={{ '--progress': `${summary.progressPercent}%` }}>
-            <strong>{summary.completedCount}</strong>
-            <span>/{summary.totalCount}</span>
+            <div className="passport-progress-value">
+              <strong>{summary.completedCount}</strong>
+              <span>/{summary.totalCount}</span>
+            </div>
           </div>
-          <div>
+          <div className="passport-progress-meta">
             <span>{copy.checked}</span>
             <strong>{summary.progressPercent}%</strong>
           </div>

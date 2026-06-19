@@ -46,7 +46,7 @@ const BlogEditorPage = ({ language, onBackList, onPostCreated }) => {
       : 'A manageable route, good photo angle, sunny section, dish to try, or remembered story can all help.',
     titleLabel: isVi ? 'Tiêu đề' : 'Title',
     coverLabel: isVi ? 'Ảnh bìa' : 'Cover image',
-    coverPlaceholder: isVi ? 'Dán link ảnh, hoặc để trống để dùng ảnh minh họa' : 'Paste an image link, or leave blank for the default illustration',
+    coverPlaceholder: isVi ? 'Dán link ảnh, hoặc để trống để dùng ảnh bìa mặc định' : 'Paste an image link, or leave blank for the default cover photo',
     coverAltLabel: isVi ? 'Ảnh này nói về điều gì?' : 'What does this image show?',
     excerptLabel: isVi ? 'Tóm tắt cho người sắp đi' : 'Summary for visitors',
     contentLabel: isVi ? 'Kinh nghiệm chi tiết' : 'Detailed note',
@@ -59,7 +59,7 @@ const BlogEditorPage = ({ language, onBackList, onPostCreated }) => {
     requiredExcerpt: isVi ? 'Mô tả ngắn không được để trống.' : 'Excerpt is required.',
     requiredContent: isVi ? 'Nội dung không được để trống.' : 'Content is required.',
     excerptLength: isVi ? 'Mô tả ngắn tối đa 420 ký tự.' : 'Excerpt must be at most 420 characters.',
-    invalidCover: isVi ? 'Dán link ảnh hợp lệ, hoặc để trống để dùng ảnh minh họa.' : 'Enter a valid image link, or leave it blank to use the default illustration.',
+    invalidCover: isVi ? 'Dán link ảnh hợp lệ, hoặc để trống để dùng ảnh bìa mặc định.' : 'Enter a valid image link, or leave it blank to use the default cover photo.',
     requiredTag: isVi ? 'Chọn ít nhất một chủ đề.' : 'Choose at least one topic.',
     unsafe: isVi ? 'Vui lòng nhập chữ thường, không dán mã HTML hoặc script.' : 'Please enter plain text, not HTML or scripts.',
     saved: isVi ? 'Đã giữ lại bản viết dở.' : 'Draft saved.',
@@ -114,8 +114,8 @@ const BlogEditorPage = ({ language, onBackList, onPostCreated }) => {
     try {
       const createdPost = await createBlogPostAPI({
         ...form,
-        coverImage: form.coverImage.trim() || '/assets/icons/palace.png',
-        coverAlt: form.coverAlt.trim() || 'Ảnh minh họa bài chia sẻ du lịch Huế',
+        coverImage: form.coverImage.trim() || '/assets/images/art_17_1.jpg',
+        coverAlt: form.coverAlt.trim() || 'Ảnh bìa mặc định bài chia sẻ du lịch Huế',
         authorName: form.authorName.trim() || 'Khách',
         status: 'published'
       });
@@ -128,7 +128,7 @@ const BlogEditorPage = ({ language, onBackList, onPostCreated }) => {
     }
   };
 
-  const coverPreview = form.coverImage.trim() || '/assets/icons/palace.png';
+  const coverPreview = form.coverImage.trim() || '/assets/images/art_17_1.jpg';
 
   return (
     <div className="blog-page">

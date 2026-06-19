@@ -57,7 +57,7 @@ const ResultView = ({ data, onBack }) => {
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 120px' }}>
-        {/* Ảnh minh họa cho kết quả nhận diện */}
+        {/* Ảnh hiện vật đã nhận diện */}
         <div style={{
           width: '100%', height: 220, borderRadius: 16,
           backgroundColor: '#2a2a2a', marginBottom: 20,
@@ -65,8 +65,8 @@ const ResultView = ({ data, onBack }) => {
           display: 'flex', justifyContent: 'center', alignItems: 'center'
         }}>
           <img
-            src="https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?w=800&q=80"
-            alt="Hue"
+            src={data.artifact_id ? `/assets/images/art_${data.artifact_id}_1.jpg` : '/assets/images/art_17_1.jpg'}
+            alt={data.artifact_name || 'Kết quả nhận diện'}
             style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 16, opacity: 0.8 }}
           />
         </div>

@@ -207,7 +207,8 @@ const UnifiedChatPage = ({
   onPassportPhoto = null,
   onPassportQuestion = null,
   onPassportAudio = null,
-  onShowMap = null
+  onShowMap = null,
+  onGlobalAudioUpdate = null
 }) => {
   const copy = COPY[language] || COPY.vi;
   const [messages, setMessages] = useState(() => [createWelcomeMessage(copy.greeting)]);
@@ -222,6 +223,13 @@ const UnifiedChatPage = ({
 
   const [activeAudioMsgId, setActiveAudioMsgId] = useState(null);
   const [speechState, setSpeechState] = useState('idle');
+
+  // Keep ref for global event listeners
+  const activeAudioMsgIdRef = useRef(activeAudioMsgId);
+
+  useEffect(() => {
+    activeAudioMsgIdRef.current = activeAudioMsgId;
+  }, [activeAudioMsgId]);
 
   const messagesEndRef = useRef(null);
   const messageListRef = useRef(null);
@@ -734,6 +742,37 @@ const UnifiedChatPage = ({
     resetRecording();
   }, [recordingError, resetRecording]);
 
+  useEffect(() => {
+    const handleGlobalToggle = () => {
+      const activeId = activeAudioMsgIdRef.current;
+      if (!activeId) return;
+      const msg = messagesRef.current.find(m => m.id === activeId);
+      if (msg) handleSpeakMessage(msg);
+    };
+
+    const handleGlobalStop = () => {
+      handleStopAudio();
+    };
+
+    window.addEventListener('tour:audio:toggle', handleGlobalToggle);
+    window.addEventListener('tour:audio:stop', handleGlobalStop);
+
+    return () => {
+      window.removeEventListener('tour:audio:toggle', handleGlobalToggle);
+      window.removeEventListener('tour:audio:stop', handleGlobalStop);
+    };
+  }, []);
+
+  const notifyGlobal = (id, state, message) => {
+    if (onGlobalAudioUpdate) {
+      onGlobalAudioUpdate(id ? {
+        id,
+        state,
+        title: message?.content || message?.speechText || 'Narration'
+      } : null);
+    }
+  };
+
   const handleSpeakMessage = async (message) => {
     const isActiveMessage = activeAudioMsgId === message.id;
 
@@ -743,6 +782,7 @@ const UnifiedChatPage = ({
         setMessages(prev => prev.map(m => (
           m.id === message.id ? { ...m, audioStatus: 'paused' } : m
         )));
+        notifyGlobal(message.id, 'paused', message);
       }
       return;
     }
@@ -753,6 +793,7 @@ const UnifiedChatPage = ({
         setMessages(prev => prev.map(m => (
           m.id === message.id ? { ...m, audioStatus: 'playing' } : m
         )));
+        notifyGlobal(message.id, 'playing', message);
       } else {
         handleStopAudio();
         window.setTimeout(() => handleSpeakMessage(message), 0);
@@ -768,12 +809,16 @@ const UnifiedChatPage = ({
       setMessages(prev => prev.map(m => (
         m.id === message.id ? { ...m, audioStatus: 'playing' } : m
       )));
+      notifyGlobal(message.id, 'playing', message);
+      
       playTTS(spokenText, language, () => {
         setActiveAudioMsgId(null);
         setSpeechState('idle');
         setMessages(prev => prev.map(m => (
           m.id === message.id ? { ...m, audioStatus: 'stopped' } : m
         )));
+        notifyGlobal(null, 'idle', null);
+        
         onPassportAudio?.({
           artifact: currentArtifactRef.current,
           seconds: estimateSpeechSeconds(spokenText),
@@ -788,13 +833,15 @@ const UnifiedChatPage = ({
   };
 
   const handleStopAudio = () => {
-    const stoppedMsgId = activeAudioMsgId;
+    const stoppedMsgId = activeAudioMsgIdRef.current;
+    if (!stoppedMsgId) return;
     stopTTS();
     setActiveAudioMsgId(null);
     setSpeechState('idle');
     setMessages(prev => prev.map(m => (
       m.id === stoppedMsgId ? { ...m, audioStatus: 'stopped' } : m
     )));
+    notifyGlobal(null, 'idle', null);
   };
 
   const handleSelectHistoryAudio = async (item) => {
@@ -1032,15 +1079,15 @@ const UnifiedChatPage = ({
 
       <style>{`
         .tour-workspace {
-          --ui-bg: #f4f1e8;
-          --ui-paper: #fffdf6;
-          --ui-surface: #ffffff;
-          --ui-surface-muted: #f7faf8;
-          --ui-surface-strong: #eef5f1;
-          --ui-text: #182023;
-          --ui-muted: #66716f;
-          --ui-border: #d8d1c2;
-          --ui-border-strong: #b9ad99;
+          --ui-bg: var(--color-bg-dark);
+          --ui-paper: var(--color-bg-surface);
+          --ui-surface: var(--color-bg-surface);
+          --ui-surface-muted: var(--color-border);
+          --ui-surface-strong: var(--color-border-hover);
+          --ui-text: var(--color-text-main);
+          --ui-muted: var(--color-text-muted);
+          --ui-border: var(--color-border);
+          --ui-border-strong: var(--color-border-hover);
           --ui-primary: #fece14;
           --ui-primary-border: #d5aa0b;
           --ui-teal: #0f5f59;
@@ -1087,7 +1134,7 @@ const UnifiedChatPage = ({
             background: transparent;
         }
         .tour-workspace.embedded-mode .conversation-header {
-            background: rgba(255, 250, 240, 0.92);
+            background: var(--color-bg-surface-glass);
             border-bottom-color: rgba(24, 32, 35, 0.1);
         }
         .tour-workspace.embedded-mode .messages-scroll {
@@ -1095,7 +1142,7 @@ const UnifiedChatPage = ({
               linear-gradient(180deg, rgba(255, 250, 240, 0.96), rgba(246, 240, 223, 0.86));
         }
         .tour-workspace.embedded-mode .composer {
-            background: rgba(255, 250, 240, 0.94);
+            background: var(--color-bg-surface-glass);
             border-top-color: rgba(24, 32, 35, 0.12);
             backdrop-filter: blur(16px);
         }
@@ -1113,9 +1160,13 @@ const UnifiedChatPage = ({
         }
 
         .brand-block h1,
-        .conversation-header h2,
         .artifact-card h3 {
           font-family: Cambria, 'Times New Roman', serif;
+          letter-spacing: 0;
+        }
+
+        .conversation-header h2 {
+          font-family: var(--font-heading), 'Outfit', sans-serif;
           letter-spacing: 0;
         }
 
@@ -1166,7 +1217,7 @@ const UnifiedChatPage = ({
           border: 1px solid rgba(24, 32, 35, 0.12);
           border-radius: 8px;
           color: var(--ui-text);
-          background: #ffffff;
+          background: var(--color-bg-surface);
           display: inline-flex;
           align-items: center;
           justify-content: center;
@@ -1222,7 +1273,7 @@ const UnifiedChatPage = ({
         }
 
         .tour-workspace .language-toggle {
-          background: #ffffff;
+          background: var(--color-bg-surface);
           border: 1px solid rgba(24, 32, 35, 0.12);
           border-radius: 8px;
           box-shadow: 0 6px 16px rgba(24, 32, 35, 0.06);
@@ -1318,7 +1369,7 @@ const UnifiedChatPage = ({
           border: 1px solid rgba(24, 32, 35, 0.11);
           border-radius: 8px;
           color: var(--ui-text);
-          background: #ffffff;
+          background: var(--color-bg-surface);
           padding: 11px;
           text-align: left;
           box-shadow: 0 4px 14px rgba(24, 32, 35, 0.04);
@@ -1329,12 +1380,12 @@ const UnifiedChatPage = ({
         .quick-actions button:hover {
           transform: translateY(-1px);
           border-color: rgba(15, 95, 89, 0.34);
-          background: #f7faf8;
+          background: var(--color-border-hover);
           box-shadow: var(--ui-soft-shadow);
         }
 
         .location-card.selected {
-          background: #f3fbf8;
+          background: var(--color-border);
           border-color: var(--ui-teal);
           box-shadow: inset 4px 0 0 var(--ui-teal), 0 8px 18px rgba(15, 95, 89, 0.08);
         }
@@ -1368,7 +1419,7 @@ const UnifiedChatPage = ({
           justify-content: space-between;
           gap: 16px;
           padding: 15px 16px;
-          background: rgba(255, 255, 255, 0.82);
+          background: var(--color-bg-surface-glass);
           border-bottom: 1px solid rgba(24, 32, 35, 0.1);
         }
 
@@ -1438,7 +1489,7 @@ const UnifiedChatPage = ({
           border: 1px solid rgba(15, 95, 89, 0.18);
           border-radius: 8px;
           color: var(--ui-teal);
-          background: #ffffff;
+          background: var(--color-bg-surface);
           padding: 6px 9px;
           font-size: 11px;
           font-weight: 900;
@@ -1467,11 +1518,7 @@ const UnifiedChatPage = ({
           flex-direction: column;
           padding: 18px;
           gap: 13px;
-          background:
-            linear-gradient(90deg, rgba(24, 32, 35, 0.026) 1px, transparent 1px),
-            linear-gradient(180deg, rgba(24, 32, 35, 0.02) 1px, transparent 1px),
-            #fbfaf5;
-          background-size: 34px 34px;
+          background: var(--color-bg-dark);
         }
 
         .message-list::-webkit-scrollbar {
@@ -1479,12 +1526,12 @@ const UnifiedChatPage = ({
         }
 
         .message-list::-webkit-scrollbar-track {
-          background: #eee9dc;
+          background: var(--color-bg-dark);
         }
 
         .message-list::-webkit-scrollbar-thumb {
-          background: #c8bda9;
-          border: 3px solid #eee9dc;
+          background: var(--color-border);
+          border: 3px solid var(--color-bg-dark);
           border-radius: 999px;
         }
 
@@ -1508,7 +1555,7 @@ const UnifiedChatPage = ({
           align-items: flex-start;
           gap: 8px;
           color: var(--ui-text);
-          background: #ffffff;
+          background: var(--color-bg-surface);
           border: 1px solid rgba(24, 32, 35, 0.12);
           border-radius: 8px;
           box-shadow: var(--ui-soft-shadow);
@@ -1516,15 +1563,15 @@ const UnifiedChatPage = ({
         }
 
         .message.user .message-body {
-          color: #ffffff;
-          background: var(--ui-teal);
-          border-color: var(--ui-teal);
+          color: var(--color-bg-surface);
+          background: var(--color-text-main);
+          border-color: var(--color-text-main);
           box-shadow: 0 12px 28px rgba(15, 95, 89, 0.16);
         }
 
         .message.error .message-body {
-          color: #821f19;
-          background: #fff3ef;
+          color: var(--color-accent);
+          background: var(--color-bg-surface);
           border-color: rgba(183, 55, 45, 0.32);
         }
 
@@ -1613,14 +1660,14 @@ const UnifiedChatPage = ({
           border: 1px solid rgba(24, 32, 35, 0.12);
           border-radius: 8px;
           color: var(--ui-text);
-          background: #ffffff;
+          background: var(--color-bg-surface);
           padding: 6px 8px;
           font-size: 12px;
           font-weight: 800;
         }
 
         .message-feedback button:hover {
-          background: #fff8d9;
+          background: var(--color-bg-surface);
           border-color: var(--ui-primary-border);
         }
 
@@ -1632,7 +1679,7 @@ const UnifiedChatPage = ({
         .composer {
           border-top: 1px solid rgba(24, 32, 35, 0.1);
           padding: 13px;
-          background: rgba(255, 253, 246, 0.95);
+          background: var(--color-bg-surface);
           box-shadow: 0 -10px 26px rgba(24, 32, 35, 0.06);
         }
 
@@ -1700,7 +1747,7 @@ const UnifiedChatPage = ({
 
         .pending-image button:hover {
           color: var(--ui-danger);
-          background: #fff3ef;
+          background: var(--color-bg-surface);
         }
 
         .composer-row {
@@ -1723,7 +1770,7 @@ const UnifiedChatPage = ({
           height: 42px;
           flex: 1;
           color: var(--ui-text);
-          background: #ffffff;
+          background: var(--color-bg-surface);
           border: 1px solid rgba(24, 32, 35, 0.15);
           border-radius: 8px;
           padding: 0 13px;
@@ -1732,11 +1779,11 @@ const UnifiedChatPage = ({
         }
 
         .composer-row input::placeholder {
-          color: #8b9692;
+          color: var(--color-text-muted);
         }
 
         .composer-row input:focus {
-          background: #ffffff;
+          background: var(--color-bg-surface);
           border-color: var(--ui-teal);
         }
 
@@ -1776,7 +1823,7 @@ const UnifiedChatPage = ({
           gap: 12px;
           margin-bottom: 10px;
           color: #821f19;
-          background: #fff3ef;
+          background: var(--color-bg-surface);
           border: 1px solid rgba(183, 55, 45, 0.3);
           border-radius: 8px;
           padding: 9px 10px;
@@ -1888,7 +1935,7 @@ const UnifiedChatPage = ({
         .summary-block {
           border: 1px solid rgba(24, 32, 35, 0.1);
           border-radius: 8px;
-          background: #ffffff;
+          background: var(--color-bg-surface);
           padding: 10px;
         }
 
@@ -1951,7 +1998,7 @@ const UnifiedChatPage = ({
 
         .camera-header button {
           color: #ffffff;
-          background: rgba(255, 255, 255, 0.12);
+          background: var(--color-bg-surface-glass);
           border-color: rgba(255, 255, 255, 0.24);
         }
 
@@ -2082,8 +2129,21 @@ const UnifiedChatPage = ({
           }
 
           .conversation-header {
-            align-items: flex-start;
-            flex-direction: column;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            gap: 12px;
+          }
+
+          .conversation-header h2 {
+            font-size: 16px;
+            margin: 0;
+          }
+
+          .conversation-header .eyebrow {
+            font-size: 9px;
           }
 
           .conversation-context-strip {
@@ -2100,15 +2160,22 @@ const UnifiedChatPage = ({
           }
 
           .conversation-tools {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            width: 100%;
+            display: flex;
+            gap: 8px;
+            width: auto;
           }
 
-          .conversation-tools button {
-            min-width: 0;
+          .conversation-tools button,
+          .tour-workspace.embedded-mode .conversation-tools button {
+            width: 34px;
+            height: 34px;
+            min-width: 34px;
+            min-height: 34px;
+            padding: 0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
             justify-content: center;
-            white-space: nowrap;
           }
 
           .message {
@@ -2120,12 +2187,69 @@ const UnifiedChatPage = ({
           }
 
           .composer-row {
-            flex-wrap: wrap;
+            flex-wrap: nowrap !important;
+            gap: 6px;
+          }
+
+          .composer-row button {
+            width: 38px !important;
+            height: 38px !important;
+            min-width: 38px !important;
           }
 
           .composer-row input {
-            flex: 1 1 100%;
-            order: -1;
+            height: 38px !important;
+            font-size: 13px !important;
+          }
+
+          .composer-row .mic-button {
+            width: 38px !important;
+            height: 38px !important;
+            min-width: 38px !important;
+          }
+
+          .bottom-audio-player {
+            padding: 10px 12px;
+          }
+
+          .audio-player-layout {
+            flex-wrap: nowrap !important;
+            gap: 10px;
+          }
+
+          .audio-player-meta {
+            min-width: 0;
+            flex: 1;
+            gap: 8px;
+          }
+
+          .audio-meta-text strong {
+            font-size: 12px;
+            max-width: 100%;
+          }
+
+          .audio-meta-text span {
+            display: none;
+          }
+
+          .audio-player-controls-section {
+            min-width: auto;
+            flex: 0 0 auto;
+            gap: 8px;
+          }
+
+          .audio-playback-buttons {
+            gap: 6px;
+          }
+
+          .audio-playback-buttons button {
+            width: 28px;
+            height: 28px;
+          }
+
+          .audio-playback-buttons .play-pause-toggle-btn {
+            width: 32px;
+            height: 32px;
           }
         }
 
@@ -2245,7 +2369,7 @@ const UnifiedChatPage = ({
           width: 28px;
           height: 28px;
           border: 1px solid rgba(24, 32, 35, 0.12);
-          background: #ffffff;
+          background: var(--color-bg-surface);
           color: var(--ui-text);
           border-radius: 50%;
           display: flex;
@@ -2327,7 +2451,7 @@ const UnifiedChatPage = ({
           align-items: center;
           gap: 6px;
           padding: 4px 10px;
-          background: #ffffff;
+          background: var(--color-bg-surface);
           border: 1px solid rgba(24, 32, 35, 0.08);
           border-radius: 99px;
           font-size: 11px;

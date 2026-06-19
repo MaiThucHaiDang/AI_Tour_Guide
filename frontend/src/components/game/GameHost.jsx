@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Navigation, Users, Trophy, ChevronRight, X, Volume2, Sparkles, Loader2, QrCode, AlertCircle, MessageSquare } from 'lucide-react';
-import { startGameAPI, getGameRoomStatusAPI, nextQuestionAPI, endGameAPI, getGameRoomPraiseAPI, playTTS, stopTTS, getLocalIpAPI } from '../../services/apiService';
+import { startGameAPI, getGameRoomStatusAPI, nextQuestionAPI, endGameAPI, getGameRoomPraiseAPI, playTTS, stopTTS, getLocalIpAPI, submitAnswerAPI } from '../../services/apiService';
 
-const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
+const GameHost = ({ roomCode, hostNickname = '', language, onBack, onMinimize }) => {
   const isVi = language === 'vi';
   const [roomState, setRoomState] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -10,6 +10,11 @@ const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
   const [loadingPraise, setLoadingPraise] = useState(false);
   const [audioUtterance, setAudioUtterance] = useState(null);
   const [localIp, setLocalIp] = useState('127.0.0.1');
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [answerResult, setAnswerResult] = useState(null);
+  const [hasAnswered, setHasAnswered] = useState(false);
+  const prevStatusRef = useRef('lobby');
+  const prevQuestionIndexRef = useRef(0);
 
   // Fetch local LAN IP from backend on mount
   useEffect(() => {
@@ -34,7 +39,18 @@ const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
       try {
         const res = await getGameRoomStatusAPI(roomCode);
         if (res.success && res.room) {
-          setRoomState(res.room);
+          const room = res.room;
+          setRoomState(room);
+          if (
+            room.status === 'playing' &&
+            (prevStatusRef.current !== 'playing' || prevQuestionIndexRef.current !== room.current_question_index)
+          ) {
+            setSelectedOption(null);
+            setAnswerResult(null);
+            setHasAnswered(false);
+            prevQuestionIndexRef.current = room.current_question_index;
+          }
+          prevStatusRef.current = room.status;
         }
       } catch (err) {
         console.error('Error fetching host room status:', err);
@@ -117,6 +133,29 @@ const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
     }
   };
 
+  const handleSelectOption = async (optIdx) => {
+    if (!hostNickname.trim() || hasAnswered || roomState?.status !== 'playing') return;
+    setSelectedOption(optIdx);
+    setHasAnswered(true);
+    try {
+      const res = await submitAnswerAPI(
+        roomCode,
+        hostNickname.trim(),
+        roomState.current_question.question_index,
+        optIdx
+      );
+      if (res.success) {
+        setAnswerResult({
+          is_correct: res.is_correct,
+          score_awarded: res.score_awarded,
+          total_score: res.total_score
+        });
+      }
+    } catch (err) {
+      console.error('Host answer failed:', err);
+    }
+  };
+
   const handleEnd = async () => {
     if (!roomCode) return;
     try {
@@ -171,25 +210,31 @@ const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
     { bg: 'linear-gradient(135deg, #d89e00, #b08000)', shape: '●', colorName: 'Yellow' },
     { bg: 'linear-gradient(135deg, #26890c, #1b6108)', shape: '■', colorName: 'Green' }
   ];
+  const currentPlayerInfo = roomState?.players?.find(p => p.nickname === hostNickname.trim());
+  const playerRank = roomState?.players?.findIndex(p => p.nickname === hostNickname.trim()) + 1;
+  const answeredCount = roomState?.current_question
+    ? roomState.players.reduce((acc, p) => acc + (p.answers_count > roomState.current_question.question_index ? 1 : 0), 0)
+    : 0;
 
   return (
-    <div style={{
+    <div className="game-shell game-host-shell" style={{
       width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
       backgroundColor: '#f7f9fb', position: 'relative'
     }}>
       
       {/* Lobby Header */}
-      <div style={{
+      <div className="game-header" style={{
         padding: '16px 20px', borderBottom: '1px solid #eef2f5',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         backgroundColor: '#fff'
       }}>
         <div>
           <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '800', color: '#0f5f59' }}>
-            👑 {isVi ? 'Đấu Trí Cung Đình (Host)' : 'Citadel Trivia (Host)'}
+            👑 {isVi ? 'Đấu Trí Cung Đình' : 'Citadel Trivia'}
           </h3>
           <span style={{ fontSize: '11px', color: '#888' }}>
             {isVi ? `Mã Phòng: ` : `Room Code: `}<strong>{roomCode}</strong>
+            {hostNickname ? ` · ${hostNickname}` : ''}
           </span>
         </div>
 
@@ -214,14 +259,14 @@ const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
         </div>
       </div>
 
-      <div style={{ flex: 1, padding: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+      <div className="game-main" style={{ flex: 1, padding: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
 
         {/* ─── 1. LOBBY STATE ─── */}
         {roomState.status === 'lobby' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '20px', margin: 'auto 0' }}>
+          <div className="game-lobby-grid" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '20px', margin: 'auto 0' }}>
             
             {/* QR Connection Column */}
-            <div style={{
+            <div className="game-panel game-lobby-join-panel" style={{
               backgroundColor: '#fff', borderRadius: '24px', padding: '24px',
               border: '1px solid #eef2f5', boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
               textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center'
@@ -234,11 +279,12 @@ const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
               </h2>
               
               {/* QR Image Container */}
-              <div style={{
+              <div className="game-qr-frame" style={{
                 padding: '12px', border: '2px dashed #0f5f59', borderRadius: '16px',
                 backgroundColor: '#f9f9f9', marginBottom: '16px'
               }}>
                 <img 
+                  className="game-qr-image"
                   src={qrCodeUrl} 
                   alt="QR Code to Join" 
                   style={{ width: '180px', height: '180px', display: 'block' }}
@@ -252,7 +298,7 @@ const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
               </p>
 
               {/* Security/SSL Bypass Guide for Mobile Scanning */}
-              <div style={{
+              <div className="game-lobby-note" style={{
                 width: '100%',
                 padding: '12px',
                 borderRadius: '12px',
@@ -287,8 +333,8 @@ const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
             </div>
 
             {/* Lobby Players List Column */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{
+            <div className="game-lobby-side" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="game-panel game-player-list-panel" style={{
                 backgroundColor: '#fff', borderRadius: '24px', padding: '20px',
                 border: '1px solid #eef2f5', flex: 1, display: 'flex', flexDirection: 'column'
               }}>
@@ -299,7 +345,7 @@ const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
                   </h4>
                 </div>
 
-                <div style={{ flex: 1, overflowY: 'auto', maxHeight: '200px', display: 'flex', flexWrap: 'wrap', gap: '8px', alignContent: 'flex-start' }}>
+                <div className="game-player-chip-list" style={{ flex: 1, overflowY: 'auto', maxHeight: '200px', display: 'flex', flexWrap: 'wrap', gap: '8px', alignContent: 'flex-start' }}>
                   {roomState.players.length === 0 ? (
                     <div style={{ margin: 'auto', textAlign: 'center', color: '#999', fontSize: '13px' }}>
                       {isVi ? 'Đang đợi mọi người vào phòng...' : 'Waiting for players to join...'}
@@ -316,7 +362,19 @@ const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
                           animation: 'popIn 0.2s ease-out'
                         }}
                       >
-                        {p.nickname}
+                        <span>{p.nickname}</span>
+                        {p.is_host && (
+                          <span style={{
+                            padding: '2px 6px',
+                            borderRadius: '999px',
+                            background: '#0f5f59',
+                            color: '#fffaf0',
+                            fontSize: '10px',
+                            fontWeight: 900
+                          }}>
+                            {isVi ? 'Chủ phòng' : 'Host'}
+                          </span>
+                        )}
                       </div>
                     ))
                   )}
@@ -324,6 +382,7 @@ const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
               </div>
 
               <button
+                className="game-primary-action game-start-button"
                 onClick={handleStart}
                 disabled={roomState.players.length === 0 || loading}
                 style={{
@@ -345,10 +404,10 @@ const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
 
         {/* ─── 2. PLAYING STATE (Host Question Screen) ─── */}
         {roomState.status === 'playing' && roomState.current_question && (
-          <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '20px' }}>
+          <div className="game-play-layout" style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '20px' }}>
             
             {/* Question Text block */}
-            <div style={{
+            <div className="game-panel game-question-card" style={{
               backgroundColor: '#fff', borderRadius: '24px', padding: '24px',
               border: '1px solid #eef2f5', textAlign: 'center',
               boxShadow: '0 4px 15px rgba(0,0,0,0.02)'
@@ -361,25 +420,50 @@ const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
               </h2>
             </div>
 
-            {/* Answer Options list (Non-revealed) */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            {/* Answer Options list */}
+            <div className="game-answer-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               {roomState.current_question.options.map((opt, idx) => (
-                <div 
+                <button
+                  className="game-answer-button"
                   key={idx}
+                  onClick={() => handleSelectOption(idx)}
+                  disabled={hasAnswered || loading}
                   style={{
                     padding: '20px', borderRadius: '16px', background: optionStyles[idx].bg,
                     color: 'white', display: 'flex', alignItems: 'center', gap: '14px',
-                    boxShadow: '0 4px 10px rgba(0,0,0,0.08)'
+                    boxShadow: selectedOption === idx ? '0 0 0 4px rgba(255, 212, 71, 0.55)' : '0 4px 10px rgba(0,0,0,0.08)',
+                    border: 'none',
+                    cursor: hasAnswered ? 'default' : 'pointer',
+                    textAlign: 'left',
+                    opacity: hasAnswered && selectedOption !== idx ? 0.72 : 1
                   }}
                 >
                   <span style={{ fontSize: '24px', fontWeight: '900' }}>{optionStyles[idx].shape}</span>
                   <span style={{ fontSize: '15px', fontWeight: '600' }}>{opt}</span>
-                </div>
+                </button>
               ))}
             </div>
 
+            {hasAnswered && (
+              <div className="game-submit-status" style={{
+                background: '#fffdf6',
+                border: '1px solid rgba(16,24,24,0.12)',
+                borderRadius: '12px',
+                padding: '12px 14px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                gap: '12px',
+                color: '#101818',
+                fontSize: '13px',
+                fontWeight: 800
+              }}>
+                <span>{isVi ? 'Đã gửi đáp án của chủ phòng.' : 'Host answer submitted.'}</span>
+                <strong style={{ color: '#0f5f59' }}>{currentPlayerInfo?.score || answerResult?.total_score || 0} pts</strong>
+              </div>
+            )}
+
             {/* Timer and submission count info */}
-            <div style={{
+            <div className="game-play-footer" style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               marginTop: 'auto', borderTop: '1px solid #e0e0e0', paddingTop: '16px'
             }}>
@@ -391,11 +475,12 @@ const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
                   padding: '4px 10px', borderRadius: '8px', backgroundColor: '#e2f0d9',
                   color: '#385723', fontWeight: '700', fontSize: '12px'
                 }}>
-                  {roomState.players.reduce((acc, p) => acc + (p.answers_count > roomState.current_question.question_index ? 1 : 0), 0)} / {roomState.players.length}
+                  {answeredCount} / {roomState.players.length}
                 </span>
               </div>
 
               <button
+                className="game-primary-action game-next-button"
                 onClick={handleNext}
                 disabled={loading}
                 style={{
@@ -416,11 +501,11 @@ const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
 
         {/* ─── 3. SCOREBOARD STATE (Correct answers reveal + current scoreboard) ─── */}
         {roomState.status === 'scoreboard' && roomState.current_question && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '20px', height: '100%' }}>
+          <div className="game-scoreboard-layout" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '20px', height: '100%' }}>
             
             {/* Answer Reveal Left Column */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{
+            <div className="game-scoreboard-answer" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="game-panel game-answer-reveal-panel" style={{
                 backgroundColor: '#fff', borderRadius: '24px', padding: '20px',
                 border: '1px solid #eef2f5', boxShadow: '0 4px 10px rgba(0,0,0,0.02)'
               }}>
@@ -428,7 +513,7 @@ const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
                   {isVi ? '✓ Đáp án đúng' : '✓ Correct Answer'}
                 </h3>
                 
-                <div style={{
+                <div className="game-correct-answer-card" style={{
                   padding: '14px 20px', borderRadius: '12px',
                   background: optionStyles[roomState.current_question.correct_option_index].bg,
                   color: 'white', display: 'flex', alignItems: 'center', gap: '12px',
@@ -441,7 +526,7 @@ const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
 
               {/* AI Explanation note */}
               {roomState.current_question.explanation && (
-                <div style={{
+                <div className="game-panel game-explanation-panel" style={{
                   backgroundColor: '#edf7ed', border: '1px solid #c3e6cb',
                   borderRadius: '24px', padding: '20px', flex: 1
                 }}>
@@ -457,8 +542,8 @@ const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
             </div>
 
             {/* Scoreboard Right Column */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{
+            <div className="game-scoreboard-side" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="game-panel game-standings-panel" style={{
                 backgroundColor: '#fff', borderRadius: '24px', padding: '20px',
                 border: '1px solid #eef2f5', flex: 1, display: 'flex', flexDirection: 'column'
               }}>
@@ -467,7 +552,7 @@ const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
                   {isVi ? 'Bảng Điểm Hiện Tại' : 'Current Standings'}
                 </h4>
 
-                <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div className="game-leaderboard-list" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {roomState.players.map((p, idx) => (
                     <div 
                       key={idx} 
@@ -497,6 +582,7 @@ const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
               </div>
 
               <button
+                className="game-primary-action game-continue-button"
                 onClick={handleNext}
                 disabled={loading}
                 style={{
@@ -517,10 +603,10 @@ const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
 
         {/* ─── 4. FINISHED STATE (Podium + AI Speech Card) ─── */}
         {roomState.status === 'finished' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '24px', height: '100%', margin: 'auto 0' }}>
+          <div className="game-finished-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '24px', height: '100%', margin: 'auto 0' }}>
             
             {/* Podium Left Column */}
-            <div style={{
+            <div className="game-panel game-winner-panel" style={{
               backgroundColor: '#fff', borderRadius: '24px', padding: '24px',
               border: '1px solid #eef2f5', boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
@@ -570,8 +656,8 @@ const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
             </div>
 
             {/* AI Victory Praise Speech Right Column */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{
+            <div className="game-finished-side" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="game-panel game-praise-panel" style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(10px)',
                 borderRadius: '24px', padding: '24px', border: '1px solid rgba(15,95,89,0.2)',
                 boxShadow: '0 8px 32px rgba(15, 95, 89, 0.08)', flex: 1,
@@ -614,6 +700,7 @@ const GameHost = ({ roomCode, language, onBack, onMinimize }) => {
               </div>
 
               <button
+                className="game-primary-action game-finish-button"
                 onClick={onBack}
                 style={{
                   width: '100%', padding: '16px', borderRadius: '14px', border: 'none',

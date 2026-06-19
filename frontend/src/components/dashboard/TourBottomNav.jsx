@@ -3,11 +3,18 @@ import React from 'react';
 const TourBottomNav = ({ tabs, activeTab, setActiveTab, isVi, onPreloadChat }) => {
   return (
     <nav className="tour-bottom-nav" aria-label={isVi ? 'Điều hướng tham quan' : 'Tour navigation'}>
-      {tabs.map(({ key, label, icon: Icon }) => (
+      {tabs.map(({ key, label, icon: Icon, onSelect, disabled, title }) => (
         <button
           key={key}
           className={activeTab === key ? 'active' : ''}
+          disabled={disabled}
+          title={title}
           onClick={() => {
+            if (disabled) return;
+            if (onSelect) {
+              onSelect();
+              return;
+            }
             if (key === 'ask') onPreloadChat?.();
             setActiveTab(key);
           }}

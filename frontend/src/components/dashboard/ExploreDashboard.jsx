@@ -12,7 +12,11 @@ import {
   X,
   Gamepad2,
   Loader2,
-  MoreVertical
+  MoreVertical,
+  Play,
+  Pause,
+  Moon,
+  Sun
 } from 'lucide-react';
 import MapExplore, { HUE_ARTIFACTS } from '../map/MapExplore';
 import TourBottomNav from './TourBottomNav';
@@ -48,6 +52,7 @@ const lazyWithPreload = (factory) => {
 
 const UnifiedChatPage = lazyWithPreload(() => import('../voice/UnifiedChatPage'));
 const GameHost = lazyWithPreload(() => import('../game/GameHost'));
+const TripJournal = lazyWithPreload(() => import('../passport/TripJournal'));
 
 const DEFAULT_LOCATION = {
   id: 1,
@@ -55,7 +60,7 @@ const DEFAULT_LOCATION = {
   name_en: 'Hue Imperial City'
 };
 
-const DASHBOARD_TABS = new Set(['map', 'ask']);
+const DASHBOARD_TABS = new Set(['map', 'ask', 'passport']);
 
 const normalizeDashboardTab = (tab, fallback = 'map') => (
   DASHBOARD_TABS.has(tab) ? tab : fallback
@@ -133,6 +138,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
   const location = initialLocation || DEFAULT_LOCATION;
   const initialArtifact = location.initialArtifact || null;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [globalAudio, setGlobalAudio] = useState(null);
   const [activeTab, setActiveTab] = useState(() => {
     const requestedTab = new URLSearchParams(window.location.search).get('tab');
     return normalizeDashboardTab(location.initialTab || requestedTab, 'map');
@@ -152,11 +158,27 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
   
   // Game states
   const [activeRoomCode, setActiveRoomCode] = useState(null);
+  const [activeHostNickname, setActiveHostNickname] = useState('');
+  const [showGameNameDialog, setShowGameNameDialog] = useState(false);
+  const [gameHostNameInput, setGameHostNameInput] = useState('');
   const [loadingGame, setLoadingGame] = useState(false);
   const [gameMinimized, setGameMinimized] = useState(false);
+  const [hasInteractedMap, setHasInteractedMap] = useState(false);
+  const [isPassportModalOpen, setIsPassportModalOpen] = useState(false);
   const [passportCatalog, setPassportCatalog] = useState(HUE_ARTIFACTS);
   const [passportMemory, setPassportMemory] = useState(() => loadTourMemory());
   const [passportToast, setPassportToast] = useState(null);
+  
+  // Theme state
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('tour-theme') || 'dark';
+  });
+
+  // Apply theme to document
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('tour-theme', theme);
+  }, [theme]);
   const [showTripCompletion, setShowTripCompletion] = useState(() => (
     new URLSearchParams(window.location.search).get('trip') === 'complete'
   ));
@@ -216,6 +238,9 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
     setPassportMemory(prev => recordCheckIn(prev, normalized, details));
 
     if (!wasChecked) {
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate([50, 50, 50]); // Success vibration pattern
+      }
       const name = isVi
         ? normalized.name_vi || normalized.name_en
         : normalized.name_en || normalized.name_vi;
@@ -333,11 +358,23 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
   const handleCreateGame = async () => {
     if (visitedIds.length < 2) return;
     GameHost.preload();
+    setGameHostNameInput(activeHostNickname || '');
+    setShowGameNameDialog(true);
+  };
+
+  const handleConfirmCreateGame = async (event) => {
+    event?.preventDefault();
+    if (visitedIds.length < 2) return;
+    const hostNickname = gameHostNameInput.trim();
+    if (!hostNickname) return;
     try {
       setLoadingGame(true);
-      const res = await createGameRoomAPI(visitedIds, language);
+      const res = await createGameRoomAPI(visitedIds, language, hostNickname);
       if (res.success && res.room_code) {
+        setActiveHostNickname(hostNickname);
         setActiveRoomCode(res.room_code);
+        setShowGameNameDialog(false);
+        setGameMinimized(false);
       }
     } catch (err) {
       console.error("Failed to create quiz room:", err);
@@ -405,7 +442,17 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
 
   const tabs = [
     { key: 'map', label: isVi ? 'Bản đồ' : 'Map', icon: MapIcon },
-    { key: 'ask', label: isVi ? 'Hỏi hướng dẫn' : 'Ask guide', icon: MessageSquare }
+    { key: 'ask', label: isVi ? 'Hỏi AI' : 'Ask AI', icon: MessageSquare },
+    {
+      key: 'game',
+      label: loadingGame ? (isVi ? 'Đang tạo' : 'Creating') : (isVi ? 'Chơi game' : 'Game'),
+      icon: Gamepad2,
+      onSelect: handleCreateGame,
+      disabled: loadingGame || visitedIds.length < 2,
+      title: visitedIds.length < 2
+        ? (isVi ? 'Check-in ít nhất 2 địa điểm để chơi game' : 'Check in at least 2 stops to play')
+        : (isVi ? 'Mở chế độ chơi game' : 'Open game mode')
+    }
   ];
 
   const handleArtifactFocus = useCallback((artifact) => {
@@ -414,6 +461,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
   }, [language]);
 
   const handleMapArtifactFocus = useCallback((artifact) => {
+    setHasInteractedMap(true);
     handleArtifactFocus(artifact);
     setNextSuggestion(null);
   }, [handleArtifactFocus]);
@@ -478,77 +526,87 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
         </div>
 
         <div className="tour-shell-actions-simplified">
+          
           <button 
-            className="tour-menu-toggle-btn" 
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label={isVi ? 'Danh mục chức năng' : 'Menu actions'}
-            aria-expanded={isMenuOpen}
+            onClick={() => setIsPassportModalOpen(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              padding: '6px 12px', borderRadius: 'var(--radius-full)',
+              background: 'var(--color-bg-surface-glass)', border: '1px solid var(--color-border)',
+              color: 'var(--color-primary)', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer',
+              boxShadow: 'var(--shadow-sm)'
+            }}
+            title={isVi ? 'Hộ chiếu' : 'Passport'}
           >
-            <MoreVertical size={20} />
+            <BookOpen size={16} />
+            <span>{passportSummary.completedCount}/{passportSummary.totalCount}</span>
           </button>
 
-          {isMenuOpen && (
-            <>
-              <div className="tour-menu-backdrop" onClick={() => setIsMenuOpen(false)} />
-              <div className="tour-menu-dropdown">
-                <div className="tour-menu-item passport-progress">
-                  <BookOpen size={16} />
-                  <div>
-                    <span>{isVi ? 'Hộ chiếu tham quan' : 'Tour Passport'}</span>
-                    <strong>{passportSummary.completedCount}/{passportSummary.totalCount}</strong>
-                  </div>
-                </div>
+          <button
+            onClick={handleCreateGame}
+            disabled={loadingGame || visitedIds.length < 2}
+            className="tour-header-game-button"
+            title={visitedIds.length < 2
+              ? (isVi ? 'Check-in ít nhất 2 địa điểm để chơi game' : 'Check in at least 2 stops to play')
+              : (isVi ? 'Chơi game' : 'Play game')}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+              minWidth: '34px', height: '34px', borderRadius: 'var(--radius-full)',
+              padding: '0 10px',
+              background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
+              color: '#101818', border: '1px solid rgba(212, 175, 55, 0.35)',
+              boxShadow: 'var(--shadow-sm)',
+              cursor: loadingGame || visitedIds.length < 2 ? 'not-allowed' : 'pointer',
+              opacity: loadingGame || visitedIds.length < 2 ? 0.58 : 1,
+              fontSize: '12px', fontWeight: '900'
+            }}
+          >
+            <Gamepad2 size={16} />
+            <span className="tour-header-game-label">{loadingGame ? (isVi ? 'Tạo' : 'New') : (isVi ? 'Game' : 'Game')}</span>
+          </button>
 
-                <button 
-                  className="tour-menu-item action-btn" 
-                  onClick={() => {
-                    handleCreateGame();
-                    setIsMenuOpen(false);
-                  }}
-                  disabled={visitedIds.length < 2 || loadingGame}
-                  title={visitedIds.length < 2 ? (isVi ? 'Tham quan ít nhất 2 điểm để chơi' : 'Visit at least 2 stops to play') : ''}
-                >
-                  {loadingGame ? <Loader2 className="spin" size={16} /> : <Gamepad2 size={16} />}
-                  <span>{isVi ? 'Đấu Trí Nhóm' : 'Group Quiz'}</span>
-                </button>
+          <button 
+            onClick={handleEndTrip}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: '34px', height: '34px', borderRadius: '50%',
+              background: 'linear-gradient(135deg, var(--color-accent), var(--color-accent-dark))',
+              color: 'white', border: 'none', boxShadow: 'var(--shadow-md)', cursor: 'pointer'
+            }}
+            title={isVi ? 'Kết thúc hành trình' : 'End Trip'}
+          >
+            <Flag size={16} />
+          </button>
 
-                <div className="tour-menu-item lang-toggle-row">
-                  <span>{isVi ? 'Ngôn ngữ' : 'Language'}</span>
-                  <div className="lang-buttons">
-                    <button 
-                      className={language === 'vi' ? 'active' : ''} 
-                      onClick={() => {
-                        setLanguage('vi');
-                        setIsMenuOpen(false);
-                      }}
-                    >
-                      VI
-                    </button>
-                    <button 
-                      className={language === 'en' ? 'active' : ''} 
-                      onClick={() => {
-                        setLanguage('en');
-                        setIsMenuOpen(false);
-                      }}
-                    >
-                      EN
-                    </button>
-                  </div>
-                </div>
+          <button 
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="header-icon-btn"
+            aria-label="Toggle Theme"
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: '34px', height: '34px', borderRadius: '50%',
+              background: 'transparent', color: 'var(--color-text-main)', 
+              border: '1px solid var(--color-border)', cursor: 'pointer',
+              marginLeft: '4px'
+            }}
+          >
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
 
-                <button 
-                  className="tour-menu-item action-btn end-trip" 
-                  onClick={() => {
-                    handleEndTrip();
-                    setIsMenuOpen(false);
-                  }}
-                >
-                  <Flag size={16} />
-                  <span>{isVi ? 'Kết thúc chuyến đi' : 'End Trip'}</span>
-                </button>
-              </div>
-            </>
-          )}
+          <button 
+            onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
+            className="header-icon-btn"
+            aria-label="Toggle Language"
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: '34px', height: '34px', borderRadius: '50%',
+              background: 'transparent', color: 'var(--color-text-main)', 
+              border: '1px solid var(--color-border)', cursor: 'pointer',
+              marginLeft: '4px', fontSize: '12px', fontWeight: 'bold'
+            }}
+          >
+            {language === 'vi' ? 'EN' : 'VI'}
+          </button>
         </div>
       </header>
 
@@ -592,12 +650,12 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
         <section className={`tour-shell-panel ask-panel ${activeTab === 'ask' ? 'is-active' : ''}`}>
           <Suspense fallback={<PanelLoader language={language} />}>
             <UnifiedChatPage
-              onBack={onBack}
+              embedded={true}
+              onBack={() => setActiveTab('map')}
               language={language}
               setLanguage={setLanguage}
               initialArtifact={targetArtifact}
               onArtifactUpdate={handleArtifactFocus}
-              embedded
               onNarrationFinished={handleNarrationFinished}
               onRequestNextStop={loadNextSuggestionForArtifact}
               onPassportCheckIn={handlePassportCheckIn}
@@ -605,10 +663,158 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
               onPassportQuestion={handlePassportQuestion}
               onPassportAudio={handlePassportAudio}
               onShowMap={() => setActiveTab('map')}
+              onGlobalAudioUpdate={setGlobalAudio}
             />
           </Suspense>
         </section>
+
       </main>
+
+      {/* Passport Overlay Modal */}
+      {isPassportModalOpen && (
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)',
+          zIndex: 5000, display: 'flex', flexDirection: 'column',
+          justifyContent: 'flex-end', animation: 'fadeIn 0.2s ease-out'
+        }}>
+          <div style={{
+            background: 'var(--color-bg-dark)',
+            borderTopLeftRadius: '24px', borderTopRightRadius: '24px',
+            height: '85vh', display: 'flex', flexDirection: 'column',
+            boxShadow: '0 -10px 40px rgba(0,0,0,0.5)',
+            animation: 'slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+          }}>
+            <div style={{ padding: '20px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ margin: 0, color: 'var(--color-primary)', fontFamily: 'var(--font-heading)', fontSize: '20px' }}>
+                {isVi ? 'Hộ chiếu của bạn' : 'Your Passport'}
+              </h2>
+              <button onClick={() => setIsPassportModalOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-main)', cursor: 'pointer', display: 'flex', padding: '4px' }}>
+                 <X size={24} />
+              </button>
+            </div>
+            
+            <div style={{ flex: 1, overflowY: 'auto', padding: '20px', paddingBottom: '40px' }}>
+               <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
+                  <div style={{ flex: 1, background: 'var(--color-bg-surface)', padding: '16px', borderRadius: '16px', border: '1px solid var(--color-border)', textAlign: 'center' }}>
+                    <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>{isVi ? 'Dấu mộc' : 'Stamps'}</span>
+                    <strong style={{ fontSize: '24px', color: 'var(--color-primary)', display: 'block', marginTop: '4px' }}>{passportSummary.completedCount}/{passportSummary.totalCount}</strong>
+                  </div>
+                  <div style={{ flex: 1, background: 'var(--color-bg-surface)', padding: '16px', borderRadius: '16px', border: '1px solid var(--color-border)', textAlign: 'center' }}>
+                    <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>{isVi ? 'Nhật ký' : 'Journal'}</span>
+                    <strong style={{ fontSize: '24px', color: 'var(--color-primary)', display: 'block', marginTop: '4px' }}>{passportSummary.photos.length + passportSummary.questions.length + passportSummary.audio.length}</strong>
+                  </div>
+               </div>
+               
+               <Suspense fallback={<PanelLoader language={language} />}>
+                  <TripJournal
+                    language={language}
+                    catalog={passportCatalog}
+                    memory={passportMemory}
+                    onResetMemory={handleResetPassport}
+                  />
+               </Suspense>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Global Mini Player for Audio */}
+      {globalAudio && activeTab !== 'ask' && (
+        <div style={{
+          position: 'absolute',
+          bottom: '80px', /* Above BottomNav */
+          left: '16px',
+          right: '16px',
+          background: 'rgba(255, 253, 246, 0.96)',
+          backdropFilter: 'blur(12px)',
+          border: '1px solid rgba(16, 24, 24, 0.12)',
+          borderRadius: 'var(--radius-md)',
+          padding: '12px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          boxShadow: 'var(--shadow-lg)',
+          zIndex: 3000,
+          animation: 'slideUp 0.3s ease-out'
+        }}>
+          <div style={{
+            width: '36px', height: '36px', borderRadius: '50%',
+            background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white'
+          }}>
+            <Volume2 size={18} />
+          </div>
+          <div style={{ flex: 1, overflow: 'hidden' }}>
+            <div style={{ fontSize: '10px', color: '#7a4f00', textTransform: 'uppercase', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+              {isVi ? 'Đang đọc' : 'Reading'}
+            </div>
+            <div style={{ fontSize: '13px', color: '#101818', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {globalAudio.title}
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+            <button 
+              onClick={() => window.dispatchEvent(new CustomEvent('tour:audio:toggle'))}
+              style={{
+                width: '32px', height: '32px', borderRadius: '50%', border: 'none',
+                background: 'rgba(16,24,24,0.08)', color: '#101818',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+              }}
+            >
+              {globalAudio.state === 'playing' ? <Pause size={16} /> : <Play size={16} />}
+            </button>
+            <button 
+              onClick={() => window.dispatchEvent(new CustomEvent('tour:audio:stop'))}
+              style={{
+                width: '32px', height: '32px', borderRadius: '50%', border: 'none',
+                background: 'transparent', color: '#33413d',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+              }}
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Pulsing Onboarding Tooltip */}
+      {activeTab === 'map' && !hasInteractedMap && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          pointerEvents: 'none',
+          zIndex: 2000,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <div style={{
+            background: 'var(--color-primary)',
+            color: 'var(--color-bg-dark)',
+            padding: '8px 16px',
+            borderRadius: 'var(--radius-full)',
+            fontSize: '13px',
+            fontWeight: 'bold',
+            boxShadow: 'var(--shadow-lg)',
+            animation: 'pulse 2s infinite',
+            whiteSpace: 'nowrap'
+          }}>
+            {isVi ? 'Chạm vào điểm đến trên bản đồ' : 'Tap on a destination'}
+          </div>
+          <div style={{
+            width: '0',
+            height: '0',
+            borderLeft: '6px solid transparent',
+            borderRight: '6px solid transparent',
+            borderTop: '6px solid var(--color-primary)',
+            animation: 'pulse 2s infinite'
+          }}></div>
+        </div>
+      )}
 
       {activePhotoBooth && (
         <PhotoBoothModal
@@ -641,12 +847,12 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           transform: 'translateX(-50%)',
           width: 'calc(100% - 32px)',
           maxWidth: '380px',
-          backgroundColor: 'rgba(255, 255, 255, 0.85)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: '16px',
+          backgroundColor: 'rgba(255, 253, 246, 0.96)',
+          backdropFilter: 'blur(12px)',
+          border: '1px solid rgba(16, 24, 24, 0.12)',
+          borderRadius: 'var(--radius-lg)',
           padding: '12px 16px',
-          boxShadow: '0 8px 32px rgba(15, 95, 89, 0.15)',
-          border: '1px solid rgba(15, 95, 89, 0.2)',
+          boxShadow: 'var(--shadow-lg)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -655,13 +861,13 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           animation: 'slideUp 0.3s ease-out'
         }}>
           <div style={{ flex: 1, textAlign: 'left' }}>
-            <span style={{ fontSize: '10px', color: '#b2820a', fontWeight: '700', textTransform: 'uppercase', display: 'block', letterSpacing: '0.5px' }}>
+            <span style={{ fontSize: '10px', color: '#7a4f00', fontWeight: '700', textTransform: 'uppercase', display: 'block', letterSpacing: '0.5px' }}>
               {isVi ? 'GỢI Ý ĐIỂM TIẾP THEO' : 'RECOMMENDED NEXT STOP'}
             </span>
-            <strong style={{ fontSize: '14px', color: '#0f5f59', display: 'block', margin: '2px 0' }}>
+            <strong style={{ fontSize: '14px', color: '#101818', display: 'block', margin: '2px 0' }}>
               {isVi ? nextSuggestion.name_vi : nextSuggestion.name_en}
             </strong>
-            <span style={{ fontSize: '11px', color: '#666', display: 'block' }}>
+            <span style={{ fontSize: '11px', color: '#42524f', display: 'block' }}>
               {nextSuggestion.reason} ({nextSuggestion.distance}m · {Math.ceil(nextSuggestion.walk_duration_min)} {isVi ? 'phút đi bộ' : 'min walk'})
             </span>
           </div>
@@ -670,15 +876,15 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
             <button 
               onClick={() => handleUseNextSuggestion(nextSuggestion, 'route')}
               style={{
-                backgroundColor: '#0f5f59',
-                color: '#fff',
+                background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
+                color: '#101818',
                 border: 'none',
                 padding: '8px 14px',
-                borderRadius: '8px',
+                borderRadius: 'var(--radius-sm)',
                 fontSize: '12px',
                 fontWeight: '700',
                 cursor: 'pointer',
-                boxShadow: '0 3px 8px rgba(15, 95, 89, 0.3)',
+                boxShadow: 'var(--shadow-md)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px'
@@ -690,11 +896,11 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
             <button 
               onClick={() => handleUseNextSuggestion(nextSuggestion, 'intro')}
               style={{
-                backgroundColor: '#fffaf0',
+                backgroundColor: '#fffdf6',
                 color: '#0f5f59',
                 border: '1px solid rgba(15, 95, 89, 0.22)',
                 padding: '8px 12px',
-                borderRadius: '8px',
+                borderRadius: 'var(--radius-sm)',
                 fontSize: '12px',
                 fontWeight: '700',
                 cursor: 'pointer',
@@ -741,6 +947,106 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
         onPreloadChat={UnifiedChatPage.preload}
       />
 
+      {showGameNameDialog && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={isVi ? 'Đặt tên người chơi' : 'Set player name'}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 5200,
+            display: 'grid',
+            placeItems: 'center',
+            padding: '20px',
+            background: 'rgba(16, 24, 24, 0.62)',
+            backdropFilter: 'blur(8px)'
+          }}
+        >
+          <form
+            onSubmit={handleConfirmCreateGame}
+            style={{
+              width: 'min(420px, 100%)',
+              display: 'grid',
+              gap: '14px',
+              padding: '22px',
+              borderRadius: '8px',
+              background: '#fffdf6',
+              border: '1px solid rgba(16,24,24,0.12)',
+              boxShadow: '0 24px 70px rgba(0,0,0,0.24)'
+            }}
+          >
+            <div style={{ display: 'grid', gap: '6px' }}>
+              <span style={{ color: '#7a4f00', fontSize: '12px', fontWeight: 900, textTransform: 'uppercase' }}>
+                {isVi ? 'Chủ phòng cùng tham gia' : 'Host joins as player'}
+              </span>
+              <h2 style={{ margin: 0, color: '#101818', fontSize: '22px', lineHeight: 1.15 }}>
+                {isVi ? 'Đặt tên để vào phòng chơi' : 'Name yourself to start'}
+              </h2>
+              <p style={{ margin: 0, color: '#42524f', fontSize: '13px', lineHeight: 1.5 }}>
+                {isVi
+                  ? 'Tên này sẽ xuất hiện trong bảng điểm và được gắn nhãn Chủ phòng.'
+                  : 'This name appears on the scoreboard with a Host tag.'}
+              </p>
+            </div>
+            <input
+              value={gameHostNameInput}
+              maxLength={20}
+              autoFocus
+              onChange={(event) => setGameHostNameInput(event.target.value)}
+              placeholder={isVi ? 'Tên của bạn...' : 'Your name...'}
+              style={{
+                width: '100%',
+                minHeight: '46px',
+                padding: '0 13px',
+                borderRadius: '8px',
+                border: '1.5px solid rgba(16,24,24,0.18)',
+                color: '#101818',
+                background: '#ffffff',
+                fontSize: '15px',
+                fontWeight: 800,
+                outline: 'none'
+              }}
+            />
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => setShowGameNameDialog(false)}
+                disabled={loadingGame}
+                style={{
+                  minHeight: '42px',
+                  padding: '0 14px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(16,24,24,0.14)',
+                  color: '#101818',
+                  background: '#fffdf6',
+                  fontWeight: 850,
+                  cursor: 'pointer'
+                }}
+              >
+                {isVi ? 'Hủy' : 'Cancel'}
+              </button>
+              <button
+                type="submit"
+                disabled={loadingGame || !gameHostNameInput.trim()}
+                style={{
+                  minHeight: '42px',
+                  padding: '0 16px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  color: '#fffaf0',
+                  background: loadingGame || !gameHostNameInput.trim() ? '#9aa4a0' : '#0f5f59',
+                  fontWeight: 900,
+                  cursor: loadingGame || !gameHostNameInput.trim() ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {loadingGame ? (isVi ? 'Đang tạo...' : 'Creating...') : (isVi ? 'Vào chơi' : 'Join game')}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
       {/* Floating banner when game is minimized */}
       {activeRoomCode && gameMinimized && (
         <div style={{
@@ -750,11 +1056,11 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           transform: 'translateX(-50%)',
           width: 'calc(100% - 32px)',
           maxWidth: '380px',
-          backgroundColor: '#0f5f59',
+          background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
           color: '#fff',
-          borderRadius: '12px',
+          borderRadius: 'var(--radius-md)',
           padding: '10px 16px',
-          boxShadow: '0 4px 15px rgba(15,95,89,0.3)',
+          boxShadow: 'var(--shadow-lg)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -770,10 +1076,10 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           <button
             onClick={() => setGameMinimized(false)}
             style={{
-              backgroundColor: '#fff',
-              color: '#0f5f59',
+              backgroundColor: 'var(--color-bg-surface)',
+              color: 'var(--color-text-main)',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: 'var(--radius-sm)',
               padding: '6px 12px',
               fontSize: '11px',
               fontWeight: '800',
@@ -801,9 +1107,11 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           <Suspense fallback={<PanelLoader language={language} />}>
             <GameHost
               roomCode={activeRoomCode}
+              hostNickname={activeHostNickname}
               language={language}
               onBack={() => {
                 setActiveRoomCode(null);
+                setActiveHostNickname('');
                 setGameMinimized(false);
               }}
               onMinimize={() => setGameMinimized(true)}

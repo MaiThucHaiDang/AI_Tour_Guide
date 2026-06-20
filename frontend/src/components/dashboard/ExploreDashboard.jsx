@@ -554,7 +554,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
               minWidth: '34px', height: '34px', borderRadius: 'var(--radius-full)',
               padding: '0 10px',
               background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
-              color: '#101818', border: '1px solid rgba(212, 175, 55, 0.35)',
+              color: 'var(--color-on-primary)', border: '1px solid var(--color-border-hover)',
               boxShadow: 'var(--shadow-sm)',
               cursor: loadingGame || visitedIds.length < 2 ? 'not-allowed' : 'pointer',
               opacity: loadingGame || visitedIds.length < 2 ? 0.58 : 1,
@@ -726,9 +726,9 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           bottom: '80px', /* Above BottomNav */
           left: '16px',
           right: '16px',
-          background: 'rgba(255, 253, 246, 0.96)',
+          background: 'var(--color-surface-overlay)',
           backdropFilter: 'blur(12px)',
-          border: '1px solid rgba(16, 24, 24, 0.12)',
+          border: '1px solid var(--color-surface-overlay-border)',
           borderRadius: 'var(--radius-md)',
           padding: '12px 16px',
           display: 'flex',
@@ -746,10 +746,10 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
             <Volume2 size={18} />
           </div>
           <div style={{ flex: 1, overflow: 'hidden' }}>
-            <div style={{ fontSize: '10px', color: '#7a4f00', textTransform: 'uppercase', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+            <div style={{ fontSize: '10px', color: 'var(--color-text-accent-on-overlay)', textTransform: 'uppercase', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
               {isVi ? 'Đang đọc' : 'Reading'}
             </div>
-            <div style={{ fontSize: '13px', color: '#101818', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <div style={{ fontSize: '13px', color: 'var(--color-text-on-overlay)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {globalAudio.title}
             </div>
           </div>
@@ -758,7 +758,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
               onClick={() => window.dispatchEvent(new CustomEvent('tour:audio:toggle'))}
               style={{
                 width: '32px', height: '32px', borderRadius: '50%', border: 'none',
-                background: 'rgba(16,24,24,0.08)', color: '#101818',
+                background: 'var(--color-surface-raised)', color: 'var(--color-text-on-overlay)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
               }}
             >
@@ -768,7 +768,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
               onClick={() => window.dispatchEvent(new CustomEvent('tour:audio:stop'))}
               style={{
                 width: '32px', height: '32px', borderRadius: '50%', border: 'none',
-                background: 'transparent', color: '#33413d',
+                background: 'transparent', color: 'var(--color-text-muted-on-overlay)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
               }}
             >
@@ -847,9 +847,9 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           transform: 'translateX(-50%)',
           width: 'calc(100% - 32px)',
           maxWidth: '380px',
-          backgroundColor: 'rgba(255, 253, 246, 0.96)',
+          backgroundColor: 'var(--color-surface-overlay)',
           backdropFilter: 'blur(12px)',
-          border: '1px solid rgba(16, 24, 24, 0.12)',
+          border: '1px solid var(--color-surface-overlay-border)',
           borderRadius: 'var(--radius-lg)',
           padding: '12px 16px',
           boxShadow: 'var(--shadow-lg)',
@@ -861,13 +861,13 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           animation: 'slideUp 0.3s ease-out'
         }}>
           <div style={{ flex: 1, textAlign: 'left' }}>
-            <span style={{ fontSize: '10px', color: '#7a4f00', fontWeight: '700', textTransform: 'uppercase', display: 'block', letterSpacing: '0.5px' }}>
+            <span style={{ fontSize: '10px', color: 'var(--color-text-accent-on-overlay)', fontWeight: '700', textTransform: 'uppercase', display: 'block', letterSpacing: '0.5px' }}>
               {isVi ? 'GỢI Ý ĐIỂM TIẾP THEO' : 'RECOMMENDED NEXT STOP'}
             </span>
-            <strong style={{ fontSize: '14px', color: '#101818', display: 'block', margin: '2px 0' }}>
+            <strong style={{ fontSize: '14px', color: 'var(--color-text-on-overlay)', display: 'block', margin: '2px 0' }}>
               {isVi ? nextSuggestion.name_vi : nextSuggestion.name_en}
             </strong>
-            <span style={{ fontSize: '11px', color: '#42524f', display: 'block' }}>
+            <span style={{ fontSize: '11px', color: 'var(--color-text-muted-on-overlay)', display: 'block' }}>
               {nextSuggestion.reason} ({nextSuggestion.distance}m · {Math.ceil(nextSuggestion.walk_duration_min)} {isVi ? 'phút đi bộ' : 'min walk'})
             </span>
           </div>
@@ -877,7 +877,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
               onClick={() => handleUseNextSuggestion(nextSuggestion, 'route')}
               style={{
                 background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
-                color: '#101818',
+                color: 'var(--color-on-primary)',
                 border: 'none',
                 padding: '8px 14px',
                 borderRadius: 'var(--radius-sm)',
@@ -896,9 +896,9 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
             <button 
               onClick={() => handleUseNextSuggestion(nextSuggestion, 'intro')}
               style={{
-                backgroundColor: '#fffdf6',
-                color: '#0f5f59',
-                border: '1px solid rgba(15, 95, 89, 0.22)',
+                backgroundColor: 'var(--color-btn-secondary-bg)',
+                color: 'var(--color-jade)',
+                border: '1px solid var(--color-btn-secondary-border)',
                 padding: '8px 12px',
                 borderRadius: 'var(--radius-sm)',
                 fontSize: '12px',
@@ -917,7 +917,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
               style={{
                 backgroundColor: 'transparent',
                 border: 'none',
-                color: '#999',
+                color: 'var(--color-text-muted)',
                 cursor: 'pointer',
                 padding: '4px'
               }}
@@ -971,19 +971,19 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
               gap: '14px',
               padding: '22px',
               borderRadius: '8px',
-              background: '#fffdf6',
-              border: '1px solid rgba(16,24,24,0.12)',
+              background: 'var(--color-surface-modal)',
+              border: '1px solid var(--color-surface-modal-border)',
               boxShadow: '0 24px 70px rgba(0,0,0,0.24)'
             }}
           >
             <div style={{ display: 'grid', gap: '6px' }}>
-              <span style={{ color: '#7a4f00', fontSize: '12px', fontWeight: 900, textTransform: 'uppercase' }}>
+              <span style={{ color: 'var(--color-text-accent-on-overlay)', fontSize: '12px', fontWeight: 900, textTransform: 'uppercase' }}>
                 {isVi ? 'Chủ phòng cùng tham gia' : 'Host joins as player'}
               </span>
-              <h2 style={{ margin: 0, color: '#101818', fontSize: '22px', lineHeight: 1.15 }}>
+              <h2 style={{ margin: 0, color: 'var(--color-text-on-overlay)', fontSize: '22px', lineHeight: 1.15 }}>
                 {isVi ? 'Đặt tên để vào phòng chơi' : 'Name yourself to start'}
               </h2>
-              <p style={{ margin: 0, color: '#42524f', fontSize: '13px', lineHeight: 1.5 }}>
+              <p style={{ margin: 0, color: 'var(--color-text-muted-on-overlay)', fontSize: '13px', lineHeight: 1.5 }}>
                 {isVi
                   ? 'Tên này sẽ xuất hiện trong bảng điểm và được gắn nhãn Chủ phòng.'
                   : 'This name appears on the scoreboard with a Host tag.'}
@@ -1000,9 +1000,9 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
                 minHeight: '46px',
                 padding: '0 13px',
                 borderRadius: '8px',
-                border: '1.5px solid rgba(16,24,24,0.18)',
-                color: '#101818',
-                background: '#ffffff',
+                border: '1.5px solid var(--color-surface-modal-border)',
+                color: 'var(--color-text-on-overlay)',
+                background: 'var(--color-bg-surface)',
                 fontSize: '15px',
                 fontWeight: 800,
                 outline: 'none'
@@ -1017,9 +1017,9 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
                   minHeight: '42px',
                   padding: '0 14px',
                   borderRadius: '8px',
-                  border: '1px solid rgba(16,24,24,0.14)',
-                  color: '#101818',
-                  background: '#fffdf6',
+                  border: '1px solid var(--color-surface-modal-border)',
+                  color: 'var(--color-text-on-overlay)',
+                  background: 'var(--color-surface-modal)',
                   fontWeight: 850,
                   cursor: 'pointer'
                 }}
@@ -1034,8 +1034,8 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
                   padding: '0 16px',
                   borderRadius: '8px',
                   border: 'none',
-                  color: '#fffaf0',
-                  background: loadingGame || !gameHostNameInput.trim() ? '#9aa4a0' : '#0f5f59',
+                  color: 'var(--color-on-jade)',
+                  background: loadingGame || !gameHostNameInput.trim() ? 'var(--color-disabled)' : 'var(--color-jade)',
                   fontWeight: 900,
                   cursor: loadingGame || !gameHostNameInput.trim() ? 'not-allowed' : 'pointer'
                 }}
@@ -1057,7 +1057,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           width: 'calc(100% - 32px)',
           maxWidth: '380px',
           background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))',
-          color: '#fff',
+          color: 'var(--color-on-primary)',
           borderRadius: 'var(--radius-md)',
           padding: '10px 16px',
           boxShadow: 'var(--shadow-lg)',
@@ -1100,7 +1100,7 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
           width: '100%',
           height: '100%',
           zIndex: 5000,
-          backgroundColor: '#fff',
+          backgroundColor: 'var(--color-bg-dark)',
           display: gameMinimized ? 'none' : 'flex',
           flexDirection: 'column'
         }}>

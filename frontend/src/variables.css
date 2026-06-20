@@ -42,6 +42,45 @@
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
   --shadow-glow: 0 0 20px rgba(212, 175, 55, 0.15);
 
+  /* Semantic surface aliases used by UI components */
+  --color-bg: var(--color-bg-dark);
+  --color-surface: var(--color-bg-surface);
+  --color-surface-glass: var(--color-bg-surface-glass);
+  --color-surface-raised: rgba(255, 255, 255, 0.06);
+  --color-text: var(--color-text-main);
+
+  /* Jade / Teal accent (used for map & secondary accents) */
+  --color-jade: #0f5f59;
+  --color-on-jade: #fffdf6;
+
+  /* Foreground (on-color) tokens - flips per theme for contrast */
+  --color-on-primary: #1c1a17;        /* dark text on imperial gold in dark mode */
+  --color-on-accent: #fffdf6;         /* light text on imperial red */
+
+  /* Status tokens (warm palette) */
+  --color-success: #2f8f5b;
+  --color-on-success: #fffdf6;
+  --color-warning: #c98a1a;
+  --color-on-warning: #1c1a17;
+  --color-error: #b23b2e;
+  --color-on-error: #fffdf6;
+  --color-info: #3f6f9e;
+  --color-on-info: #fffdf6;
+
+  /* Floating surfaces */
+  --color-surface-overlay: rgba(255, 253, 246, 0.96);
+  --color-surface-overlay-border: rgba(255, 253, 246, 0.12);
+  --color-surface-modal: #fffdf6;
+  --color-surface-modal-border: rgba(16, 24, 24, 0.12);
+  --color-text-on-overlay: #101818;
+  --color-text-muted-on-overlay: #42524f;
+  --color-text-accent-on-overlay: #7a4f00;
+  --color-disabled: #9aa4a0;
+  --color-btn-secondary-bg: #fffdf6;
+  --color-btn-secondary-text: #101818;
+  --color-btn-secondary-border: rgba(16, 24, 24, 0.16);
+  --color-btn-secondary-hover: #edf5ef;
+
   /* Transitions */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -66,4 +105,43 @@
   
   --color-border: rgba(184, 134, 11, 0.2);
   --color-border-hover: rgba(184, 134, 11, 0.4);
+
+  /* Semantic surface aliases used by UI components */
+  --color-bg: var(--color-bg-dark);
+  --color-surface: var(--color-bg-surface);
+  --color-surface-glass: var(--color-bg-surface-glass);
+  --color-surface-raised: rgba(24, 32, 35, 0.05);
+  --color-text: var(--color-text-main);
+
+  /* Jade / Teal accent (used for map & secondary accents) */
+  --color-jade: #075e55;
+  --color-on-jade: #fffdf6;
+
+  /* Foreground (on-color) tokens - flips per theme for contrast */
+  --color-on-primary: #fffdf6;        /* light text on dark goldenrod in light mode */
+  --color-on-accent: #fffdf6;         /* light text on firebrick */
+
+  /* Status tokens (warm palette, light-mode tuned) */
+  --color-success: #1e6b3f;
+  --color-on-success: #fffdf6;
+  --color-warning: #9e6400;
+  --color-on-warning: #fffdf6;
+  --color-error: #962820;
+  --color-on-error: #fffdf6;
+  --color-info: #225380;
+  --color-on-info: #fffdf6;
+
+  /* Floating surfaces */
+  --color-surface-overlay: rgba(255, 255, 255, 0.96);
+  --color-surface-overlay-border: rgba(24, 32, 35, 0.10);
+  --color-surface-modal: #ffffff;
+  --color-surface-modal-border: rgba(24, 32, 35, 0.12);
+  --color-text-on-overlay: #2b2824;
+  --color-text-muted-on-overlay: #6b645c;
+  --color-text-accent-on-overlay: #8b6508;
+  --color-disabled: #a8a29e;
+  --color-btn-secondary-bg: #ffffff;
+  --color-btn-secondary-text: #2b2824;
+  --color-btn-secondary-border: rgba(24, 32, 35, 0.14);
+  --color-btn-secondary-hover: #f0ebe2;
 }

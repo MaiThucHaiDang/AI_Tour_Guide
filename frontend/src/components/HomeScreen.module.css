@@ -68,7 +68,7 @@
   height: 40px;
   border-radius: var(--radius-md);
   background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-  color: white;
+  color: var(--color-on-primary);
   font-family: var(--font-heading);
   font-weight: 700;
   font-size: 18px;
@@ -115,10 +115,10 @@
 
 .langToggle {
   display: flex;
-  background: #fffdf6;
+  background: var(--color-btn-secondary-bg);
   border-radius: var(--radius-full);
   padding: 4px;
-  border: 1px solid rgba(16, 24, 24, 0.12);
+  border: 1px solid var(--color-btn-secondary-border);
 }
 
 .langToggle button {
@@ -126,13 +126,13 @@
   border-radius: var(--radius-full);
   font-size: 13px;
   font-weight: 600;
-  color: #42524f;
+  color: var(--color-text-muted);
   transition: all var(--transition-fast);
 }
 
 .langToggle button.active {
-  background: #101818;
-  color: #fffdf6;
+  background: var(--color-text-main);
+  color: var(--color-bg);
 }
 
 /* Main Content */
@@ -185,8 +185,8 @@
   align-items: center;
   gap: var(--space-sm);
   padding: 8px 16px;
-  background: rgba(59, 130, 246, 0.15);
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: var(--color-border);
+  border: 1px solid var(--color-border-hover);
   border-radius: var(--radius-full);
   color: var(--color-primary-light);
   font-size: 14px;
@@ -230,24 +230,24 @@
 
 .btnPrimary {
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-  color: white;
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+  color: var(--color-on-primary);
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
 }
 
 .btnPrimary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.6);
+  box-shadow: 0 8px 25px rgba(212, 175, 55, 0.6);
 }
 
 .btnSecondary {
-  background: #fffdf6;
-  color: #101818;
-  border: 1px solid rgba(16, 24, 24, 0.16);
+  background: var(--color-btn-secondary-bg);
+  color: var(--color-btn-secondary-text);
+  border: 1px solid var(--color-btn-secondary-border);
   backdrop-filter: blur(8px);
 }
 
 .btnSecondary:hover {
-  background: #edf5ef;
+  background: var(--color-btn-secondary-hover);
   transform: translateY(-2px);
 }
 

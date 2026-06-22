@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   BookOpen,
+  CreditCard,
   Landmark,
   MapPin,
   Mic,
@@ -9,10 +10,11 @@ import {
   Sparkles,
   Smartphone,
   Sun,
-  Moon
+  Moon,
+  X
 } from 'lucide-react';
 import DestinationGrid from './destinations/DestinationGrid';
-import { destinations } from '../data/destinations';
+import { destinations, getDestinationById } from '../data/destinations';
 import styles from './HomeScreen.module.css';
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
@@ -25,6 +27,7 @@ const REAL_IMAGES = {
 const HomeScreen = ({
   onSelectFeature,
   onSelectDestination,
+  onDirectCheckout,
   onOpenBlog,
   language,
   setLanguage,
@@ -33,6 +36,7 @@ const HomeScreen = ({
   const isVi = language === 'vi';
   const [visibleIds, setVisibleIds] = useState(() => new Set(['hero']));
   const [isLaunching, setIsLaunching] = useState(false);
+  const [showTicketPicker, setShowTicketPicker] = useState(false);
 
   // Theme state
   const [theme, setTheme] = useState(() => {
@@ -316,6 +320,18 @@ const HomeScreen = ({
                 </button>
             </div>
 
+            <div style={{ marginTop: '12px' }}>
+              <button
+                className={styles.btnSecondary}
+                type="button"
+                onClick={() => setShowTicketPicker(true)}
+                style={{ fontSize: '14px', padding: '10px 20px' }}
+              >
+                <CreditCard size={18} />
+                <span>{isVi ? 'Mua vé tham quan' : 'Buy tickets'}</span>
+              </button>
+            </div>
+
             {!isPhoneFrame && (
               <div style={{ marginTop: '20px' }}>
                 <button className={styles.btnSecondary} onClick={openPhonePreview} style={{ fontSize: '14px', padding: '10px 20px' }}>
@@ -341,6 +357,46 @@ const HomeScreen = ({
           description={copy.destinationText}
         />
 
+        {showTicketPicker && (
+          <div className={styles.ticketOverlay} onClick={() => setShowTicketPicker(false)}>
+            <div className={styles.ticketModal} onClick={(e) => e.stopPropagation()}>
+              <button className={styles.ticketClose} onClick={() => setShowTicketPicker(false)}>
+                <X size={20} />
+              </button>
+              <h3 className={styles.ticketTitle}>
+                {isVi ? 'Chọn địa điểm mua vé' : 'Select destination for tickets'}
+              </h3>
+              <div className={styles.ticketOptions}>
+                <button
+                  className={styles.ticketOption}
+                  onClick={() => {
+                    setShowTicketPicker(false);
+                    onDirectCheckout?.(getDestinationById(17));
+                  }}
+                >
+                  <img src="/assets/images/art_17_1.jpg" alt="Ngọ Môn" className={styles.ticketOptionImg} />
+                  <div className={styles.ticketOptionInfo}>
+                    <strong>{isVi ? 'Ngọ Môn' : 'Ngo Mon Gate'}</strong>
+                    <span>{isVi ? '200.000 ₫ / vé người lớn' : '200,000 VND / adult'}</span>
+                  </div>
+                </button>
+                <button
+                  className={styles.ticketOption}
+                  onClick={() => {
+                    setShowTicketPicker(false);
+                    onDirectCheckout?.(getDestinationById(16));
+                  }}
+                >
+                  <img src="/assets/images/art_16_1.jpg" alt="Điện Long An" className={styles.ticketOptionImg} />
+                  <div className={styles.ticketOptionInfo}>
+                    <strong>{isVi ? 'Điện Long An' : 'Long An Palace'}</strong>
+                    <span>{isVi ? '50.000 ₫ / vé người lớn' : '50,000 VND / adult'}</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <footer className={styles.footer}>
           <div className={styles.footerBrand}>

@@ -2,6 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { ArrowLeft, CheckCircle, XCircle, Clock, MapPin } from 'lucide-react';
 import ImageGallery from '../shared/ImageGallery';
 
+const useNotifyOpener = (status) => {
+  useEffect(() => {
+    if (status && status !== 'loading' && window.opener) {
+      const url = window.location.href;
+      window.opener.location.href = url;
+      window.close();
+    }
+  }, [status]);
+};
+
 const API_BASE = '';
 
 const LOCATION_IMAGES = {
@@ -36,6 +46,8 @@ const PaymentResult = ({ language, onBack }) => {
   const [status, setStatus] = useState('loading');
   const [payment, setPayment] = useState(null);
   const [error, setError] = useState('');
+
+  useNotifyOpener(status);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);

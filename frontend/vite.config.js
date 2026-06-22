@@ -19,6 +19,8 @@ export default defineConfig({
             if (req.headers['content-type']) {
               proxyReq.setHeader('content-type', req.headers['content-type']);
             }
+            const realIp = req.socket?.remoteAddress || req.headers['x-forwarded-for'] || '127.0.0.1';
+            proxyReq.setHeader('x-forwarded-for', realIp);
           });
         },
       },

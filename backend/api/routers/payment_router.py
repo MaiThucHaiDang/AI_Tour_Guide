@@ -97,11 +97,14 @@ async def create_payment(
 
     order_desc = _build_order_desc(body.location, body.adult_count, body.children_paid_count, body.children_free_count, items_for_desc)
 
-    client_ip = request.client.host if request.client else "127.0.0.1"
+    forwarded = request.headers.get("x-forwarded-for", "")
+    client_ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else "127.0.0.1")
+    return_url = body.return_url or f"{str(request.base_url).rstrip('/')}/?view=paymentResult"
     payment_url = create_payment_url(
         amount=total_amount,
         order_code=order.order_code,
         order_desc=order_desc,
+        return_url=return_url,
         client_ip=client_ip,
     )
 

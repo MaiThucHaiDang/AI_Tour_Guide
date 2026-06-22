@@ -46,6 +46,7 @@ class PaymentCreateRequest(BaseModel):
     children_paid_count: int = Field(default=0, ge=0, le=100, alias="childrenPaidCount")
     children_free_count: int = Field(default=0, ge=0, le=100, alias="childrenFreeCount")
     items: list[ItemSelection] = Field(default_factory=list)
+    return_url: str | None = Field(default=None, alias="returnUrl")
 
     @field_validator("location")
     @classmethod

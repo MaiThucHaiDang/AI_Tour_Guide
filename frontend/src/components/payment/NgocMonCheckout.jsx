@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { ArrowLeft, CreditCard, Minus, Plus, ShoppingCart, MapPin } from 'lucide-react';
+import { ArrowLeft, CheckCircle, CreditCard, Minus, Plus, ShoppingCart, MapPin } from 'lucide-react';
 import ImageGallery from '../shared/ImageGallery';
+import MockVnPay from './MockVnPay';
 
 const API_BASE = '';
 const ADULT_PRICE = 200000;
@@ -32,6 +33,8 @@ const NgocMonCheckout = ({ language, destination, onBack }) => {
   const [selectedFood, setSelectedFood] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [orderData, setOrderData] = useState(null);
+  const [paymentResult, setPaymentResult] = useState(null);
 
   const ticketTotal = adultCount * ADULT_PRICE + childrenPaidCount * CHILD_PAID_PRICE;
   const foodTotal = foodItems.reduce((sum, item) => sum + (selectedFood[item.key] || 0) * item.price, 0);
@@ -61,7 +64,14 @@ const NgocMonCheckout = ({ language, destination, onBack }) => {
       .filter((it) => (selectedFood[it.key] || 0) > 0)
       .map((it) => ({ key: it.key, quantity: selectedFood[it.key] }));
 
+    const isInFrame = window.top !== window;
+    let popup = null;
+    if (isInFrame) {
+      popup = window.open('about:blank', '_blank');
+    }
+
     setLoading(true);
+
     try {
       const res = await fetch(API_BASE + '/api/v1/payment/create', {
         method: 'POST',
@@ -75,17 +85,34 @@ const NgocMonCheckout = ({ language, destination, onBack }) => {
           customerEmail: customerEmail.trim(),
           customerPhone: customerPhone.trim(),
           items: itemsPayload,
+          returnUrl: window.location.origin + '/?view=paymentResult' + (window.top !== window ? '&frame=phone' : ''),
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || (isVi ? 'Lỗi tạo đơn hàng' : 'Order creation failed'));
-      window.location.href = data.paymentUrl;
+      if (isInFrame) {
+        if (popup) {
+          popup.location.href = data.paymentUrl;
+        } else {
+          setOrderData(data);
+        }
+      } else {
+        window.location.href = data.paymentUrl;
+      }
     } catch (err) {
       setError(err.message || (isVi ? 'Không thể kết nối đến máy chủ' : 'Cannot connect to server'));
       formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleMockSuccess = () => {
+    setPaymentResult('success');
+  };
+
+  const handleMockCancel = () => {
+    setOrderData(null);
   };
 
   return (
@@ -269,13 +296,32 @@ const NgocMonCheckout = ({ language, destination, onBack }) => {
           </form>
         </div>
 
-        <div className="payment-note">
-          <p>
-            {isVi
-              ? 'Bạn sẽ được chuyển đến cổng thanh toán VNPay Sandbox để hoàn tất. Trẻ em dưới 7 tuổi được miễn phí vé.'
-              : 'You will be redirected to VNPay Sandbox gateway. Children under 7 are free.'}
-          </p>
-        </div>
+        {paymentResult === 'success' ? (
+          <div className="mock-vnpay-overlay">
+            <div className="mock-vnpay-card" style={{ textAlign: 'center', padding: '40px 24px' }}>
+              <CheckCircle size={56} className="mock-vnpay-success-icon" />
+              <h3 style={{ margin: '16px 0 8px', fontSize: '22px' }}>
+                {isVi ? 'Đặt vé thành công!' : 'Booking successful!'}
+              </h3>
+              <p style={{ color: 'var(--color-text-muted)', marginBottom: '20px' }}>
+                {isVi
+                  ? `Mã đơn hàng: ${orderData?.orderCode || ''}`
+                  : `Order code: ${orderData?.orderCode || ''}`}
+              </p>
+              <button className="mock-vnpay-cancel" onClick={onBack} style={{ margin: '0 auto' }}>
+                {isVi ? 'Quay lại' : 'Back'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="payment-note">
+            <p>
+              {isVi
+                ? 'Bạn sẽ được chuyển đến cổng thanh toán VNPay Sandbox để hoàn tất. Trẻ em dưới 7 tuổi được miễn phí vé.'
+                : 'You will be redirected to VNPay Sandbox gateway. Children under 7 are free.'}
+            </p>
+          </div>
+        )}
       </main>
 
       <div className="payment-bottom-bar">
@@ -296,6 +342,16 @@ const NgocMonCheckout = ({ language, destination, onBack }) => {
           </button>
         </div>
       </div>
+
+      {orderData && !paymentResult && (
+        <MockVnPay
+          language={language}
+          total={total}
+          orderCode={orderData.orderCode}
+          onSuccess={handleMockSuccess}
+          onCancel={handleMockCancel}
+        />
+      )}
     </div>
   );
 };

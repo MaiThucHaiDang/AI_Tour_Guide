@@ -23,6 +23,8 @@ const BlogListPage = lazyWithPreload(() => import('./components/blog/BlogListPag
 const BlogDetailPage = lazyWithPreload(() => import('./components/blog/BlogDetailPage'));
 const BlogEditorPage = lazyWithPreload(() => import('./components/blog/BlogEditorPage'));
 const PaymentResult = lazyWithPreload(() => import('./components/payment/PaymentResult'));
+const NgocMonCheckout = lazyWithPreload(() => import('./components/payment/NgocMonCheckout'));
+const DienLongAnCheckout = lazyWithPreload(() => import('./components/payment/DienLongAnCheckout'));
 
 const DEFAULT_TOUR_LOCATION = {
   id: 1,
@@ -124,6 +126,7 @@ function App() {
   const [selectedDestination, setSelectedDestination] = useState(() => {
     return getInitialDestinationFromUrl();
   });
+  const [selectedCheckoutDest, setSelectedCheckoutDest] = useState(null);
   const [selectedBlogSlug, setSelectedBlogSlug] = useState(() => {
     return initialBlogRoute?.slug || null;
   });
@@ -180,6 +183,7 @@ function App() {
     setAppState('home');
     setSelectedLocation(null);
     setSelectedDestination(null);
+    setSelectedCheckoutDest(null);
     setSelectedBlogSlug(null);
     updateViewQuery('home');
   };
@@ -202,6 +206,12 @@ function App() {
     preloadView('destination');
     setSelectedDestination(destination);
     setAppState('destination');
+    updateViewQuery('destination', { destination: destination.id });
+  };
+
+  const handleDirectCheckout = (destination) => {
+    setSelectedCheckoutDest(destination);
+    setAppState('checkout');
     updateViewQuery('destination', { destination: destination.id });
   };
 
@@ -290,6 +300,7 @@ function App() {
           setLanguage={setLanguage}
           isPhoneFrame={isPhoneFrame}
           onSelectDestination={handleSelectDestination}
+          onDirectCheckout={handleDirectCheckout}
           onOpenBlog={openBlogList}
         />
       )}
@@ -302,6 +313,14 @@ function App() {
           onStartTour={(destination) => handleStartDestinationTour(destination, 'map')}
           onAskGuide={(destination) => handleStartDestinationTour(destination, 'ask')}
         />
+      )}
+
+      {appState === 'checkout' && selectedCheckoutDest && (
+        selectedCheckoutDest.id === 17 ? (
+          <NgocMonCheckout language={language} destination={selectedCheckoutDest} onBack={resetToHome} />
+        ) : (
+          <DienLongAnCheckout language={language} destination={selectedCheckoutDest} onBack={resetToHome} />
+        )
       )}
 
       {appState === 'dashboard' && (

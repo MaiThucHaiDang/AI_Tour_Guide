@@ -58,7 +58,7 @@ class Settings(BaseSettings):
 
     VNPAY_TMN_CODE: str = ""
     VNPAY_HASH_SECRET: str = ""
-    VNPAY_RETURN_URL: str = "https://localhost:5173/?view=paymentResult"
+    VNPAY_RETURN_URL: str = "http://localhost:5173/?view=paymentResult"
     VNPAY_PAYMENT_URL: str = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
 
     model_config = {

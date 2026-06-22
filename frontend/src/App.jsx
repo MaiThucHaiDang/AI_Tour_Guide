@@ -22,6 +22,7 @@ const DestinationDetail = lazyWithPreload(() => import('./components/destination
 const BlogListPage = lazyWithPreload(() => import('./components/blog/BlogListPage'));
 const BlogDetailPage = lazyWithPreload(() => import('./components/blog/BlogDetailPage'));
 const BlogEditorPage = lazyWithPreload(() => import('./components/blog/BlogEditorPage'));
+const PaymentResult = lazyWithPreload(() => import('./components/payment/PaymentResult'));
 
 const DEFAULT_TOUR_LOCATION = {
   id: 1,
@@ -37,7 +38,8 @@ const VIEW_PRELOADERS = {
   destination: DestinationDetail.preload,
   blog: BlogListPage.preload,
   blogDetail: BlogDetailPage.preload,
-  blogNew: BlogEditorPage.preload
+  blogNew: BlogEditorPage.preload,
+  paymentResult: PaymentResult.preload
 };
 
 const preloadView = (view) => {
@@ -112,6 +114,7 @@ function App() {
     if (view === 'phone') return 'phone';
     if (view === 'join') return 'join';
     if (view === 'destination' && getInitialDestinationFromUrl()) return 'destination';
+    if (view === 'paymentResult') return 'paymentResult';
     return view === 'dashboard' ? 'dashboard' : 'home';
   });
   const [language, setLanguage] = useState(() => {
@@ -158,6 +161,9 @@ function App() {
       } else if (view === 'destination' && destination) {
         preloadView('destination');
         setAppState('destination');
+      } else if (view === 'paymentResult') {
+        preloadView('paymentResult');
+        setAppState('paymentResult');
       } else if (view === 'dashboard') {
         preloadView('dashboard');
         setAppState('dashboard');
@@ -351,6 +357,13 @@ function App() {
           language={language}
           onBackList={openBlogList}
           onPostCreated={openBlogDetail}
+        />
+      )}
+
+      {appState === 'paymentResult' && (
+        <PaymentResult
+          language={language}
+          onBack={resetToHome}
         />
       )}
     </>

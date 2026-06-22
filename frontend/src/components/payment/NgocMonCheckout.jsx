@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { ArrowLeft, CreditCard, Minus, Plus, ShoppingCart, MapPin } from 'lucide-react';
 import ImageGallery from '../shared/ImageGallery';
 
@@ -21,6 +21,7 @@ const DEST_IMAGES = ['/assets/images/art_17_1.jpg', '/assets/images/art_17_2.jpg
 
 const NgocMonCheckout = ({ language, destination, onBack }) => {
   const isVi = language === 'vi';
+  const formRef = useRef(null);
   const [adultCount, setAdultCount] = useState(1);
   const [childrenPaidCount, setChildrenPaidCount] = useState(0);
   const [childrenFreeCount, setChildrenFreeCount] = useState(0);
@@ -81,6 +82,7 @@ const NgocMonCheckout = ({ language, destination, onBack }) => {
       window.location.href = data.paymentUrl;
     } catch (err) {
       setError(err.message || (isVi ? 'Không thể kết nối đến máy chủ' : 'Cannot connect to server'));
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
     } finally {
       setLoading(false);
     }
@@ -118,8 +120,13 @@ const NgocMonCheckout = ({ language, destination, onBack }) => {
           <h2 className="payment-card-title">
             <ShoppingCart size={18} /> {isVi ? 'Thông tin vé' : 'Ticket info'}
           </h2>
+          <p className="payment-card-subtitle">
+            {isVi
+              ? 'Chọn số vé, thêm dịch vụ và điền thông tin để thanh toán nhanh chóng.'
+              : 'Choose tickets, add extras and enter your details for a fast checkout.'}
+          </p>
 
-          <form onSubmit={handleSubmit} className="payment-form">
+          <form ref={formRef} id="checkout-form" onSubmit={handleSubmit} className="payment-form">
             <div className="payment-row">
               <div className="payment-field">
                 <label>
@@ -187,31 +194,34 @@ const NgocMonCheckout = ({ language, destination, onBack }) => {
                     🍽️ {isVi ? 'Đồ ăn, nước uống' : 'Food & drinks'}
                   </label>
                   <div className="payment-food-list">
-                    {foodItems.map((item) => (
-                      <div key={item.key} className="payment-food-item">
-                        <div className="payment-food-left">
-                          <div className="payment-food-icon">
-                            {item.image ? (
-                              <img src={item.image} alt={item.name_vi} className="payment-food-img" onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} />
-                            ) : null}
-                            <span className="payment-food-emoji" style={{ display: item.image ? 'none' : 'flex' }}>
-                              {FOOD_FALLBACK_ICONS[item.key] || '🍽️'}
-                            </span>
+                    {foodItems.map((item) => {
+                      const isActive = (selectedFood[item.key] || 0) > 0;
+                      return (
+                        <div key={item.key} className={`payment-food-item${isActive ? ' active' : ''}`}>
+                          <div className="payment-food-left">
+                            <div className="payment-food-icon">
+                              {item.image ? (
+                                <img src={item.image} alt={item.name_vi} className="payment-food-img" onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} />
+                              ) : null}
+                              <span className="payment-food-emoji" style={{ display: item.image ? 'none' : 'flex' }}>
+                                {FOOD_FALLBACK_ICONS[item.key] || '🍽️'}
+                              </span>
+                            </div>
+                            <div className="payment-food-info">
+                              <span className="payment-food-name">
+                                {isVi ? item.name_vi : item.name_en}
+                              </span>
+                              <span className="payment-food-price">{fmt(item.price)}</span>
+                            </div>
                           </div>
-                          <div className="payment-food-info">
-                            <span className="payment-food-name">
-                              {isVi ? item.name_vi : item.name_en}
-                            </span>
-                            <span className="payment-food-price">{fmt(item.price)}</span>
+                          <div className="payment-qty-group payment-qty-sm">
+                            <button type="button" className="payment-qty-btn" onClick={() => setSelectedFood((p) => ({ ...p, [item.key]: Math.max(0, (p[item.key] || 0) - 1) }))}><Minus size={14} /></button>
+                            <span className="payment-qty-value payment-qty-sm-value">{selectedFood[item.key] || 0}</span>
+                            <button type="button" className="payment-qty-btn" onClick={() => setSelectedFood((p) => ({ ...p, [item.key]: Math.min(50, (p[item.key] || 0) + 1) }))}><Plus size={14} /></button>
                           </div>
                         </div>
-                        <div className="payment-qty-group payment-qty-sm">
-                          <button type="button" className="payment-qty-btn" onClick={() => setSelectedFood((p) => ({ ...p, [item.key]: Math.max(0, (p[item.key] || 0) - 1) }))}><Minus size={14} /></button>
-                          <span className="payment-qty-value payment-qty-sm-value">{selectedFood[item.key] || 0}</span>
-                          <button type="button" className="payment-qty-btn" onClick={() => setSelectedFood((p) => ({ ...p, [item.key]: Math.min(50, (p[item.key] || 0) + 1) }))}><Plus size={14} /></button>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </>
@@ -221,28 +231,32 @@ const NgocMonCheckout = ({ language, destination, onBack }) => {
 
             <div className="payment-section-divider" />
 
-            <div className="payment-total">
-              <div className="payment-total-summary">
-                <div className="payment-total-row">
+            <div className="payment-summary-card">
+              <div className="payment-summary-header">
+                <span>{isVi ? 'Tóm tắt đơn hàng' : 'Order summary'}</span>
+                <strong>{fmt(total)}</strong>
+              </div>
+              <div className="payment-summary-list">
+                <div className="payment-summary-row">
                   <span>{isVi ? 'Vé người lớn' : 'Adult tickets'}</span>
-                  <span className="payment-total-amount">{fmt(adultCount * ADULT_PRICE)}</span>
+                  <span>{fmt(adultCount * ADULT_PRICE)}</span>
                 </div>
                 {childrenPaidCount > 0 && (
-                  <div className="payment-total-row">
+                  <div className="payment-summary-row">
                     <span>{isVi ? 'Trẻ em 7-12' : 'Children 7-12'}</span>
-                    <span className="payment-total-amount">{fmt(childrenPaidCount * CHILD_PAID_PRICE)}</span>
+                    <span>{fmt(childrenPaidCount * CHILD_PAID_PRICE)}</span>
                   </div>
                 )}
                 {childrenFreeCount > 0 && (
-                  <div className="payment-total-row">
-                    <span>{isVi ? 'Trẻ em dưới 7 (miễn phí)' : 'Children under 7 (free)'}</span>
-                    <span className="payment-total-amount">0 ₫</span>
+                  <div className="payment-summary-row">
+                    <span>{isVi ? 'Trẻ em miễn phí' : 'Free children'}</span>
+                    <span>0 ₫</span>
                   </div>
                 )}
                 {Object.entries(selectedFood).filter(([, q]) => q > 0).length > 0 && (
-                  <div className="payment-total-row">
+                  <div className="payment-summary-row">
                     <span>{isVi ? 'Đồ ăn, nước uống' : 'Food & drinks'}</span>
-                    <span className="payment-total-amount">{fmt(foodTotal)}</span>
+                    <span>{fmt(foodTotal)}</span>
                   </div>
                 )}
               </div>
@@ -252,17 +266,6 @@ const NgocMonCheckout = ({ language, destination, onBack }) => {
                 <span className="payment-total-value">{fmt(total)}</span>
               </div>
             </div>
-
-            <button type="submit" className="payment-submit" disabled={loading}>
-              {loading ? (
-                <span className="payment-spinner" />
-              ) : (
-                <CreditCard size={18} />
-              )}
-              {loading
-                ? (isVi ? 'Đang xử lý...' : 'Processing...')
-                : (isVi ? 'Thanh toán qua VNPay' : 'Pay with VNPay')}
-            </button>
           </form>
         </div>
 
@@ -274,8 +277,28 @@ const NgocMonCheckout = ({ language, destination, onBack }) => {
           </p>
         </div>
       </main>
+
+      <div className="payment-bottom-bar">
+        <div className="payment-bottom-bar-inner">
+          <div className="payment-bottom-total">
+            <span className="payment-bottom-total-label">{isVi ? 'Tổng tiền' : 'Total'}</span>
+            <span className="payment-bottom-total-value">{fmt(total)}</span>
+          </div>
+          <button type="submit" form="checkout-form" className="payment-submit" disabled={loading}>
+            {loading ? (
+              <span className="payment-spinner" />
+            ) : (
+              <CreditCard size={20} />
+            )}
+            {loading
+              ? (isVi ? 'Đang xử lý...' : 'Processing...')
+              : (isVi ? 'Thanh toán qua VNPay' : 'Pay with VNPay')}
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
 
 export default NgocMonCheckout;
+

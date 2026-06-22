@@ -1,15 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
   CalendarClock,
   Clock,
+  CreditCard,
   MapPin,
   MessageCircle,
   Route,
   Sparkles,
   Ticket
 } from 'lucide-react';
+import RatingSection from '../rating/RatingSection';
+import DienLongAnCheckout from '../payment/DienLongAnCheckout';
+import NgocMonCheckout from '../payment/NgocMonCheckout';
 
 const DestinationDetail = ({
   destination,
@@ -19,6 +23,7 @@ const DestinationDetail = ({
   onAskGuide
 }) => {
   const isVi = language === 'vi';
+  const [view, setView] = useState('detail');
   const name = isVi ? destination.nameVi : destination.nameEn;
   const subtitle = isVi ? destination.subtitleVi : destination.subtitleEn;
   const description = isVi ? destination.descriptionVi : destination.descriptionEn;
@@ -32,6 +37,19 @@ const DestinationDetail = ({
   const tips = isVi ? destination.tipsVi : destination.tipsEn;
   const author = isVi ? destination.authorVi : destination.authorEn;
   const alt = isVi ? destination.imageAltVi : destination.imageAltEn;
+
+  const isDienLongAn = destination.id === 16;
+  const isNgocMon = destination.id === 17;
+  const showBuyTicket = isDienLongAn || isNgocMon;
+
+  if (view === 'checkout') {
+    if (isDienLongAn) {
+      return <DienLongAnCheckout language={language} destination={destination} onBack={() => setView('detail')} />;
+    }
+    if (isNgocMon) {
+      return <NgocMonCheckout language={language} destination={destination} onBack={() => setView('detail')} />;
+    }
+  }
 
   return (
     <div className="destination-detail-page">
@@ -74,6 +92,12 @@ const DestinationDetail = ({
                 <MessageCircle size={18} />
                 <span>{isVi ? 'Hỏi AI về điểm này' : 'Ask AI about this stop'}</span>
               </button>
+              {showBuyTicket && (
+                <button type="button" className="destination-secondary-button" onClick={() => setView('checkout')}>
+                  <CreditCard size={18} />
+                  <span>{isVi ? 'Mua vé' : 'Buy ticket'}</span>
+                </button>
+              )}
             </div>
           </div>
         </section>
@@ -138,6 +162,8 @@ const DestinationDetail = ({
             </ul>
           </article>
         </section>
+
+        <RatingSection locationId={destination.id} locationName={name} language={language} />
       </main>
     </div>
   );

@@ -47,9 +47,16 @@ const PaymentResult = ({ language, onBack }) => {
       return;
     }
 
+    const buildReturnQueryString = () => {
+      const returnParams = new URLSearchParams(window.location.search);
+      returnParams.delete('view');
+      returnParams.delete('frame');
+      return returnParams.toString();
+    };
+
     const verifyPayment = async () => {
       try {
-        const queryString = window.location.search.replace('?view=paymentResult&', '');
+        const queryString = buildReturnQueryString();
         const res = await fetch(`${API_BASE}/api/v1/payment/return?${queryString}`);
         const data = await res.json();
 
@@ -68,7 +75,7 @@ const PaymentResult = ({ language, onBack }) => {
       } catch {
         setTimeout(async () => {
           try {
-            const queryString = window.location.search.replace('?view=paymentResult&', '');
+            const queryString = buildReturnQueryString();
             const res = await fetch(`${API_BASE}/api/v1/payment/return?${queryString}`);
             const data = await res.json();
             if (data.success) {
@@ -98,6 +105,7 @@ const PaymentResult = ({ language, onBack }) => {
 
   const locationName = payment?.location || '';
   const images = LOCATION_IMAGES[locationName] || [];
+  const heroImage = images.length > 0 ? images[0] : null;
 
   return (
     <div className="payment-page">
@@ -109,20 +117,22 @@ const PaymentResult = ({ language, onBack }) => {
         <span>{isVi ? 'Kết quả thanh toán' : 'Payment result'}</span>
       </header>
 
-      {images.length > 0 && (
-        <div className="payment-hero">
-          <img src={images[0]} alt="" className="payment-hero-img" />
-          <div className="payment-hero-overlay">
-            <h1 className="payment-hero-title">{locationName}</h1>
-            {status === 'success' && (
-              <div className="payment-hero-price">
-                <CheckCircle size={14} />
-                <span>{isVi ? 'Thanh toán thành công' : 'Payment successful'}</span>
-              </div>
-            )}
-          </div>
+      <div className={`payment-hero ${heroImage ? '' : 'payment-hero-fallback'}`}>
+        {heroImage ? (
+          <img src={heroImage} alt={locationName || 'Payment result'} className="payment-hero-img" />
+        ) : (
+          <div className="payment-hero-fallback-bg" />
+        )}
+        <div className="payment-hero-overlay">
+          <h1 className="payment-hero-title">{locationName || (isVi ? 'Kết quả thanh toán' : 'Payment Result')}</h1>
+          {status === 'success' && (
+            <div className="payment-hero-price">
+              <CheckCircle size={14} />
+              <span>{isVi ? 'Thanh toán thành công' : 'Payment successful'}</span>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       <main className="payment-main">
         {images.length > 0 && (

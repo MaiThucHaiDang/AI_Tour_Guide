@@ -26,6 +26,11 @@ GROQ_STT_MODEL=whisper-large-v3
 LLM_TEMPERATURE=0.7
 LLM_MAX_TOKENS=2048
 LLM_MAX_TOKENS_FOLLOWUP=800
+# VNPay Sandbox config
+VNPAY_TMN_CODE=your_vnpay_tmn_code_here
+VNPAY_HASH_SECRET=your_vnpay_hash_secret_here
+VNPAY_RETURN_URL=https://localhost:5173/?view=paymentResult
+VNPAY_PAYMENT_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
 ```
 
 > Ghi chú voice: frontend dùng Web Speech API của trình duyệt để đọc câu trả lời. Backend vẫn dùng `GROQ_API_KEY` cho Speech-to-Text khi người dùng ghi âm, nhưng không cần Edge TTS cho thanh phát chính trong web app.

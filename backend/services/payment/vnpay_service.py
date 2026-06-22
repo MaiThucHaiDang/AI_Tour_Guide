@@ -96,7 +96,11 @@ def verify_return_params(params: dict[str, str]) -> bool:
     if not secure_hash:
         return False
 
-    to_verify = {k: v for k, v in params.items() if k not in ("vnp_SecureHash", "vnp_SecureHashType")}
+    to_verify = {
+        k: v
+        for k, v in params.items()
+        if k.startswith("vnp_") and k not in ("vnp_SecureHash", "vnp_SecureHashType")
+    }
     sorted_params = sorted(to_verify.items())
     hash_data = "&".join(f"{k}={urllib.parse.quote_plus(str(v))}" for k, v in sorted_params)
 

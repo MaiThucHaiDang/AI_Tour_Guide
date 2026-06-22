@@ -1,17 +1,32 @@
 import React, { useEffect, useState } from 'react';
-import { MessageSquare, Star, ChevronDown, ChevronUp, Clock } from 'lucide-react';
+import { MessageSquare, Star, ChevronDown, X, Clock } from 'lucide-react';
 import StarRating from './StarRating';
 
 const API_BASE = '';
 
-const timeAgo = (dateStr) => {
+const timeAgo = (dateStr, locale = 'vi') => {
   const now = Date.now();
   const then = new Date(dateStr).getTime();
   const diff = Math.floor((now - then) / 1000);
+  if (locale === 'en') {
+    if (diff < 60) return 'just now';
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
+  }
   if (diff < 60) return 'vài giây trước';
   if (diff < 3600) return `${Math.floor(diff / 60)} phút trước`;
   if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`;
   return `${Math.floor(diff / 86400)} ngày trước`;
+};
+
+const getInitials = (name) => {
+  return name
+    .split(' ')
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 };
 
 const RatingSection = ({ locationId, locationName, language }) => {
@@ -150,7 +165,7 @@ const RatingSection = ({ locationId, locationName, language }) => {
 
           {submitted && (
             <div className="rating-toast">
-              {isVi ? '✅ Cảm ơn bạn đã đánh giá!' : '✅ Thank you for your review!'}
+              {isVi ? 'Cảm ơn bạn đã đánh giá!' : 'Thank you for your review!'}
             </div>
           )}
 
@@ -166,25 +181,25 @@ const RatingSection = ({ locationId, locationName, language }) => {
                 <div className="rating-form-header">
                   <span>{isVi ? 'Đánh giá của bạn' : 'Your review'}</span>
                   <button type="button" className="rating-form-close" onClick={() => setShowForm(false)}>
-                    <ChevronUp size={16} />
+                    <X size={16} />
                   </button>
                 </div>
 
                 <div className="rating-form-row">
-                  <label>{isVi ? 'Dịch vụ' : 'Service'}</label>
+                  <span>{isVi ? 'Dịch vụ' : 'Service'}</span>
                   <StarRating value={serviceRating} onChange={setServiceRating} size={22} />
                 </div>
                 <div className="rating-form-row">
-                  <label>{isVi ? 'Cảnh quan' : 'Scenery'}</label>
+                  <span>{isVi ? 'Cảnh quan' : 'Scenery'}</span>
                   <StarRating value={sceneryRating} onChange={setSceneryRating} size={22} />
                 </div>
                 <div className="rating-form-row">
-                  <label>{isVi ? 'Giá vé' : 'Price'}</label>
+                  <span>{isVi ? 'Giá vé' : 'Price'}</span>
                   <StarRating value={priceRating} onChange={setPriceRating} size={22} />
                 </div>
 
                 <textarea
-                  className="rating-input rating-textarea"
+                  className="rating-textarea"
                   value={review}
                   onChange={(e) => setReview(e.target.value)}
                   placeholder={isVi ? 'Chia sẻ trải nghiệm của bạn...' : 'Share your experience...'}
@@ -222,20 +237,20 @@ const RatingSection = ({ locationId, locationName, language }) => {
               ratings.map((r) => (
                 <div key={r.id} className="rating-item">
                   <div className="rating-item-header">
-                    <StarRating value={r.serviceRating} readonly size={14} />
+                    <div className="rating-item-avatar">{getInitials(r.customerName)}</div>
                     <span className="rating-item-name">{r.customerName}</span>
                     <span className="rating-item-time">
                       <Clock size={11} />
-                      {timeAgo(r.createdAt)}
+                      {timeAgo(r.createdAt, language)}
                     </span>
                   </div>
                   {(r.sceneryRating || r.priceRating) && (
                     <div className="rating-item-dims">
                       {r.sceneryRating && (
-                        <span>Cảnh quan: <strong>{r.sceneryRating}/5</strong></span>
+                        <span>{isVi ? 'Cảnh quan' : 'Scenery'}: <strong>{r.sceneryRating}/5</strong></span>
                       )}
                       {r.priceRating && (
-                        <span>Giá vé: <strong>{r.priceRating}/5</strong></span>
+                        <span>{isVi ? 'Giá vé' : 'Price'}: <strong>{r.priceRating}/5</strong></span>
                       )}
                     </div>
                   )}

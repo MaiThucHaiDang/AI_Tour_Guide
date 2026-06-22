@@ -56,6 +56,11 @@ class Settings(BaseSettings):
     RATE_LIMIT: str = "30/minute"
     CORS_ORIGINS: list[str] = ["https://localhost:5173", "http://localhost:5173"]
 
+    VNPAY_TMN_CODE: str = ""
+    VNPAY_HASH_SECRET: str = ""
+    VNPAY_RETURN_URL: str = "https://localhost:5173/?view=paymentResult"
+    VNPAY_PAYMENT_URL: str = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
+
     model_config = {
         "env_file": [str(_BACKEND_ROOT / ".env"), str(_PROJECT_ROOT / ".env")],
         "env_file_encoding": "utf-8",

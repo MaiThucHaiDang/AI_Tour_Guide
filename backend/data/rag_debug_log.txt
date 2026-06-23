@@ -2358,3 +2358,63 @@ Phía Bắc ngay sau cổng: sân Đại triều nghi và Điện Thái Hòa. Ph
 === PHOTO SPOTS ===
 Góc kinh điển: đứng phía Nam hồ Thái Dịch nhìn vào Ngọ Môn với hồ làm tiền cảnh phản chiếu. Góc từ lầu Ngũ Phụng: nhìn xuống sân Đại triều nghi — thấy cả Điện Thái Hòa ở phía Bắc. Góc hoàng hôn: mặt Tây của Ngọ Môn khi ánh chiều tà nhuộm vàng các mái ngói.
 ────────────────────────────────────────────────────────────
+[2026-06-23 11:15:13] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Ngọ Môn
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Triều Nguyễn / Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Ngọ Môn là cổng chính phía Nam của Hoàng thành Huế, được xây dựng vào năm 1833 dưới triều vua Minh Mạng. Cổng có kiến trúc đồ sộ, nguy nga với lầu Ngũ Phụng ở phía trên, nơi diễn ra nhiều sự kiện trọng đại của triều đình nhà Nguyễn như lễ Ban Sóc, lễ Truyền Lô và cũng là nơi vua Bảo Đại tuyên bố thoái vị năm 1945.
+────────────────────────────────────────────────────────────
+[2026-06-23 11:24:44] (source: cache)
+Câu hỏi: Nghe giới thiệu ngắn về Ngọ Môn
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Triều Nguyễn / Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Ngọ Môn là cổng chính phía Nam của Hoàng thành Huế, được xây dựng vào năm 1833 dưới triều vua Minh Mạng. Cổng có kiến trúc đồ sộ, nguy nga với lầu Ngũ Phụng ở phía trên, nơi diễn ra nhiều sự kiện trọng đại của triều đình nhà Nguyễn như lễ Ban Sóc, lễ Truyền Lô và cũng là nơi vua Bảo Đại tuyên bố thoái vị năm 1945.
+────────────────────────────────────────────────────────────
+[2026-06-23 11:29:31] (source: llm)
+Câu hỏi: Ngọ Môn có phù hợp cho sinh viên tham quan không
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Triều Nguyễn / Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Ngọ Môn là cổng chính phía Nam của Hoàng thành Huế, được xây dựng vào năm 1833 dưới triều vua Minh Mạng. Cổng có kiến trúc đồ sộ, nguy nga với lầu Ngũ Phụng ở phía trên, nơi diễn ra nhiều sự kiện trọng đại của triều đình nhà Nguyễn như lễ Ban Sóc, lễ Truyền Lô và cũng là nơi vua Bảo Đại tuyên bố thoái vị năm 1945.
+────────────────────────────────────────────────────────────
+[2026-06-23 11:33:58] (source: cache)
+Câu hỏi: Nghe giới thiệu ngắn về Ngọ Môn
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Triều Nguyễn / Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Ngọ Môn là cổng chính phía Nam của Hoàng thành Huế, được xây dựng vào năm 1833 dưới triều vua Minh Mạng. Cổng có kiến trúc đồ sộ, nguy nga với lầu Ngũ Phụng ở phía trên, nơi diễn ra nhiều sự kiện trọng đại của triều đình nhà Nguyễn như lễ Ban Sóc, lễ Truyền Lô và cũng là nơi vua Bảo Đại tuyên bố thoái vị năm 1945.
+────────────────────────────────────────────────────────────
+[2026-06-23 11:50:44] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Ngọ Môn
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Triều Nguyễn / Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Ngọ Môn là cổng chính phía Nam của Hoàng thành Huế, được xây dựng vào năm 1833 dưới triều vua Minh Mạng. Cổng có kiến trúc đồ sộ, nguy nga với lầu Ngũ Phụng ở phía trên, nơi diễn ra nhiều sự kiện trọng đại của triều đình nhà Nguyễn như lễ Ban Sóc, lễ Truyền Lô và cũng là nơi vua Bảo Đại tuyên bố thoái vị năm 1945.
+────────────────────────────────────────────────────────────
+[2026-06-23 11:51:05] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Nền điện Cần Chánh
+Data lấy từ data của bạn: Name: Nền điện Cần Chánh
+Year: 1804
+Author: Vua Gia Long
+Location ID: 1
+
+=== HISTORY ===
+Điện Cần Chánh từng là nơi vua Nguyễn tiếp kiến các quan đại thần và sứ thần nước ngoài trong các buổi thường triều. Được xây dựng năm 1804 dưới triều vua Gia Long, điện nằm ngay sau Điện Thái Hòa trong Tử Cấm Thành. Đây từng là một trong những công trình kiến trúc đẹp nhất Hoàng thành với quy mô lớn và trang trí cầu kỳ. Điện đã bị phá hủy trong chiến tranh năm 1947, hiện chỉ còn lại nền móng và một số dấu tích kiến trúc.
+────────────────────────────────────────────────────────────

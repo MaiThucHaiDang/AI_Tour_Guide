@@ -189,12 +189,15 @@ async def get_map_config():
             success=True,
             map_bounds=map_bounds,
             artifacts=artifacts_list,
-            google_maps_api_key=settings.GOOGLE_MAPS_API_KEY
+            google_maps_api_key=None
         )
 
 @router.post("/config")
 async def save_map_config(data: MapConfigData):
     """Save map bounds and artifact coordinates to DB and persistent backup json file."""
+    from core.config import settings
+    if settings.ENVIRONMENT == "production":
+        raise HTTPException(status_code=403, detail="Calibration endpoint disabled in production.")
     try:
         # 1. Update Database
         async with async_session_factory() as session:

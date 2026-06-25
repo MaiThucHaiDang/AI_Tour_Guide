@@ -158,6 +158,9 @@ def get_local_ip():
 @router.get("/local-ip")
 async def get_room_local_ip():
     """Discover host machine local LAN IP address."""
+    from core.config import settings
+    if settings.ENVIRONMENT == "production":
+        raise HTTPException(status_code=403, detail="Not available in production")
     try:
         ip = get_local_ip()
         return {"success": True, "local_ip": ip}

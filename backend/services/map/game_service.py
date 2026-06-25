@@ -200,6 +200,9 @@ class GameService:
             questions = quiz_data.get("questions", [])
             if not questions or len(questions) == 0:
                 raise ValueError("Bộ câu hỏi trống.")
+            for q in questions:
+                if len(q.get("options", [])) != 4:
+                    raise ValueError("Mỗi câu hỏi phải có đúng 4 đáp án.")
         except Exception as e:
             logger.error("Failed to parse Gemini generated quiz JSON: %s. Raw response: %s", e, response)
             # Fallback hardcoded questions if JSON generation fails entirely

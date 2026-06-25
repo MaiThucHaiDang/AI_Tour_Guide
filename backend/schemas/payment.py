@@ -5,8 +5,7 @@ import json
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
-
+from pydantic import BaseModel, ConfigDict, Field, field_validator, EmailStr
 
 ALLOWED_LOCATIONS = ["Ngọ Môn", "Điện Long An"]
 
@@ -40,7 +39,7 @@ class PaymentCreateRequest(BaseModel):
 
     location: str = Field(min_length=1, max_length=100)
     customer_name: str = Field(min_length=1, max_length=255, alias="customerName")
-    customer_email: str = Field(min_length=1, max_length=255, alias="customerEmail")
+    customer_email: EmailStr = Field(alias="customerEmail")
     customer_phone: str = Field(min_length=1, max_length=20, alias="customerPhone")
     adult_count: int = Field(default=1, ge=1, le=100, alias="adultCount")
     children_paid_count: int = Field(default=0, ge=0, le=100, alias="childrenPaidCount")
@@ -62,6 +61,14 @@ class PaymentCreateRequest(BaseModel):
         if not cleaned.isdigit() or len(cleaned) < 9 or len(cleaned) > 15:
             raise ValueError("Invalid phone number")
         return cleaned
+        
+    @field_validator("items")
+    @classmethod
+    def validate_items(cls, value: list[ItemSelection]) -> list[ItemSelection]:
+        for it in value:
+            if it.key not in FOOD_ITEMS:
+                raise ValueError(f"Invalid food item: {it.key}")
+        return value
 
     def calc_total(self) -> int:
         prices = LOCATION_PRICES.get(self.location, {})
@@ -69,7 +76,7 @@ class PaymentCreateRequest(BaseModel):
         if prices.get("children_paid"):
             ticket_total += self.children_paid_count * prices["children_paid"]
         items_total = sum(
-            (FOOD_ITEMS[it.key]["price"] * it.quantity if it.key in FOOD_ITEMS else 0)
+            FOOD_ITEMS[it.key]["price"] * it.quantity
             for it in self.items
         )
         return ticket_total + items_total

@@ -134,6 +134,7 @@ async def voice_chat_stream(
     try:
         lang = normalize_lang(lang)
         audio_bytes = await audio.read()
+        validate_audio_size(audio_bytes)
 
         # Initialization logic (similar to non-stream version)
         try:

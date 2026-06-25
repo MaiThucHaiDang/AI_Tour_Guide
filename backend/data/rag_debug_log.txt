@@ -2418,3 +2418,51 @@ Location ID: 1
 === HISTORY ===
 Điện Cần Chánh từng là nơi vua Nguyễn tiếp kiến các quan đại thần và sứ thần nước ngoài trong các buổi thường triều. Được xây dựng năm 1804 dưới triều vua Gia Long, điện nằm ngay sau Điện Thái Hòa trong Tử Cấm Thành. Đây từng là một trong những công trình kiến trúc đẹp nhất Hoàng thành với quy mô lớn và trang trí cầu kỳ. Điện đã bị phá hủy trong chiến tranh năm 1947, hiện chỉ còn lại nền móng và một số dấu tích kiến trúc.
 ────────────────────────────────────────────────────────────
+[2026-06-25 15:03:14] (source: template)
+Câu hỏi: Chao ban
+Data lấy từ data của bạn: (không có)
+────────────────────────────────────────────────────────────
+[2026-06-25 15:03:27] (source: template)
+Câu hỏi: 
+Data lấy từ data của bạn: (không có)
+────────────────────────────────────────────────────────────
+[2026-06-25 15:45:56] (source: template)
+Câu hỏi: Xin chào
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: unknown
+Author: unknown
+Location ID: 1
+
+=== HISTORY ===
+vi
+────────────────────────────────────────────────────────────
+[2026-06-25 15:50:46] (source: template)
+Câu hỏi: Xin chào
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: unknown
+Author: unknown
+Location ID: 1
+
+=== HISTORY ===
+vi
+────────────────────────────────────────────────────────────
+[2026-06-25 15:53:08] (source: template)
+Câu hỏi: Xin chào
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: unknown
+Author: unknown
+Location ID: 1
+
+=== HISTORY ===
+vi
+────────────────────────────────────────────────────────────
+[2026-06-25 15:54:02] (source: template)
+Câu hỏi: Xin chào
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: unknown
+Author: unknown
+Location ID: 1
+
+=== HISTORY ===
+vi
+────────────────────────────────────────────────────────────

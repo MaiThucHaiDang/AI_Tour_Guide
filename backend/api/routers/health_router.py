@@ -69,6 +69,9 @@ async def readiness_check():
 @router.get("/api/v1/health/ai")
 async def ai_connectivity_check():
     """Deep health check: actually ping each AI service to verify connectivity."""
+    if settings.ENVIRONMENT == "production":
+        return JSONResponse(status_code=403, content={"status": "disabled_in_production"})
+        
     checks: dict[str, dict] = {}
 
     # 1. Gemini API — try to list models

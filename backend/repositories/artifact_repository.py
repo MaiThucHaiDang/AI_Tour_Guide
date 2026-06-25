@@ -48,7 +48,7 @@ async def _fetch_bilingual_fields(session: AsyncSession, artifact_id: int) -> di
 
 # ─── Graph-Augmented Retrieval ──────────────────────────────────────────────
 
-@cached(ttl=settings.CACHE_TTL_SECONDS, key_builder=lambda f, query: f"hybrid:{query}")
+@cached(ttl=settings.CACHE_TTL_SECONDS, key_builder=lambda f, *args, **kwargs: f"hybrid:{args[0]}")
 async def graph_augmented_search(query: str, top_k: int = 3) -> List[ArtifactInfo]:
     """State-of-the-Art Hybrid Search: Vector FAQ + Knowledge Graph.
     

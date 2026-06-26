@@ -282,6 +282,18 @@ const HomeScreen = ({
         </nav>
 
         <div className={styles.langToggle} style={{ display: 'flex', gap: '12px' }}>
+          {isPhoneFrame && (
+            <button
+              type="button"
+              className={styles.phoneGuideButton}
+              onClick={() => onOpenBlog?.()}
+              aria-label={copy.navBlog}
+              title={copy.navBlog}
+            >
+              <BookOpen size={16} />
+              <span>{copy.navBlog}</span>
+            </button>
+          )}
           <div>
             <button className={language === 'vi' ? styles.active : ''} onClick={() => setLanguage('vi')}>VI</button>
             <button className={language === 'en' ? styles.active : ''} onClick={() => setLanguage('en')}>EN</button>

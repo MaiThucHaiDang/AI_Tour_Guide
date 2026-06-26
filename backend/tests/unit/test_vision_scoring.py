@@ -14,6 +14,7 @@ from services.vision.image_recognition import (
     _gps_score,
     _final_candidate_score,
     _match_best_candidate,
+    _generate_vision_content,
     recognize_image,
 )
 from core.config import settings
@@ -216,8 +217,10 @@ def mock_vision_deps():
          patch('services.vision.image_recognition.validate_and_preprocess_image', return_value=MagicMock()) as m3, \
          patch('services.vision.image_recognition.optimize_image_for_api', return_value=MagicMock()) as m4, \
          patch('services.vision.image_recognition.get_image_quality_estimate', return_value=100.0) as m5, \
-         patch('services.vision.image_recognition._get_vision_model') as mock_model, \
+         patch('services.vision.image_recognition._get_vision_providers') as mock_providers, \
          patch('services.vision.image_recognition.find_artifact_by_name') as mock_find_artifact:
+        mock_model = MagicMock()
+        mock_providers.return_value = [("gemini_key_1", mock_model)]
         yield mock_model, mock_find_artifact, m3
 
 # 17
@@ -241,7 +244,7 @@ async def test_recognize_image_rejects_non_artifact(mock_vision_deps):
         "is_historical_artifact": False
     })
     mock_gen_content = AsyncMock(return_value=fake_response)
-    mock_model.return_value.aio.models.generate_content = mock_gen_content
+    mock_model.aio.models.generate_content = mock_gen_content
 
     res = await recognize_image("base64")
     assert res.recognized is False
@@ -258,7 +261,7 @@ async def test_recognize_image_rejects_low_confidence(mock_vision_deps):
         "is_historical_artifact": True
     })
     mock_gen_content = AsyncMock(return_value=fake_response)
-    mock_model.return_value.aio.models.generate_content = mock_gen_content
+    mock_model.aio.models.generate_content = mock_gen_content
 
     # Assume settings.VISION_CONFIDENCE_THRESHOLD = 0.5
     with patch("services.vision.image_recognition.settings") as mock_settings:
@@ -276,7 +279,7 @@ async def test_recognize_image_handles_empty_provider_response(mock_vision_deps)
     fake_response = MagicMock()
     fake_response.text = ""
     mock_gen_content = AsyncMock(return_value=fake_response)
-    mock_model.return_value.aio.models.generate_content = mock_gen_content
+    mock_model.aio.models.generate_content = mock_gen_content
 
     res = await recognize_image("base64")
     assert res.recognized is False
@@ -287,7 +290,7 @@ async def test_recognize_image_handles_empty_provider_response(mock_vision_deps)
 async def test_recognize_image_handles_auth_rate_provider_errors(mock_vision_deps):
     mock_model, _, _ = mock_vision_deps
     mock_gen_content = AsyncMock(side_effect=Exception("401 Unauthorized"))
-    mock_model.return_value.aio.models.generate_content = mock_gen_content
+    mock_model.aio.models.generate_content = mock_gen_content
     
     res1 = await recognize_image("base64")
     assert res1.error == "VISION_AUTH_ERROR"
@@ -302,6 +305,29 @@ async def test_recognize_image_handles_auth_rate_provider_errors(mock_vision_dep
         res3 = await recognize_image("base64")
         assert res3.error == "VISION_PROVIDER_UNAVAILABLE"
 
+
+@pytest.mark.asyncio
+async def test_generate_vision_content_falls_back_to_second_api_key():
+    first_client = MagicMock()
+    second_client = MagicMock()
+    fake_response = MagicMock()
+    fake_response.text = '{"artifact_name":"Ngọ Môn"}'
+    first_client.aio.models.generate_content = AsyncMock(side_effect=Exception("503 Service Unavailable"))
+    second_client.aio.models.generate_content = AsyncMock(return_value=fake_response)
+
+    with patch(
+        "services.vision.image_recognition._get_vision_providers",
+        return_value=[("gemini_key_1", first_client), ("gemini_key_2", second_client)],
+    ), patch("services.vision.image_recognition.settings") as mock_settings:
+        mock_settings.GEMINI_VISION_MODEL = "same-vision-model"
+        response = await _generate_vision_content("prompt", MagicMock())
+
+    assert response == fake_response
+    first_client.aio.models.generate_content.assert_awaited_once()
+    second_client.aio.models.generate_content.assert_awaited_once()
+    assert first_client.aio.models.generate_content.call_args.kwargs["model"] == "same-vision-model"
+    assert second_client.aio.models.generate_content.call_args.kwargs["model"] == "same-vision-model"
+
 # 22
 @pytest.mark.asyncio
 async def test_recognize_image_parses_json_code_fence(mock_vision_deps):
@@ -313,7 +339,7 @@ async def test_recognize_image_parses_json_code_fence(mock_vision_deps):
         "is_historical_artifact": True
     }) + "\n```"
     mock_gen_content = AsyncMock(return_value=fake_response)
-    mock_model.return_value.aio.models.generate_content = mock_gen_content
+    mock_model.aio.models.generate_content = mock_gen_content
     
     mock_find.return_value = MagicMock(art_id="123", name_vi="Ngọ Môn")
     
@@ -336,7 +362,7 @@ async def test_recognize_image_returns_confirmation_when_final_score_low(mock_vi
         "is_historical_artifact": True
     })
     mock_gen_content = AsyncMock(return_value=fake_response)
-    mock_model.return_value.aio.models.generate_content = mock_gen_content
+    mock_model.aio.models.generate_content = mock_gen_content
     
     # Return artifact, but the alias score and visual match will be poor leading to final score < 0.6
     mock_find.return_value = MagicMock(art_id="123", name_vi="Something Else entirely")

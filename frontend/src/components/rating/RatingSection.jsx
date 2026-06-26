@@ -99,7 +99,9 @@ const RatingSection = ({ locationId, locationName, language }) => {
           const err = await res.json();
           if (err.detail) msg = err.detail;
           else if (err.message) msg = err.message;
-        } catch {}
+        } catch (parseError) {
+          console.warn('Failed to parse rating error response:', parseError);
+        }
         throw new Error(msg);
       }
       setSubmitted(true);

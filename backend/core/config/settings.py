@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
 
     GEMINI_API_KEY: str = ""
+    GEMINI_API_KEY_2: str = ""
+    GEMINI_API_KEYS: str = ""
     GROQ_API_KEY: str = ""
     HUGGINGFACE_API_KEY: str = ""
     GOOGLE_MAPS_API_KEY: str = ""
@@ -30,6 +32,8 @@ class Settings(BaseSettings):
 
     LLM_PROVIDER_ORDER: str = "gemini, groq"
     GEMINI_TEXT_MODEL: str = "gemini-2.5-flash-lite"
+    GEMINI_TEXT_MODEL_2: str = "gemini-3.1-flash-lite"
+    GEMINI_TEXT_MODELS: str = ""
     GEMINI_EMBEDDING_MODEL: str = "gemini-embedding-2"
     GEMINI_VISION_MODEL: str = "gemini-2.5-flash-lite"
     GROQ_LLM_MODEL: str = "llama-3.3-70b-versatile"
@@ -44,6 +48,8 @@ class Settings(BaseSettings):
     TEXT_MAX_CHARS: int = 5000
     IMAGE_MAX_BYTES: int = 5_000_000
     AUDIO_MAX_BYTES: int = 8_000_000
+    UPLOADS_DIR: str = str(_BACKEND_ROOT / "uploads")
+    BLOG_COVER_MAX_BYTES: int = 5_000_000
 
     VOICE_MAX_TURNS: int = 6
     VOICE_SESSION_TTL_SECONDS: int = 3600
@@ -73,6 +79,34 @@ class Settings(BaseSettings):
         return [p.strip().lower() for p in self.LLM_PROVIDER_ORDER.split(",") if p.strip()]
 
     @property
+    def gemini_api_key_list(self) -> list[str]:
+        keys: list[str] = []
+        for key in (self.GEMINI_API_KEY, self.GEMINI_API_KEY_2):
+            normalized = key.strip()
+            if normalized and normalized not in keys:
+                keys.append(normalized)
+        for key in self.GEMINI_API_KEYS.split(","):
+            normalized = key.strip()
+            if normalized and normalized not in keys:
+                keys.append(normalized)
+        return keys
+
+    @property
+    def gemini_text_model_list(self) -> list[str]:
+        primary = self.GEMINI_TEXT_MODEL.strip() or "gemini-2.5-flash-lite"
+        models: list[str] = [primary]
+
+        backup = self.GEMINI_TEXT_MODEL_2.strip()
+        if backup:
+            models.append(backup)
+
+        for model in self.GEMINI_TEXT_MODELS.split(","):
+            normalized = model.strip()
+            if normalized:
+                models.append(normalized)
+        return models
+
+    @property
     def is_production(self) -> bool:
         return self.ENVIRONMENT.strip().lower() in {"production", "prod"}
 
@@ -82,7 +116,7 @@ class Settings(BaseSettings):
             return
 
         missing = []
-        if not self.GEMINI_API_KEY.strip():
+        if not self.gemini_api_key_list:
             missing.append("GEMINI_API_KEY")
         if not self.GROQ_API_KEY.strip():
             missing.append("GROQ_API_KEY")

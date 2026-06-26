@@ -1,4 +1,4 @@
-"""Location rating and review API router."""
+"""Artifact stop rating and review API router."""
 
 from __future__ import annotations
 
@@ -11,8 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db_session
 from core.observability import increment
-from models.location import Location
-from models.location_rating import LocationRating
+from models.artifact import Artifact
+from models.artifact_rating import ArtifactRating
 from schemas.rating import (
     RatingCreateRequest,
     RatingCreateResponse,
@@ -26,11 +26,11 @@ router = APIRouter(prefix="/api/v1/ratings", tags=["Ratings"])
 _LOGGER = logging.getLogger(__name__)
 
 
-def _rating_to_response(r: LocationRating) -> RatingResponse:
+def _rating_to_response(r: ArtifactRating) -> RatingResponse:
     return RatingResponse(
         id=r.id,
-        locationId=r.location_id,
-        locationName=r.location_name,
+        locationId=r.artifact_id,
+        locationName=r.artifact_name,
         serviceRating=r.service_rating,
         sceneryRating=r.scenery_rating,
         priceRating=r.price_rating,
@@ -45,16 +45,16 @@ async def create_rating(
     body: RatingCreateRequest,
     db: AsyncSession = Depends(get_db_session),
 ) -> RatingCreateResponse:
-    """Submit a rating and review for a location."""
-    stmt = select(Location).where(Location.loc_id == body.location_id)
+    """Submit a rating and review for an artifact stop."""
+    stmt = select(Artifact).where(Artifact.art_id == body.location_id)
     result = await db.execute(stmt)
-    location = result.scalar_one_or_none()
-    if location is None:
-        raise HTTPException(status_code=404, detail="Location not found.")
+    artifact = result.scalar_one_or_none()
+    if artifact is None:
+        raise HTTPException(status_code=404, detail="Artifact stop not found.")
 
-    rating = LocationRating(
-        location_id=body.location_id,
-        location_name=location.name_vi,
+    rating = ArtifactRating(
+        artifact_id=body.location_id,
+        artifact_name=artifact.name_vi,
         service_rating=body.service_rating,
         scenery_rating=body.scenery_rating,
         price_rating=body.price_rating,
@@ -64,11 +64,12 @@ async def create_rating(
     db.add(rating)
     await db.flush()
     await db.commit()
+    await db.refresh(rating)
 
     increment("rating.created")
     _LOGGER.info(
-        "Rating created for location %s (id=%d), service=%d scenery=%d price=%d",
-        location.name_vi, body.location_id,
+        "Rating created for artifact %s (id=%d), service=%d scenery=%d price=%d",
+        artifact.name_vi, body.location_id,
         body.service_rating, body.scenery_rating, body.price_rating,
     )
 
@@ -82,18 +83,21 @@ async def list_location_ratings(
     per_page: int = Query(default=10, ge=1, le=50, alias="perPage"),
     db: AsyncSession = Depends(get_db_session),
 ) -> RatingListResponse:
-    """Get paginated ratings for a specific location."""
+    """Get paginated ratings for a specific artifact stop.
+
+    The path keeps the historical "location" name for frontend compatibility.
+    """
     total_result = await db.execute(
-        select(func.count()).select_from(LocationRating).where(
-            LocationRating.location_id == location_id
+        select(func.count()).select_from(ArtifactRating).where(
+            ArtifactRating.artifact_id == location_id
         )
     )
     total = int(total_result.scalar_one() or 0)
 
     stmt = (
-        select(LocationRating)
-        .where(LocationRating.location_id == location_id)
-        .order_by(LocationRating.created_at.desc())
+        select(ArtifactRating)
+        .where(ArtifactRating.artifact_id == location_id)
+        .order_by(ArtifactRating.created_at.desc())
         .offset((page - 1) * per_page)
         .limit(per_page)
     )
@@ -112,20 +116,23 @@ async def get_location_rating_summary(
     location_id: int,
     db: AsyncSession = Depends(get_db_session),
 ) -> RatingSummaryResponse:
-    """Get average rating summary for a location."""
-    stmt = select(Location).where(Location.loc_id == location_id)
+    """Get average rating summary for an artifact stop.
+
+    The path keeps the historical "location" name for frontend compatibility.
+    """
+    stmt = select(Artifact).where(Artifact.art_id == location_id)
     result = await db.execute(stmt)
-    location = result.scalar_one_or_none()
-    if location is None:
-        raise HTTPException(status_code=404, detail="Location not found.")
+    artifact = result.scalar_one_or_none()
+    if artifact is None:
+        raise HTTPException(status_code=404, detail="Artifact stop not found.")
 
     agg_result = await db.execute(
         select(
-            func.coalesce(func.avg(LocationRating.service_rating), 0),
-            func.coalesce(func.avg(LocationRating.scenery_rating), 0),
-            func.coalesce(func.avg(LocationRating.price_rating), 0),
-            func.count(LocationRating.id),
-        ).where(LocationRating.location_id == location_id)
+            func.coalesce(func.avg(ArtifactRating.service_rating), 0),
+            func.coalesce(func.avg(ArtifactRating.scenery_rating), 0),
+            func.coalesce(func.avg(ArtifactRating.price_rating), 0),
+            func.count(ArtifactRating.id),
+        ).where(ArtifactRating.artifact_id == location_id)
     )
     row = agg_result.one()
     avg_service = round(float(row[0]), 1)
@@ -138,7 +145,7 @@ async def get_location_rating_summary(
     return RatingSummaryResponse(
         summary=LocationRatingSummary(
             locationId=location_id,
-            locationName=location.name_vi,
+            locationName=artifact.name_vi,
             avgService=avg_service,
             avgScenery=avg_scenery,
             avgPrice=avg_price,

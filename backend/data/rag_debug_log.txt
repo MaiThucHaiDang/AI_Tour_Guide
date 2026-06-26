@@ -2466,3 +2466,876 @@ Location ID: 1
 === HISTORY ===
 vi
 ────────────────────────────────────────────────────────────
+[2026-06-26 21:41:28] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Ngọ Môn
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Triều Nguyễn / Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Ngọ Môn là cổng chính phía Nam của Hoàng thành Huế — bộ mặt của cả một triều đại và là cổng lớn nhất trong bốn cổng chính. Được xây dựng vào năm 1833 dưới triều vua Minh Mạng, Ngọ Môn thay thế cho Nam Khuyết Đài thời Gia Long. Tên gọi 'Ngọ Môn' có nghĩa là 'cổng hướng về phương Ngọ' — tức phương Nam, hướng mà bậc thiên tử quay mặt để cai trị thiên hạ theo quan niệm 'Thánh nhân Nam diện nhi thính thiên hạ'. Kiến trúc Ngọ Môn gồm hai phần chính: phần đài cổng hình chữ U vững chãi và phần lầu Ngũ Phụng thanh thoát phía trên. Đài cao gần 5m, diện tích hơn 1.560m², đáy dài 57,77m, trổ 5 lối đi. Lối chính giữa (Ngọ Môn) dành riêng cho vua, hai lối bên (Tả Giáp Môn và Hữu Giáp Môn) cho quan văn võ, hai lối ngoài cùng (Tả Dịch Môn và Hữu Dịch Môn) cho binh lính và voi ngựa. Lầu Ngũ Phụng có hai tầng, kết cấu hoàn toàn bằng gỗ lim với chẵn 100 cây cột, mái chính giữa lợp ngói lưu ly vàng, tám mái còn lại lợp ngói xanh, với nhiều hình chim phụng trang trí ở bờ nóc và bờ quyết. Ngoài ra còn có 4 tòa nhà nhỏ phụ trợ hai bên Đông, Tây dực lâu. Ngọ Môn chứng kiến nhiều sự kiện lịch sử trọng đại: lễ Ban Sóc (ban lịch mới), lễ Truyền Lô (tuyên đọc tên tiến sĩ), và đặc biệt là ngày 30 tháng 8 năm 1945, vua Bảo Đại đọc Tuyên ngôn Thoái vị, trao chính quyền lại cho Chính phủ Lâm thời, khép lại chế độ quân chủ hơn 143 năm. Năm 1968, Ngọ Môn bị hư hại nặng trong trận Mậu Thân và được trùng tu với kinh phí 80 tỷ đồng, hoàn thành năm 2019. Câu ca dao xưa nhắc: 'Ngọ Môn 5 cửa 9 lầu, 1 lầu vàng 8 lầu xanh, 3 cửa thẳng 2 cửa quanh' — hãy tự mình kiểm tra xem có đúng không nhé!
+
+=== VISIBLE HIGHLIGHTS ===
+Đài nền hình chữ U: cao gần 5m, dài 57,77m, trổ 5 lối đi — mỗi lối dành cho một tầng lớp khác nhau. Lầu Ngũ Phụng: 100 cột gỗ lim, mái vàng trung tâm và 8 mái xanh xung quanh — biểu tượng phượng hoàng. Bốn tòa nhà phụ Đông, Tây dực lâu hai bên: tạo thành quần thể hoàn chỉnh nhìn từ sân. Sân Đại triều nghi phía Bắc: chứng kiến lễ thoái vị của vua Bảo Đại ngày 30/8/1945.
+
+=== SUGGESTED VISIT FLOW ===
+Đứng ở phía Nam Ngọ Môn — quan sát tổng thể đài hình chữ U và 5 lối đi, đếm thử số cửa. Tiếp cận gần: nhìn kỹ vật liệu xây dựng đài — gạch vồ, đá Thanh, và những lớp rêu phong. Bước qua cửa chính giữa (cửa Ngọ Môn) vào sân — đây là lối dành cho vua xưa. Đứng dưới chân lầu Ngũ Phụng nhìn lên — đếm hoa văn phụng trang trí trên bờ nóc. Leo lên lầu Ngũ Phụng (nếu mở): nhìn xuống sân Ngọ Môn và toàn cảnh phía Nam Hoàng thành. Nhìn ra phía Bắc để thấy trục thần đạo chính dẫn thẳng vào Điện Thái Hòa.
+
+=== NEARBY CONTEXT ===
+Phía Bắc ngay sau cổng: sân Đại triều nghi và Điện Thái Hòa. Phía Nam: Hồ Thái Dịch và quảng trường trước Ngọ Môn — nơi du khách thường chụp ảnh. Đây là điểm bắt đầu lý tưởng cho hành trình khám phá Hoàng thành theo trục Bắc-Nam.
+
+=== NOTABLE OBJECTS ===
+5 lối đi đài Ngọ Môn: Cửa Ngọ, Tả Giáp, Hữu Giáp, Tả Dịch, Hữu Dịch — phân tầng theo phẩm trật. Lầu Ngũ Phụng: 100 cột gỗ lim, biểu tượng 5 con phụng — đặc trưng kiến trúc quan trọng nhất. Mái ngói hoàng lưu ly và thanh lưu ly: màu vàng tượng trưng cho đế vương, màu xanh cho quan lại.
+
+=== PHOTO SPOTS ===
+Góc kinh điển: đứng phía Nam hồ Thái Dịch nhìn vào Ngọ Môn với hồ làm tiền cảnh phản chiếu. Góc từ lầu Ngũ Phụng: nhìn xuống sân Đại triều nghi — thấy cả Điện Thái Hòa ở phía Bắc. Góc hoàng hôn: mặt Tây của Ngọ Môn khi ánh chiều tà nhuộm vàng các mái ngói.
+────────────────────────────────────────────────────────────
+[2026-06-26 21:42:30] (source: llm)
+Câu hỏi: cái này có gì hay không
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Triều Nguyễn / Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Ngọ Môn là cổng chính phía Nam của Hoàng thành Huế — bộ mặt của cả một triều đại và là cổng lớn nhất trong bốn cổng chính. Được xây dựng vào năm 1833 dưới triều vua Minh Mạng, Ngọ Môn thay thế cho Nam Khuyết Đài thời Gia Long. Tên gọi 'Ngọ Môn' có nghĩa là 'cổng hướng về phương Ngọ' — tức phương Nam, hướng mà bậc thiên tử quay mặt để cai trị thiên hạ theo quan niệm 'Thánh nhân Nam diện nhi thính thiên hạ'. Kiến trúc Ngọ Môn gồm hai phần chính: phần đài cổng hình chữ U vững chãi và phần lầu Ngũ Phụng thanh thoát phía trên. Đài cao gần 5m, diện tích hơn 1.560m², đáy dài 57,77m, trổ 5 lối đi. Lối chính giữa (Ngọ Môn) dành riêng cho vua, hai lối bên (Tả Giáp Môn và Hữu Giáp Môn) cho quan văn võ, hai lối ngoài cùng (Tả Dịch Môn và Hữu Dịch Môn) cho binh lính và voi ngựa. Lầu Ngũ Phụng có hai tầng, kết cấu hoàn toàn bằng gỗ lim với chẵn 100 cây cột, mái chính giữa lợp ngói lưu ly vàng, tám mái còn lại lợp ngói xanh, với nhiều hình chim phụng trang trí ở bờ nóc và bờ quyết. Ngoài ra còn có 4 tòa nhà nhỏ phụ trợ hai bên Đông, Tây dực lâu. Ngọ Môn chứng kiến nhiều sự kiện lịch sử trọng đại: lễ Ban Sóc (ban lịch mới), lễ Truyền Lô (tuyên đọc tên tiến sĩ), và đặc biệt là ngày 30 tháng 8 năm 1945, vua Bảo Đại đọc Tuyên ngôn Thoái vị, trao chính quyền lại cho Chính phủ Lâm thời, khép lại chế độ quân chủ hơn 143 năm. Năm 1968, Ngọ Môn bị hư hại nặng trong trận Mậu Thân và được trùng tu với kinh phí 80 tỷ đồng, hoàn thành năm 2019. Câu ca dao xưa nhắc: 'Ngọ Môn 5 cửa 9 lầu, 1 lầu vàng 8 lầu xanh, 3 cửa thẳng 2 cửa quanh' — hãy tự mình kiểm tra xem có đúng không nhé!
+
+=== VISIBLE HIGHLIGHTS ===
+Đài nền hình chữ U: cao gần 5m, dài 57,77m, trổ 5 lối đi — mỗi lối dành cho một tầng lớp khác nhau. Lầu Ngũ Phụng: 100 cột gỗ lim, mái vàng trung tâm và 8 mái xanh xung quanh — biểu tượng phượng hoàng. Bốn tòa nhà phụ Đông, Tây dực lâu hai bên: tạo thành quần thể hoàn chỉnh nhìn từ sân. Sân Đại triều nghi phía Bắc: chứng kiến lễ thoái vị của vua Bảo Đại ngày 30/8/1945.
+
+=== SUGGESTED VISIT FLOW ===
+Đứng ở phía Nam Ngọ Môn — quan sát tổng thể đài hình chữ U và 5 lối đi, đếm thử số cửa. Tiếp cận gần: nhìn kỹ vật liệu xây dựng đài — gạch vồ, đá Thanh, và những lớp rêu phong. Bước qua cửa chính giữa (cửa Ngọ Môn) vào sân — đây là lối dành cho vua xưa. Đứng dưới chân lầu Ngũ Phụng nhìn lên — đếm hoa văn phụng trang trí trên bờ nóc. Leo lên lầu Ngũ Phụng (nếu mở): nhìn xuống sân Ngọ Môn và toàn cảnh phía Nam Hoàng thành. Nhìn ra phía Bắc để thấy trục thần đạo chính dẫn thẳng vào Điện Thái Hòa.
+
+=== NEARBY CONTEXT ===
+Phía Bắc ngay sau cổng: sân Đại triều nghi và Điện Thái Hòa. Phía Nam: Hồ Thái Dịch và quảng trường trước Ngọ Môn — nơi du khách thường chụp ảnh. Đây là điểm bắt đầu lý tưởng cho hành trình khám phá Hoàng thành theo trục Bắc-Nam.
+
+=== NOTABLE OBJECTS ===
+5 lối đi đài Ngọ Môn: Cửa Ngọ, Tả Giáp, Hữu Giáp, Tả Dịch, Hữu Dịch — phân tầng theo phẩm trật. Lầu Ngũ Phụng: 100 cột gỗ lim, biểu tượng 5 con phụng — đặc trưng kiến trúc quan trọng nhất. Mái ngói hoàng lưu ly và thanh lưu ly: màu vàng tượng trưng cho đế vương, màu xanh cho quan lại.
+
+=== PHOTO SPOTS ===
+Góc kinh điển: đứng phía Nam hồ Thái Dịch nhìn vào Ngọ Môn với hồ làm tiền cảnh phản chiếu. Góc từ lầu Ngũ Phụng: nhìn xuống sân Đại triều nghi — thấy cả Điện Thái Hòa ở phía Bắc. Góc hoàng hôn: mặt Tây của Ngọ Môn khi ánh chiều tà nhuộm vàng các mái ngói.
+────────────────────────────────────────────────────────────
+[2026-06-26 21:43:37] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Điện Thái Hòa
+Data lấy từ data của bạn: Name: Điện Thái Hòa
+Year: 1805
+Author: Vua Gia Long
+Location ID: 1
+
+=== HISTORY ===
+Điện Thái Hòa là biểu tượng quyền lực tối cao của vương triều Nguyễn, nơi diễn ra các buổi thiết triều, lễ đăng quang của 13 vị vua và đón tiếp sứ thần ngoại giao. Được xây dựng lần đầu năm 1805 dưới triều vua Gia Long, đến năm 1833 vua Minh Mạng cho dời về vị trí hiện tại và làm lại đồ sộ hơn. Năm 1923, vua Khải Định lại cho đại gia trùng kiến chuẩn bị cho lễ Tứ tuần Đại khánh tiết. Điện được xây trên nền cao 1 mét, diện tích 1.360m², với 80 cột gỗ lim sơn son thếp vàng, mỗi cột đều được chạm khắc hình rồng vờn mây tinh xảo — biểu tượng của sự gặp gỡ giữa hoàng đế và quần thần. Mái điện lợp ngói hoàng lưu ly, được chia làm ba tầng chồng mí lên nhau gọi là mái 'chồng diêm', tạo ảo giác về chiều cao và sự uy nghiêm. Giữa hai tầng mái là dải cổ diêm chạy quanh bốn mặt, được trang trí 197 bài thơ trên pháp lam theo lối nhất thi nhất họa. Từ sân Đại triều nhìn vào, vua ngồi trên ngai vàng ở gian trong cùng, còn bá quan văn võ đứng hai bên sân theo thứ bậc từ nhất phẩm đến cửu phẩm — quan văn bên trái, quan võ bên phải. Tất cả vị trí đều được đánh dấu trên hai dãy đá trước sân chầu. Một chi tiết thú vị: con số 9 xuất hiện khắp nơi trong điện — 9 cấp thềm, 9 con rồng trên mỗi mái, vì 9 là biểu tượng của vua chúa trong văn hóa phương Đông. Con số 5 cũng xuất hiện tượng trưng cho ngũ hành. Điện được xây theo lối trùng thiềm điệp ốc — một kiến trúc sáng tạo với hệ thống trần vòm mai cua dưới máng thừa lưu, tạo ra một không gian nội thất liên tục, thống nhất mà không có cảm giác ghép nối. Hãy thử đếm xem bạn có thể tìm thấy bao nhiêu hình rồng trong điện này nhé!
+
+=== VISIBLE HIGHLIGHTS ===
+Mái chồng diêm ba tầng: ngói hoàng lưu ly chất thành tầng tầng lớp lớp — nhìn từ sân lên thấy rõ hiệu ứng. Dải cổ diêm quanh bốn mặt: 197 bài thơ trên pháp lam theo lối nhất thi nhất họa. 80 cột gỗ lim sơn son thếp vàng: mỗi cột đều chạm hình rồng vờn mây. Ngai vàng trong cùng: sơn son thếp vàng, đặt trên bệ cao, nhìn ra cửa Ngọ Môn. Hai hàng đá đánh dấu vị trí bá quan văn võ trên sân Đại triều nghi.
+
+=== SUGGESTED VISIT FLOW ===
+Đứng ở sân Đại triều nghi — tưởng tượng hàng trăm quan văn võ đứng hai bên theo phẩm trật. Bước dần lên 9 bậc thềm trước cửa — chú ý từng bậc đều bằng đá nguyên khối. Vào bên trong nhìn lên trần nhà: hệ thống xà gỗ chạm khắc tinh vi và màu sắc rực rỡ. Chiêm ngưỡng ngai vàng từ khoảng cách vừa phải — hướng mắt từ ngai ra cửa chính nhìn về Ngọ Môn. Đi ra hai bên hành lang để xem chi tiết cổ diêm và pháp lam ở tầm gần.
+
+=== NEARBY CONTEXT ===
+Phía Nam: sân Đại triều nghi và Ngọ Môn — đây là trục thần đạo chính của Hoàng thành. Phía Bắc: Nền điện Cần Chánh — nơi vua làm việc hàng ngày (trung tâm hành chính). Hai bên: Tả Vu và Hữu Vu — nơi quan chờ thiết triều.
+
+=== NOTABLE OBJECTS ===
+Ngai vàng: sơn son thếp vàng, bảo vật quốc gia, đặt trên bệ đá cao 3 cấp. Bảo tán vàng: lọng vàng treo trên ngai, biểu tượng quyền lực tối cao. Long đèn: đèn chùm hình rồng treo trên trần điện, thắp sáng trong các buổi thiết triều. Pháp lam: 197 bài thơ trên men màu — kỹ thuật điêu luyện thời Nguyễn.
+
+=== PHOTO SPOTS ===
+Góc chụp đẹp nhất: đứng cuối sân Đại triều nghi, căn hai hàng đá đánh dấu bá quan với cửa điện làm trung tâm. Chụp cận: ngai vàng qua khung cửa chính. Góc rộng: từ đỉnh 9 bậc thềm nhìn ngược lại sân về phía Ngọ Môn.
+────────────────────────────────────────────────────────────
+[2026-06-26 21:45:04] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Điện Kiến Trung
+Data lấy từ data của bạn: Name: Điện Kiến Trung
+Year: 1921
+Author: Vua Khải Định
+Location ID: 1
+
+=== HISTORY ===
+Điện Kiến Trung tọa lạc ở điểm cực Bắc của trục thần đạo xuyên suốt Tử Cấm Thành, được vua Khải Định cho xây dựng từ năm 1921 đến 1923. Trước khi có điện này, nơi đây từng là lầu Minh Viễn thời Minh Mạng (1827-1876) rồi lầu Du Cửu thời Đồng Khánh (1913-1916), nhưng vua Khải Định đã cho triệt giải hoàn toàn để xây một tòa cung điện mới, làm nơi sinh hoạt và làm việc của mình. Điện Kiến Trung là đỉnh cao của phong cách kiến trúc Đông Dương, pha trộn hài hòa giữa kiến trúc Baroque, Phục Hưng của châu Âu với nét cổ truyền Việt Nam. Mặt tiền được trang trí bằng những mảnh gốm sứ nhiều màu tinh xảo, tạo nên một vẻ đẹp sang trọng và độc đáo. Tầng chính trổ 13 cửa hiên, tầng trên là gác mái ngói có lan can trang trí theo phong cách Việt Nam. Trước điện là vườn cảnh với ba cầu thang đắp rồng uốn lượn dẫn lên thềm điện. Đây là nơi ở của hai vị vua cuối cùng triều Nguyễn: Khải Định và Bảo Đại. Chính tại đây, Hoàng hậu Nam Phương đã hạ sinh Thái tử Bảo Long vào ngày 4 tháng 1 năm 1936. Ngày 11 tháng 3 năm 1945, vua Bảo Đại triệu cố vấn tối cao Nhật Bản là đại sứ Yokoyama vào điện này để tuyên bố nước Việt Nam độc lập. Tháng 8 năm 1945, vua Bảo Đại đã tiếp phái đoàn Chính phủ Lâm thời tại điện để trao ấn kiếm thoái vị, khép lại hơn 143 năm trị vì của triều Nguyễn. Điện bị phá hủy tháng 2 năm 1947 trong chiến dịch tiêu thổ kháng chiến, và được phục dựng hoàn thành vào năm 2024 với kinh phí hơn 123 tỉ đồng. Hãy nhìn lên những mái ngói lưu ly kia — chúng đã được các nghệ nhân phục dựng tỉ mỉ dựa trên những bức ảnh tư liệu từ thập niên 1920. Quá trình phục dựng kéo dài nhiều năm với sự hợp tác của các nhà nghiên cứu lịch sử, văn hóa và mỹ thuật Huế, cùng với sự tham gia của Phân viện khoa học công nghệ xây dựng Miền Trung. Hôm nay, bạn đang đứng trước một kỳ tích phục dựng đầy cảm động — một công trình đã sống lại từ đống tro tàn.
+
+=== VISIBLE HIGHLIGHTS ===
+Mặt tiền Đông – Tây khảm gốm sứ đa màu sắc — điểm nhấn kiến trúc Đông Dương độc đáo. Ba cầu thang rồng đắp nổi uốn lượn dẫn lên thềm điện. Tầng một: 13 cửa hiên vòm Baroque, ban công tầng hai lan can trang trí Việt Nam. Nội thất: bàn làm việc phòng của vua Bảo Đại được phục dựng, bản đồ toàn quốc treo tường. Sân thượng tầng hai: view nhìn xuống toàn bộ Tử Cấm Thành về phía Nam.
+
+=== SUGGESTED VISIT FLOW ===
+Tiếp cận từ phía Nam qua sân vườn với ba cầu thang rồng. Chiêm ngưỡng toàn bộ mặt tiền trước khi bước lên — chú ý mảnh sứ khảm và cột đèn kiểu Pháp. Bước vào tầng một: quan sát khu vực phòng khách, không gian làm việc và cầu thang rộng giữa nhà. Lên tầng hai: phòng ngủ hoàng gia và ban công nhìn ra vườn phía trước. Ra phía sân thượng để ngắm tổng thể Tử Cấm Thành từ trên cao — hướng về Điện Thái Hòa ở phía Nam.
+
+=== NEARBY CONTEXT ===
+Phía Nam: Điện Thái Hòa và sân Đại triều nghi nổi tiếng. Phía Bắc: Cửa Hòa Bình và hướng ra sông Hương. Gần đó: Duyệt Thị Đường — nhà hát cung đình còn nguyên vẹn nhất Việt Nam.
+
+=== NOTABLE OBJECTS ===
+Bộ gốm sứ khảm mặt tiền: hàng trăm mảnh ghép tạo thành những bức tranh phong cảnh. Cầu thang rồng: đá đắp nổi hình rồng uốn lượn — biểu tượng quyền uy. Đèn chùm pha lê phòng đón khách: di vật thời Khải Định — Bảo Đại. Bản đồ Đông Dương và phòng làm việc của vua Bảo Đại: tái hiện chính xác theo tư liệu lịch sử.
+────────────────────────────────────────────────────────────
+[2026-06-26 21:46:21] (source: llm)
+Câu hỏi: phòng này hồi xưa dùng để làm gì
+Data lấy từ data của bạn: Name: Điện Kiến Trung
+Year: 1921
+Author: Vua Khải Định
+Location ID: 1
+
+=== HISTORY ===
+Điện Kiến Trung tọa lạc ở điểm cực Bắc của trục thần đạo xuyên suốt Tử Cấm Thành, được vua Khải Định cho xây dựng từ năm 1921 đến 1923. Trước khi có điện này, nơi đây từng là lầu Minh Viễn thời Minh Mạng (1827-1876) rồi lầu Du Cửu thời Đồng Khánh (1913-1916), nhưng vua Khải Định đã cho triệt giải hoàn toàn để xây một tòa cung điện mới, làm nơi sinh hoạt và làm việc của mình. Điện Kiến Trung là đỉnh cao của phong cách kiến trúc Đông Dương, pha trộn hài hòa giữa kiến trúc Baroque, Phục Hưng của châu Âu với nét cổ truyền Việt Nam. Mặt tiền được trang trí bằng những mảnh gốm sứ nhiều màu tinh xảo, tạo nên một vẻ đẹp sang trọng và độc đáo. Tầng chính trổ 13 cửa hiên, tầng trên là gác mái ngói có lan can trang trí theo phong cách Việt Nam. Trước điện là vườn cảnh với ba cầu thang đắp rồng uốn lượn dẫn lên thềm điện. Đây là nơi ở của hai vị vua cuối cùng triều Nguyễn: Khải Định và Bảo Đại. Chính tại đây, Hoàng hậu Nam Phương đã hạ sinh Thái tử Bảo Long vào ngày 4 tháng 1 năm 1936. Ngày 11 tháng 3 năm 1945, vua Bảo Đại triệu cố vấn tối cao Nhật Bản là đại sứ Yokoyama vào điện này để tuyên bố nước Việt Nam độc lập. Tháng 8 năm 1945, vua Bảo Đại đã tiếp phái đoàn Chính phủ Lâm thời tại điện để trao ấn kiếm thoái vị, khép lại hơn 143 năm trị vì của triều Nguyễn. Điện bị phá hủy tháng 2 năm 1947 trong chiến dịch tiêu thổ kháng chiến, và được phục dựng hoàn thành vào năm 2024 với kinh phí hơn 123 tỉ đồng. Hãy nhìn lên những mái ngói lưu ly kia — chúng đã được các nghệ nhân phục dựng tỉ mỉ dựa trên những bức ảnh tư liệu từ thập niên 1920. Quá trình phục dựng kéo dài nhiều năm với sự hợp tác của các nhà nghiên cứu lịch sử, văn hóa và mỹ thuật Huế, cùng với sự tham gia của Phân viện khoa học công nghệ xây dựng Miền Trung. Hôm nay, bạn đang đứng trước một kỳ tích phục dựng đầy cảm động — một công trình đã sống lại từ đống tro tàn.
+
+=== VISIBLE HIGHLIGHTS ===
+Mặt tiền Đông – Tây khảm gốm sứ đa màu sắc — điểm nhấn kiến trúc Đông Dương độc đáo. Ba cầu thang rồng đắp nổi uốn lượn dẫn lên thềm điện. Tầng một: 13 cửa hiên vòm Baroque, ban công tầng hai lan can trang trí Việt Nam. Nội thất: bàn làm việc phòng của vua Bảo Đại được phục dựng, bản đồ toàn quốc treo tường. Sân thượng tầng hai: view nhìn xuống toàn bộ Tử Cấm Thành về phía Nam.
+
+=== SUGGESTED VISIT FLOW ===
+Tiếp cận từ phía Nam qua sân vườn với ba cầu thang rồng. Chiêm ngưỡng toàn bộ mặt tiền trước khi bước lên — chú ý mảnh sứ khảm và cột đèn kiểu Pháp. Bước vào tầng một: quan sát khu vực phòng khách, không gian làm việc và cầu thang rộng giữa nhà. Lên tầng hai: phòng ngủ hoàng gia và ban công nhìn ra vườn phía trước. Ra phía sân thượng để ngắm tổng thể Tử Cấm Thành từ trên cao — hướng về Điện Thái Hòa ở phía Nam.
+
+=== NEARBY CONTEXT ===
+Phía Nam: Điện Thái Hòa và sân Đại triều nghi nổi tiếng. Phía Bắc: Cửa Hòa Bình và hướng ra sông Hương. Gần đó: Duyệt Thị Đường — nhà hát cung đình còn nguyên vẹn nhất Việt Nam.
+
+=== NOTABLE OBJECTS ===
+Bộ gốm sứ khảm mặt tiền: hàng trăm mảnh ghép tạo thành những bức tranh phong cảnh. Cầu thang rồng: đá đắp nổi hình rồng uốn lượn — biểu tượng quyền uy. Đèn chùm pha lê phòng đón khách: di vật thời Khải Định — Bảo Đại. Bản đồ Đông Dương và phòng làm việc của vua Bảo Đại: tái hiện chính xác theo tư liệu lịch sử.
+────────────────────────────────────────────────────────────
+[2026-06-26 21:48:38] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Ngọ Môn
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Triều Nguyễn / Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Ngọ Môn là cổng chính phía Nam của Hoàng thành Huế — bộ mặt của cả một triều đại và là cổng lớn nhất trong bốn cổng chính. Được xây dựng vào năm 1833 dưới triều vua Minh Mạng, Ngọ Môn thay thế cho Nam Khuyết Đài thời Gia Long. Tên gọi 'Ngọ Môn' có nghĩa là 'cổng hướng về phương Ngọ' — tức phương Nam, hướng mà bậc thiên tử quay mặt để cai trị thiên hạ theo quan niệm 'Thánh nhân Nam diện nhi thính thiên hạ'. Kiến trúc Ngọ Môn gồm hai phần chính: phần đài cổng hình chữ U vững chãi và phần lầu Ngũ Phụng thanh thoát phía trên. Đài cao gần 5m, diện tích hơn 1.560m², đáy dài 57,77m, trổ 5 lối đi. Lối chính giữa (Ngọ Môn) dành riêng cho vua, hai lối bên (Tả Giáp Môn và Hữu Giáp Môn) cho quan văn võ, hai lối ngoài cùng (Tả Dịch Môn và Hữu Dịch Môn) cho binh lính và voi ngựa. Lầu Ngũ Phụng có hai tầng, kết cấu hoàn toàn bằng gỗ lim với chẵn 100 cây cột, mái chính giữa lợp ngói lưu ly vàng, tám mái còn lại lợp ngói xanh, với nhiều hình chim phụng trang trí ở bờ nóc và bờ quyết. Ngoài ra còn có 4 tòa nhà nhỏ phụ trợ hai bên Đông, Tây dực lâu. Ngọ Môn chứng kiến nhiều sự kiện lịch sử trọng đại: lễ Ban Sóc (ban lịch mới), lễ Truyền Lô (tuyên đọc tên tiến sĩ), và đặc biệt là ngày 30 tháng 8 năm 1945, vua Bảo Đại đọc Tuyên ngôn Thoái vị, trao chính quyền lại cho Chính phủ Lâm thời, khép lại chế độ quân chủ hơn 143 năm. Năm 1968, Ngọ Môn bị hư hại nặng trong trận Mậu Thân và được trùng tu với kinh phí 80 tỷ đồng, hoàn thành năm 2019. Câu ca dao xưa nhắc: 'Ngọ Môn 5 cửa 9 lầu, 1 lầu vàng 8 lầu xanh, 3 cửa thẳng 2 cửa quanh' — hãy tự mình kiểm tra xem có đúng không nhé!
+
+=== VISIBLE HIGHLIGHTS ===
+Đài nền hình chữ U: cao gần 5m, dài 57,77m, trổ 5 lối đi — mỗi lối dành cho một tầng lớp khác nhau. Lầu Ngũ Phụng: 100 cột gỗ lim, mái vàng trung tâm và 8 mái xanh xung quanh — biểu tượng phượng hoàng. Bốn tòa nhà phụ Đông, Tây dực lâu hai bên: tạo thành quần thể hoàn chỉnh nhìn từ sân. Sân Đại triều nghi phía Bắc: chứng kiến lễ thoái vị của vua Bảo Đại ngày 30/8/1945.
+
+=== SUGGESTED VISIT FLOW ===
+Đứng ở phía Nam Ngọ Môn — quan sát tổng thể đài hình chữ U và 5 lối đi, đếm thử số cửa. Tiếp cận gần: nhìn kỹ vật liệu xây dựng đài — gạch vồ, đá Thanh, và những lớp rêu phong. Bước qua cửa chính giữa (cửa Ngọ Môn) vào sân — đây là lối dành cho vua xưa. Đứng dưới chân lầu Ngũ Phụng nhìn lên — đếm hoa văn phụng trang trí trên bờ nóc. Leo lên lầu Ngũ Phụng (nếu mở): nhìn xuống sân Ngọ Môn và toàn cảnh phía Nam Hoàng thành. Nhìn ra phía Bắc để thấy trục thần đạo chính dẫn thẳng vào Điện Thái Hòa.
+
+=== NEARBY CONTEXT ===
+Phía Bắc ngay sau cổng: sân Đại triều nghi và Điện Thái Hòa. Phía Nam: Hồ Thái Dịch và quảng trường trước Ngọ Môn — nơi du khách thường chụp ảnh. Đây là điểm bắt đầu lý tưởng cho hành trình khám phá Hoàng thành theo trục Bắc-Nam.
+
+=== NOTABLE OBJECTS ===
+5 lối đi đài Ngọ Môn: Cửa Ngọ, Tả Giáp, Hữu Giáp, Tả Dịch, Hữu Dịch — phân tầng theo phẩm trật. Lầu Ngũ Phụng: 100 cột gỗ lim, biểu tượng 5 con phụng — đặc trưng kiến trúc quan trọng nhất. Mái ngói hoàng lưu ly và thanh lưu ly: màu vàng tượng trưng cho đế vương, màu xanh cho quan lại.
+
+=== PHOTO SPOTS ===
+Góc kinh điển: đứng phía Nam hồ Thái Dịch nhìn vào Ngọ Môn với hồ làm tiền cảnh phản chiếu. Góc từ lầu Ngũ Phụng: nhìn xuống sân Đại triều nghi — thấy cả Điện Thái Hòa ở phía Bắc. Góc hoàng hôn: mặt Tây của Ngọ Môn khi ánh chiều tà nhuộm vàng các mái ngói.
+────────────────────────────────────────────────────────────
+[2026-06-26 21:54:02] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Ngọ Môn
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Triều Nguyễn / Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Ngọ Môn là cổng chính phía Nam của Hoàng thành Huế — bộ mặt của cả một triều đại và là cổng lớn nhất trong bốn cổng chính. Được xây dựng vào năm 1833 dưới triều vua Minh Mạng, Ngọ Môn thay thế cho Nam Khuyết Đài thời Gia Long. Tên gọi 'Ngọ Môn' có nghĩa là 'cổng hướng về phương Ngọ' — tức phương Nam, hướng mà bậc thiên tử quay mặt để cai trị thiên hạ theo quan niệm 'Thánh nhân Nam diện nhi thính thiên hạ'. Kiến trúc Ngọ Môn gồm hai phần chính: phần đài cổng hình chữ U vững chãi và phần lầu Ngũ Phụng thanh thoát phía trên. Đài cao gần 5m, diện tích hơn 1.560m², đáy dài 57,77m, trổ 5 lối đi. Lối chính giữa (Ngọ Môn) dành riêng cho vua, hai lối bên (Tả Giáp Môn và Hữu Giáp Môn) cho quan văn võ, hai lối ngoài cùng (Tả Dịch Môn và Hữu Dịch Môn) cho binh lính và voi ngựa. Lầu Ngũ Phụng có hai tầng, kết cấu hoàn toàn bằng gỗ lim với chẵn 100 cây cột, mái chính giữa lợp ngói lưu ly vàng, tám mái còn lại lợp ngói xanh, với nhiều hình chim phụng trang trí ở bờ nóc và bờ quyết. Ngoài ra còn có 4 tòa nhà nhỏ phụ trợ hai bên Đông, Tây dực lâu. Ngọ Môn chứng kiến nhiều sự kiện lịch sử trọng đại: lễ Ban Sóc (ban lịch mới), lễ Truyền Lô (tuyên đọc tên tiến sĩ), và đặc biệt là ngày 30 tháng 8 năm 1945, vua Bảo Đại đọc Tuyên ngôn Thoái vị, trao chính quyền lại cho Chính phủ Lâm thời, khép lại chế độ quân chủ hơn 143 năm. Năm 1968, Ngọ Môn bị hư hại nặng trong trận Mậu Thân và được trùng tu với kinh phí 80 tỷ đồng, hoàn thành năm 2019. Câu ca dao xưa nhắc: 'Ngọ Môn 5 cửa 9 lầu, 1 lầu vàng 8 lầu xanh, 3 cửa thẳng 2 cửa quanh' — hãy tự mình kiểm tra xem có đúng không nhé!
+
+=== VISIBLE HIGHLIGHTS ===
+Đài nền hình chữ U: cao gần 5m, dài 57,77m, trổ 5 lối đi — mỗi lối dành cho một tầng lớp khác nhau. Lầu Ngũ Phụng: 100 cột gỗ lim, mái vàng trung tâm và 8 mái xanh xung quanh — biểu tượng phượng hoàng. Bốn tòa nhà phụ Đông, Tây dực lâu hai bên: tạo thành quần thể hoàn chỉnh nhìn từ sân. Sân Đại triều nghi phía Bắc: chứng kiến lễ thoái vị của vua Bảo Đại ngày 30/8/1945.
+
+=== SUGGESTED VISIT FLOW ===
+Đứng ở phía Nam Ngọ Môn — quan sát tổng thể đài hình chữ U và 5 lối đi, đếm thử số cửa. Tiếp cận gần: nhìn kỹ vật liệu xây dựng đài — gạch vồ, đá Thanh, và những lớp rêu phong. Bước qua cửa chính giữa (cửa Ngọ Môn) vào sân — đây là lối dành cho vua xưa. Đứng dưới chân lầu Ngũ Phụng nhìn lên — đếm hoa văn phụng trang trí trên bờ nóc. Leo lên lầu Ngũ Phụng (nếu mở): nhìn xuống sân Ngọ Môn và toàn cảnh phía Nam Hoàng thành. Nhìn ra phía Bắc để thấy trục thần đạo chính dẫn thẳng vào Điện Thái Hòa.
+
+=== NEARBY CONTEXT ===
+Phía Bắc ngay sau cổng: sân Đại triều nghi và Điện Thái Hòa. Phía Nam: Hồ Thái Dịch và quảng trường trước Ngọ Môn — nơi du khách thường chụp ảnh. Đây là điểm bắt đầu lý tưởng cho hành trình khám phá Hoàng thành theo trục Bắc-Nam.
+
+=== NOTABLE OBJECTS ===
+5 lối đi đài Ngọ Môn: Cửa Ngọ, Tả Giáp, Hữu Giáp, Tả Dịch, Hữu Dịch — phân tầng theo phẩm trật. Lầu Ngũ Phụng: 100 cột gỗ lim, biểu tượng 5 con phụng — đặc trưng kiến trúc quan trọng nhất. Mái ngói hoàng lưu ly và thanh lưu ly: màu vàng tượng trưng cho đế vương, màu xanh cho quan lại.
+
+=== PHOTO SPOTS ===
+Góc kinh điển: đứng phía Nam hồ Thái Dịch nhìn vào Ngọ Môn với hồ làm tiền cảnh phản chiếu. Góc từ lầu Ngũ Phụng: nhìn xuống sân Đại triều nghi — thấy cả Điện Thái Hòa ở phía Bắc. Góc hoàng hôn: mặt Tây của Ngọ Môn khi ánh chiều tà nhuộm vàng các mái ngói.
+────────────────────────────────────────────────────────────
+[2026-06-26 21:54:35] (source: llm)
+Câu hỏi: lầu ngũ phụng có gì
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Triều Nguyễn / Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Ngọ Môn là cổng chính phía Nam của Hoàng thành Huế — bộ mặt của cả một triều đại và là cổng lớn nhất trong bốn cổng chính. Được xây dựng vào năm 1833 dưới triều vua Minh Mạng, Ngọ Môn thay thế cho Nam Khuyết Đài thời Gia Long. Tên gọi 'Ngọ Môn' có nghĩa là 'cổng hướng về phương Ngọ' — tức phương Nam, hướng mà bậc thiên tử quay mặt để cai trị thiên hạ theo quan niệm 'Thánh nhân Nam diện nhi thính thiên hạ'. Kiến trúc Ngọ Môn gồm hai phần chính: phần đài cổng hình chữ U vững chãi và phần lầu Ngũ Phụng thanh thoát phía trên. Đài cao gần 5m, diện tích hơn 1.560m², đáy dài 57,77m, trổ 5 lối đi. Lối chính giữa (Ngọ Môn) dành riêng cho vua, hai lối bên (Tả Giáp Môn và Hữu Giáp Môn) cho quan văn võ, hai lối ngoài cùng (Tả Dịch Môn và Hữu Dịch Môn) cho binh lính và voi ngựa. Lầu Ngũ Phụng có hai tầng, kết cấu hoàn toàn bằng gỗ lim với chẵn 100 cây cột, mái chính giữa lợp ngói lưu ly vàng, tám mái còn lại lợp ngói xanh, với nhiều hình chim phụng trang trí ở bờ nóc và bờ quyết. Ngoài ra còn có 4 tòa nhà nhỏ phụ trợ hai bên Đông, Tây dực lâu. Ngọ Môn chứng kiến nhiều sự kiện lịch sử trọng đại: lễ Ban Sóc (ban lịch mới), lễ Truyền Lô (tuyên đọc tên tiến sĩ), và đặc biệt là ngày 30 tháng 8 năm 1945, vua Bảo Đại đọc Tuyên ngôn Thoái vị, trao chính quyền lại cho Chính phủ Lâm thời, khép lại chế độ quân chủ hơn 143 năm. Năm 1968, Ngọ Môn bị hư hại nặng trong trận Mậu Thân và được trùng tu với kinh phí 80 tỷ đồng, hoàn thành năm 2019. Câu ca dao xưa nhắc: 'Ngọ Môn 5 cửa 9 lầu, 1 lầu vàng 8 lầu xanh, 3 cửa thẳng 2 cửa quanh' — hãy tự mình kiểm tra xem có đúng không nhé!
+
+=== VISIBLE HIGHLIGHTS ===
+Đài nền hình chữ U: cao gần 5m, dài 57,77m, trổ 5 lối đi — mỗi lối dành cho một tầng lớp khác nhau. Lầu Ngũ Phụng: 100 cột gỗ lim, mái vàng trung tâm và 8 mái xanh xung quanh — biểu tượng phượng hoàng. Bốn tòa nhà phụ Đông, Tây dực lâu hai bên: tạo thành quần thể hoàn chỉnh nhìn từ sân. Sân Đại triều nghi phía Bắc: chứng kiến lễ thoái vị của vua Bảo Đại ngày 30/8/1945.
+
+=== SUGGESTED VISIT FLOW ===
+Đứng ở phía Nam Ngọ Môn — quan sát tổng thể đài hình chữ U và 5 lối đi, đếm thử số cửa. Tiếp cận gần: nhìn kỹ vật liệu xây dựng đài — gạch vồ, đá Thanh, và những lớp rêu phong. Bước qua cửa chính giữa (cửa Ngọ Môn) vào sân — đây là lối dành cho vua xưa. Đứng dưới chân lầu Ngũ Phụng nhìn lên — đếm hoa văn phụng trang trí trên bờ nóc. Leo lên lầu Ngũ Phụng (nếu mở): nhìn xuống sân Ngọ Môn và toàn cảnh phía Nam Hoàng thành. Nhìn ra phía Bắc để thấy trục thần đạo chính dẫn thẳng vào Điện Thái Hòa.
+
+=== NEARBY CONTEXT ===
+Phía Bắc ngay sau cổng: sân Đại triều nghi và Điện Thái Hòa. Phía Nam: Hồ Thái Dịch và quảng trường trước Ngọ Môn — nơi du khách thường chụp ảnh. Đây là điểm bắt đầu lý tưởng cho hành trình khám phá Hoàng thành theo trục Bắc-Nam.
+
+=== NOTABLE OBJECTS ===
+5 lối đi đài Ngọ Môn: Cửa Ngọ, Tả Giáp, Hữu Giáp, Tả Dịch, Hữu Dịch — phân tầng theo phẩm trật. Lầu Ngũ Phụng: 100 cột gỗ lim, biểu tượng 5 con phụng — đặc trưng kiến trúc quan trọng nhất. Mái ngói hoàng lưu ly và thanh lưu ly: màu vàng tượng trưng cho đế vương, màu xanh cho quan lại.
+
+=== PHOTO SPOTS ===
+Góc kinh điển: đứng phía Nam hồ Thái Dịch nhìn vào Ngọ Môn với hồ làm tiền cảnh phản chiếu. Góc từ lầu Ngũ Phụng: nhìn xuống sân Đại triều nghi — thấy cả Điện Thái Hòa ở phía Bắc. Góc hoàng hôn: mặt Tây của Ngọ Môn khi ánh chiều tà nhuộm vàng các mái ngói.
+────────────────────────────────────────────────────────────
+[2026-06-26 21:56:37] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Điện Thái Hòa
+Data lấy từ data của bạn: Name: Điện Thái Hòa
+Year: 1805
+Author: Vua Gia Long
+Location ID: 1
+
+=== HISTORY ===
+Điện Thái Hòa là biểu tượng quyền lực tối cao của vương triều Nguyễn, nơi diễn ra các buổi thiết triều, lễ đăng quang của 13 vị vua và đón tiếp sứ thần ngoại giao. Được xây dựng lần đầu năm 1805 dưới triều vua Gia Long, đến năm 1833 vua Minh Mạng cho dời về vị trí hiện tại và làm lại đồ sộ hơn. Năm 1923, vua Khải Định lại cho đại gia trùng kiến chuẩn bị cho lễ Tứ tuần Đại khánh tiết. Điện được xây trên nền cao 1 mét, diện tích 1.360m², với 80 cột gỗ lim sơn son thếp vàng, mỗi cột đều được chạm khắc hình rồng vờn mây tinh xảo — biểu tượng của sự gặp gỡ giữa hoàng đế và quần thần. Mái điện lợp ngói hoàng lưu ly, được chia làm ba tầng chồng mí lên nhau gọi là mái 'chồng diêm', tạo ảo giác về chiều cao và sự uy nghiêm. Giữa hai tầng mái là dải cổ diêm chạy quanh bốn mặt, được trang trí 197 bài thơ trên pháp lam theo lối nhất thi nhất họa. Từ sân Đại triều nhìn vào, vua ngồi trên ngai vàng ở gian trong cùng, còn bá quan văn võ đứng hai bên sân theo thứ bậc từ nhất phẩm đến cửu phẩm — quan văn bên trái, quan võ bên phải. Tất cả vị trí đều được đánh dấu trên hai dãy đá trước sân chầu. Một chi tiết thú vị: con số 9 xuất hiện khắp nơi trong điện — 9 cấp thềm, 9 con rồng trên mỗi mái, vì 9 là biểu tượng của vua chúa trong văn hóa phương Đông. Con số 5 cũng xuất hiện tượng trưng cho ngũ hành. Điện được xây theo lối trùng thiềm điệp ốc — một kiến trúc sáng tạo với hệ thống trần vòm mai cua dưới máng thừa lưu, tạo ra một không gian nội thất liên tục, thống nhất mà không có cảm giác ghép nối. Hãy thử đếm xem bạn có thể tìm thấy bao nhiêu hình rồng trong điện này nhé!
+
+=== VISIBLE HIGHLIGHTS ===
+Mái chồng diêm ba tầng: ngói hoàng lưu ly chất thành tầng tầng lớp lớp — nhìn từ sân lên thấy rõ hiệu ứng. Dải cổ diêm quanh bốn mặt: 197 bài thơ trên pháp lam theo lối nhất thi nhất họa. 80 cột gỗ lim sơn son thếp vàng: mỗi cột đều chạm hình rồng vờn mây. Ngai vàng trong cùng: sơn son thếp vàng, đặt trên bệ cao, nhìn ra cửa Ngọ Môn. Hai hàng đá đánh dấu vị trí bá quan văn võ trên sân Đại triều nghi.
+
+=== SUGGESTED VISIT FLOW ===
+Đứng ở sân Đại triều nghi — tưởng tượng hàng trăm quan văn võ đứng hai bên theo phẩm trật. Bước dần lên 9 bậc thềm trước cửa — chú ý từng bậc đều bằng đá nguyên khối. Vào bên trong nhìn lên trần nhà: hệ thống xà gỗ chạm khắc tinh vi và màu sắc rực rỡ. Chiêm ngưỡng ngai vàng từ khoảng cách vừa phải — hướng mắt từ ngai ra cửa chính nhìn về Ngọ Môn. Đi ra hai bên hành lang để xem chi tiết cổ diêm và pháp lam ở tầm gần.
+
+=== NEARBY CONTEXT ===
+Phía Nam: sân Đại triều nghi và Ngọ Môn — đây là trục thần đạo chính của Hoàng thành. Phía Bắc: Nền điện Cần Chánh — nơi vua làm việc hàng ngày (trung tâm hành chính). Hai bên: Tả Vu và Hữu Vu — nơi quan chờ thiết triều.
+
+=== NOTABLE OBJECTS ===
+Ngai vàng: sơn son thếp vàng, bảo vật quốc gia, đặt trên bệ đá cao 3 cấp. Bảo tán vàng: lọng vàng treo trên ngai, biểu tượng quyền lực tối cao. Long đèn: đèn chùm hình rồng treo trên trần điện, thắp sáng trong các buổi thiết triều. Pháp lam: 197 bài thơ trên men màu — kỹ thuật điêu luyện thời Nguyễn.
+
+=== PHOTO SPOTS ===
+Góc chụp đẹp nhất: đứng cuối sân Đại triều nghi, căn hai hàng đá đánh dấu bá quan với cửa điện làm trung tâm. Chụp cận: ngai vàng qua khung cửa chính. Góc rộng: từ đỉnh 9 bậc thềm nhìn ngược lại sân về phía Ngọ Môn.
+────────────────────────────────────────────────────────────
+[2026-06-26 21:57:06] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Duyệt Thị Đường
+Data lấy từ data của bạn: Name: Duyệt Thị Đường
+Year: 1826
+Author: Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Duyệt Thị Đường là nhà hát hoàng gia cổ nhất còn tồn tại ở Việt Nam, được xem là viên ngọc quý của nghệ thuật sân khấu cung đình. Được xây dựng vào năm 1826 dưới triều vua Minh Mạng trên nền của nhà hát Thanh Phong Đường cũ (1805), nhà hát nằm ở góc Đông Nam bên trong Tử Cấm Thành với tổng diện tích khuôn viên 11.740m². Kiến trúc nhà hát hình chữ nhật rộng rãi, với mái cong mềm mại tựa những đình chùa Huế, được chống đỡ bởi hai hàng cột lim sơn son cao 12 mét vẽ rồng ẩn mây cuốn chung quanh. Mỗi cột còn treo thêm một bức tranh sơn thủy vẽ cảnh Huế với khung chạm rồng nổi thiếp vàng. Điều đặc biệt là sân khấu nằm ở trung tâm, với khán giả ngồi ba phía xung quanh — một thiết kế độc đáo. Vị trí đẹp nhất là lầu hai, dành riêng cho nhà vua — từ đây, vua có thể ngắm nhìn toàn bộ sân khấu. Các bà hoàng và cung tần mỹ nữ ngồi phía sau một lớp sáo trúc thưa, có thể nhìn ra mà không bị nhìn thấy — một chi tiết đầy tinh tế và kín đáo của cung đình. Hai bên vòm có treo hai câu đối bằng chữ Hán của vua Minh Mạng, nói về sức mạnh của âm nhạc trong việc nuôi dưỡng chí khí con người. Bên hữu nhà hát là Ngự y viện, nơi sao chế thuốc cho vua và hoàng gia. Ngày nay, Duyệt Thị Đường vẫn là nơi biểu diễn Nhã nhạc cung đình Huế — Di sản Văn hóa phi vật thể của UNESCO, với hai suất diễn mỗi ngày vào lúc 10 giờ sáng và 3 giờ chiều. Nhà hát đã phục dựng 8 trong số 11 điệu múa cổ và 40 bài nhã nhạc — một kho báu văn hóa đang sống động từng ngày. Nếu có dịp, bạn hãy dừng chân ở đây để thưởng thức những điệu múa cung đình và tiếng nhạc du dương — chắc chắn sẽ là một trải nghiệm khó quên!
+
+=== VISIBLE HIGHLIGHTS ===
+Sân khấu Nhã nhạc cung đình: khu biểu diễn chính với rèm nhung và đèn chùm cổ điển. Nội thất sơn son thếp vàng tầng một: hệ thống cột gỗ lim chạm rồng phượng. Khu ngồi dành cho hoàng gia tầng hai: ban công gỗ nhìn xuống sân khấu — chỉ vua và hoàng gia được ngồi đây. Hành lang và tiền sảnh tầng một: nơi quan lại chờ đợi và chuẩn bị.
+
+=== SUGGESTED VISIT FLOW ===
+Vào từ cổng chính phía Nam — quan sát tổng thể mặt tiền nhà hát với mái ngói và trụ cột. Bước vào tiền sảnh: chiêm ngưỡng bộ cột gỗ lim sơn son và hệ thống vì kèo. Tiến vào khu khán phòng: quan sát sân khấu từ dưới lên, nhìn lên khu ngồi hoàng gia tầng hai. Leo cầu thang lên tầng hai — ngồi vào vị trí hoàng gia nhìn xuống sân khấu. Sau đó thăm phòng trưng bày về Nhã nhạc UNESCO và các hiện vật nhạc cụ cung đình.
+
+=== NEARBY CONTEXT ===
+Ngay phía Tây: Điện Kiến Trung. Phía Nam trên trục thần đạo: Điện Thái Hòa. Phía Đông Bắc: Phủ Nội Vụ — kho lưu trữ vật phẩm hoàng gia.
+
+=== NOTABLE OBJECTS ===
+Đàn Nguyệt và Đàn Tranh: nhạc cụ dây cung đình trưng bày trong nhà hát. Trống Nhã nhạc: bộ trống lớn dùng trong các buổi biểu diễn Nhã nhạc hoàng cung. Trang phục biểu diễn: áo dài cung đình thêu rồng phượng tái hiện tại phòng trưng bày.
+────────────────────────────────────────────────────────────
+[2026-06-26 21:57:42] (source: llm)
+Câu hỏi: cái phòng này để làm gì hồi xưa
+Data lấy từ data của bạn: Name: Duyệt Thị Đường
+Year: 1826
+Author: Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Duyệt Thị Đường là nhà hát hoàng gia cổ nhất còn tồn tại ở Việt Nam, được xem là viên ngọc quý của nghệ thuật sân khấu cung đình. Được xây dựng vào năm 1826 dưới triều vua Minh Mạng trên nền của nhà hát Thanh Phong Đường cũ (1805), nhà hát nằm ở góc Đông Nam bên trong Tử Cấm Thành với tổng diện tích khuôn viên 11.740m². Kiến trúc nhà hát hình chữ nhật rộng rãi, với mái cong mềm mại tựa những đình chùa Huế, được chống đỡ bởi hai hàng cột lim sơn son cao 12 mét vẽ rồng ẩn mây cuốn chung quanh. Mỗi cột còn treo thêm một bức tranh sơn thủy vẽ cảnh Huế với khung chạm rồng nổi thiếp vàng. Điều đặc biệt là sân khấu nằm ở trung tâm, với khán giả ngồi ba phía xung quanh — một thiết kế độc đáo. Vị trí đẹp nhất là lầu hai, dành riêng cho nhà vua — từ đây, vua có thể ngắm nhìn toàn bộ sân khấu. Các bà hoàng và cung tần mỹ nữ ngồi phía sau một lớp sáo trúc thưa, có thể nhìn ra mà không bị nhìn thấy — một chi tiết đầy tinh tế và kín đáo của cung đình. Hai bên vòm có treo hai câu đối bằng chữ Hán của vua Minh Mạng, nói về sức mạnh của âm nhạc trong việc nuôi dưỡng chí khí con người. Bên hữu nhà hát là Ngự y viện, nơi sao chế thuốc cho vua và hoàng gia. Ngày nay, Duyệt Thị Đường vẫn là nơi biểu diễn Nhã nhạc cung đình Huế — Di sản Văn hóa phi vật thể của UNESCO, với hai suất diễn mỗi ngày vào lúc 10 giờ sáng và 3 giờ chiều. Nhà hát đã phục dựng 8 trong số 11 điệu múa cổ và 40 bài nhã nhạc — một kho báu văn hóa đang sống động từng ngày. Nếu có dịp, bạn hãy dừng chân ở đây để thưởng thức những điệu múa cung đình và tiếng nhạc du dương — chắc chắn sẽ là một trải nghiệm khó quên!
+
+=== VISIBLE HIGHLIGHTS ===
+Sân khấu Nhã nhạc cung đình: khu biểu diễn chính với rèm nhung và đèn chùm cổ điển. Nội thất sơn son thếp vàng tầng một: hệ thống cột gỗ lim chạm rồng phượng. Khu ngồi dành cho hoàng gia tầng hai: ban công gỗ nhìn xuống sân khấu — chỉ vua và hoàng gia được ngồi đây. Hành lang và tiền sảnh tầng một: nơi quan lại chờ đợi và chuẩn bị.
+
+=== SUGGESTED VISIT FLOW ===
+Vào từ cổng chính phía Nam — quan sát tổng thể mặt tiền nhà hát với mái ngói và trụ cột. Bước vào tiền sảnh: chiêm ngưỡng bộ cột gỗ lim sơn son và hệ thống vì kèo. Tiến vào khu khán phòng: quan sát sân khấu từ dưới lên, nhìn lên khu ngồi hoàng gia tầng hai. Leo cầu thang lên tầng hai — ngồi vào vị trí hoàng gia nhìn xuống sân khấu. Sau đó thăm phòng trưng bày về Nhã nhạc UNESCO và các hiện vật nhạc cụ cung đình.
+
+=== NEARBY CONTEXT ===
+Ngay phía Tây: Điện Kiến Trung. Phía Nam trên trục thần đạo: Điện Thái Hòa. Phía Đông Bắc: Phủ Nội Vụ — kho lưu trữ vật phẩm hoàng gia.
+
+=== NOTABLE OBJECTS ===
+Đàn Nguyệt và Đàn Tranh: nhạc cụ dây cung đình trưng bày trong nhà hát. Trống Nhã nhạc: bộ trống lớn dùng trong các buổi biểu diễn Nhã nhạc hoàng cung. Trang phục biểu diễn: áo dài cung đình thêu rồng phượng tái hiện tại phòng trưng bày.
+────────────────────────────────────────────────────────────
+[2026-06-26 22:04:36] (source: template)
+Câu hỏi: Xin chào
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: unknown
+Author: unknown
+Location ID: 1
+
+=== HISTORY ===
+vi
+────────────────────────────────────────────────────────────
+[2026-06-26 22:05:19] (source: template)
+Câu hỏi: Xin chào
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: unknown
+Author: unknown
+Location ID: 1
+
+=== HISTORY ===
+vi
+────────────────────────────────────────────────────────────
+[2026-06-26 22:06:03] (source: template)
+Câu hỏi: Xin chào
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: unknown
+Author: unknown
+Location ID: 1
+
+=== HISTORY ===
+vi
+────────────────────────────────────────────────────────────
+[2026-06-26 22:21:12] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Ngọ Môn
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Triều Nguyễn / Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Ngọ Môn là cổng chính phía Nam của Hoàng thành Huế — bộ mặt của cả một triều đại và là cổng lớn nhất trong bốn cổng chính. Được xây dựng vào năm 1833 dưới triều vua Minh Mạng, Ngọ Môn thay thế cho Nam Khuyết Đài thời Gia Long. Tên gọi 'Ngọ Môn' có nghĩa là 'cổng hướng về phương Ngọ' — tức phương Nam, hướng mà bậc thiên tử quay mặt để cai trị thiên hạ theo quan niệm 'Thánh nhân Nam diện nhi thính thiên hạ'. Kiến trúc Ngọ Môn gồm hai phần chính: phần đài cổng hình chữ U vững chãi và phần lầu Ngũ Phụng thanh thoát phía trên. Đài cao gần 5m, diện tích hơn 1.560m², đáy dài 57,77m, trổ 5 lối đi. Lối chính giữa (Ngọ Môn) dành riêng cho vua, hai lối bên (Tả Giáp Môn và Hữu Giáp Môn) cho quan văn võ, hai lối ngoài cùng (Tả Dịch Môn và Hữu Dịch Môn) cho binh lính và voi ngựa. Lầu Ngũ Phụng có hai tầng, kết cấu hoàn toàn bằng gỗ lim với chẵn 100 cây cột, mái chính giữa lợp ngói lưu ly vàng, tám mái còn lại lợp ngói xanh, với nhiều hình chim phụng trang trí ở bờ nóc và bờ quyết. Ngoài ra còn có 4 tòa nhà nhỏ phụ trợ hai bên Đông, Tây dực lâu. Ngọ Môn chứng kiến nhiều sự kiện lịch sử trọng đại: lễ Ban Sóc (ban lịch mới), lễ Truyền Lô (tuyên đọc tên tiến sĩ), và đặc biệt là ngày 30 tháng 8 năm 1945, vua Bảo Đại đọc Tuyên ngôn Thoái vị, trao chính quyền lại cho Chính phủ Lâm thời, khép lại chế độ quân chủ hơn 143 năm. Năm 1968, Ngọ Môn bị hư hại nặng trong trận Mậu Thân và được trùng tu với kinh phí 80 tỷ đồng, hoàn thành năm 2019. Câu ca dao xưa nhắc: 'Ngọ Môn 5 cửa 9 lầu, 1 lầu vàng 8 lầu xanh, 3 cửa thẳng 2 cửa quanh' — hãy tự mình kiểm tra xem có đúng không nhé!
+
+=== VISIBLE HIGHLIGHTS ===
+Đài nền hình chữ U: cao gần 5m, dài 57,77m, trổ 5 lối đi — mỗi lối dành cho một tầng lớp khác nhau. Lầu Ngũ Phụng: 100 cột gỗ lim, mái vàng trung tâm và 8 mái xanh xung quanh — biểu tượng phượng hoàng. Bốn tòa nhà phụ Đông, Tây dực lâu hai bên: tạo thành quần thể hoàn chỉnh nhìn từ sân. Sân Đại triều nghi phía Bắc: chứng kiến lễ thoái vị của vua Bảo Đại ngày 30/8/1945.
+
+=== SUGGESTED VISIT FLOW ===
+Đứng ở phía Nam Ngọ Môn — quan sát tổng thể đài hình chữ U và 5 lối đi, đếm thử số cửa. Tiếp cận gần: nhìn kỹ vật liệu xây dựng đài — gạch vồ, đá Thanh, và những lớp rêu phong. Bước qua cửa chính giữa (cửa Ngọ Môn) vào sân — đây là lối dành cho vua xưa. Đứng dưới chân lầu Ngũ Phụng nhìn lên — đếm hoa văn phụng trang trí trên bờ nóc. Leo lên lầu Ngũ Phụng (nếu mở): nhìn xuống sân Ngọ Môn và toàn cảnh phía Nam Hoàng thành. Nhìn ra phía Bắc để thấy trục thần đạo chính dẫn thẳng vào Điện Thái Hòa.
+
+=== NEARBY CONTEXT ===
+Phía Bắc ngay sau cổng: sân Đại triều nghi và Điện Thái Hòa. Phía Nam: Hồ Thái Dịch và quảng trường trước Ngọ Môn — nơi du khách thường chụp ảnh. Đây là điểm bắt đầu lý tưởng cho hành trình khám phá Hoàng thành theo trục Bắc-Nam.
+
+=== NOTABLE OBJECTS ===
+5 lối đi đài Ngọ Môn: Cửa Ngọ, Tả Giáp, Hữu Giáp, Tả Dịch, Hữu Dịch — phân tầng theo phẩm trật. Lầu Ngũ Phụng: 100 cột gỗ lim, biểu tượng 5 con phụng — đặc trưng kiến trúc quan trọng nhất. Mái ngói hoàng lưu ly và thanh lưu ly: màu vàng tượng trưng cho đế vương, màu xanh cho quan lại.
+
+=== PHOTO SPOTS ===
+Góc kinh điển: đứng phía Nam hồ Thái Dịch nhìn vào Ngọ Môn với hồ làm tiền cảnh phản chiếu. Góc từ lầu Ngũ Phụng: nhìn xuống sân Đại triều nghi — thấy cả Điện Thái Hòa ở phía Bắc. Góc hoàng hôn: mặt Tây của Ngọ Môn khi ánh chiều tà nhuộm vàng các mái ngói.
+────────────────────────────────────────────────────────────
+[2026-06-26 22:22:53] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Duyệt Thị Đường
+Data lấy từ data của bạn: Name: Duyệt Thị Đường
+Year: 1826
+Author: Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Duyệt Thị Đường là nhà hát hoàng gia cổ nhất còn tồn tại ở Việt Nam, được xem là viên ngọc quý của nghệ thuật sân khấu cung đình. Được xây dựng vào năm 1826 dưới triều vua Minh Mạng trên nền của nhà hát Thanh Phong Đường cũ (1805), nhà hát nằm ở góc Đông Nam bên trong Tử Cấm Thành với tổng diện tích khuôn viên 11.740m². Kiến trúc nhà hát hình chữ nhật rộng rãi, với mái cong mềm mại tựa những đình chùa Huế, được chống đỡ bởi hai hàng cột lim sơn son cao 12 mét vẽ rồng ẩn mây cuốn chung quanh. Mỗi cột còn treo thêm một bức tranh sơn thủy vẽ cảnh Huế với khung chạm rồng nổi thiếp vàng. Điều đặc biệt là sân khấu nằm ở trung tâm, với khán giả ngồi ba phía xung quanh — một thiết kế độc đáo. Vị trí đẹp nhất là lầu hai, dành riêng cho nhà vua — từ đây, vua có thể ngắm nhìn toàn bộ sân khấu. Các bà hoàng và cung tần mỹ nữ ngồi phía sau một lớp sáo trúc thưa, có thể nhìn ra mà không bị nhìn thấy — một chi tiết đầy tinh tế và kín đáo của cung đình. Hai bên vòm có treo hai câu đối bằng chữ Hán của vua Minh Mạng, nói về sức mạnh của âm nhạc trong việc nuôi dưỡng chí khí con người. Bên hữu nhà hát là Ngự y viện, nơi sao chế thuốc cho vua và hoàng gia. Ngày nay, Duyệt Thị Đường vẫn là nơi biểu diễn Nhã nhạc cung đình Huế — Di sản Văn hóa phi vật thể của UNESCO, với hai suất diễn mỗi ngày vào lúc 10 giờ sáng và 3 giờ chiều. Nhà hát đã phục dựng 8 trong số 11 điệu múa cổ và 40 bài nhã nhạc — một kho báu văn hóa đang sống động từng ngày. Nếu có dịp, bạn hãy dừng chân ở đây để thưởng thức những điệu múa cung đình và tiếng nhạc du dương — chắc chắn sẽ là một trải nghiệm khó quên!
+
+=== VISIBLE HIGHLIGHTS ===
+Sân khấu Nhã nhạc cung đình: khu biểu diễn chính với rèm nhung và đèn chùm cổ điển. Nội thất sơn son thếp vàng tầng một: hệ thống cột gỗ lim chạm rồng phượng. Khu ngồi dành cho hoàng gia tầng hai: ban công gỗ nhìn xuống sân khấu — chỉ vua và hoàng gia được ngồi đây. Hành lang và tiền sảnh tầng một: nơi quan lại chờ đợi và chuẩn bị.
+
+=== SUGGESTED VISIT FLOW ===
+Vào từ cổng chính phía Nam — quan sát tổng thể mặt tiền nhà hát với mái ngói và trụ cột. Bước vào tiền sảnh: chiêm ngưỡng bộ cột gỗ lim sơn son và hệ thống vì kèo. Tiến vào khu khán phòng: quan sát sân khấu từ dưới lên, nhìn lên khu ngồi hoàng gia tầng hai. Leo cầu thang lên tầng hai — ngồi vào vị trí hoàng gia nhìn xuống sân khấu. Sau đó thăm phòng trưng bày về Nhã nhạc UNESCO và các hiện vật nhạc cụ cung đình.
+
+=== NEARBY CONTEXT ===
+Ngay phía Tây: Điện Kiến Trung. Phía Nam trên trục thần đạo: Điện Thái Hòa. Phía Đông Bắc: Phủ Nội Vụ — kho lưu trữ vật phẩm hoàng gia.
+
+=== NOTABLE OBJECTS ===
+Đàn Nguyệt và Đàn Tranh: nhạc cụ dây cung đình trưng bày trong nhà hát. Trống Nhã nhạc: bộ trống lớn dùng trong các buổi biểu diễn Nhã nhạc hoàng cung. Trang phục biểu diễn: áo dài cung đình thêu rồng phượng tái hiện tại phòng trưng bày.
+────────────────────────────────────────────────────────────
+[2026-06-26 22:23:47] (source: llm)
+Câu hỏi: cái phòng này xưa dùng để làm gì
+Data lấy từ data của bạn: Name: Duyệt Thị Đường
+Year: 1826
+Author: Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Duyệt Thị Đường là nhà hát hoàng gia cổ nhất còn tồn tại ở Việt Nam, được xem là viên ngọc quý của nghệ thuật sân khấu cung đình. Được xây dựng vào năm 1826 dưới triều vua Minh Mạng trên nền của nhà hát Thanh Phong Đường cũ (1805), nhà hát nằm ở góc Đông Nam bên trong Tử Cấm Thành với tổng diện tích khuôn viên 11.740m². Kiến trúc nhà hát hình chữ nhật rộng rãi, với mái cong mềm mại tựa những đình chùa Huế, được chống đỡ bởi hai hàng cột lim sơn son cao 12 mét vẽ rồng ẩn mây cuốn chung quanh. Mỗi cột còn treo thêm một bức tranh sơn thủy vẽ cảnh Huế với khung chạm rồng nổi thiếp vàng. Điều đặc biệt là sân khấu nằm ở trung tâm, với khán giả ngồi ba phía xung quanh — một thiết kế độc đáo. Vị trí đẹp nhất là lầu hai, dành riêng cho nhà vua — từ đây, vua có thể ngắm nhìn toàn bộ sân khấu. Các bà hoàng và cung tần mỹ nữ ngồi phía sau một lớp sáo trúc thưa, có thể nhìn ra mà không bị nhìn thấy — một chi tiết đầy tinh tế và kín đáo của cung đình. Hai bên vòm có treo hai câu đối bằng chữ Hán của vua Minh Mạng, nói về sức mạnh của âm nhạc trong việc nuôi dưỡng chí khí con người. Bên hữu nhà hát là Ngự y viện, nơi sao chế thuốc cho vua và hoàng gia. Ngày nay, Duyệt Thị Đường vẫn là nơi biểu diễn Nhã nhạc cung đình Huế — Di sản Văn hóa phi vật thể của UNESCO, với hai suất diễn mỗi ngày vào lúc 10 giờ sáng và 3 giờ chiều. Nhà hát đã phục dựng 8 trong số 11 điệu múa cổ và 40 bài nhã nhạc — một kho báu văn hóa đang sống động từng ngày. Nếu có dịp, bạn hãy dừng chân ở đây để thưởng thức những điệu múa cung đình và tiếng nhạc du dương — chắc chắn sẽ là một trải nghiệm khó quên!
+
+=== VISIBLE HIGHLIGHTS ===
+Sân khấu Nhã nhạc cung đình: khu biểu diễn chính với rèm nhung và đèn chùm cổ điển. Nội thất sơn son thếp vàng tầng một: hệ thống cột gỗ lim chạm rồng phượng. Khu ngồi dành cho hoàng gia tầng hai: ban công gỗ nhìn xuống sân khấu — chỉ vua và hoàng gia được ngồi đây. Hành lang và tiền sảnh tầng một: nơi quan lại chờ đợi và chuẩn bị.
+
+=== SUGGESTED VISIT FLOW ===
+Vào từ cổng chính phía Nam — quan sát tổng thể mặt tiền nhà hát với mái ngói và trụ cột. Bước vào tiền sảnh: chiêm ngưỡng bộ cột gỗ lim sơn son và hệ thống vì kèo. Tiến vào khu khán phòng: quan sát sân khấu từ dưới lên, nhìn lên khu ngồi hoàng gia tầng hai. Leo cầu thang lên tầng hai — ngồi vào vị trí hoàng gia nhìn xuống sân khấu. Sau đó thăm phòng trưng bày về Nhã nhạc UNESCO và các hiện vật nhạc cụ cung đình.
+
+=== NEARBY CONTEXT ===
+Ngay phía Tây: Điện Kiến Trung. Phía Nam trên trục thần đạo: Điện Thái Hòa. Phía Đông Bắc: Phủ Nội Vụ — kho lưu trữ vật phẩm hoàng gia.
+
+=== NOTABLE OBJECTS ===
+Đàn Nguyệt và Đàn Tranh: nhạc cụ dây cung đình trưng bày trong nhà hát. Trống Nhã nhạc: bộ trống lớn dùng trong các buổi biểu diễn Nhã nhạc hoàng cung. Trang phục biểu diễn: áo dài cung đình thêu rồng phượng tái hiện tại phòng trưng bày.
+────────────────────────────────────────────────────────────
+[2026-06-26 22:26:57] (source: llm)
+Câu hỏi: này hồi xưa dùng để làm gì
+Data lấy từ data của bạn: Name: Duyệt Thị Đường
+Year: 1826
+Author: Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Duyệt Thị Đường là nhà hát hoàng gia cổ nhất còn tồn tại ở Việt Nam, được xem là viên ngọc quý của nghệ thuật sân khấu cung đình. Được xây dựng vào năm 1826 dưới triều vua Minh Mạng trên nền của nhà hát Thanh Phong Đường cũ (1805), nhà hát nằm ở góc Đông Nam bên trong Tử Cấm Thành với tổng diện tích khuôn viên 11.740m². Kiến trúc nhà hát hình chữ nhật rộng rãi, với mái cong mềm mại tựa những đình chùa Huế, được chống đỡ bởi hai hàng cột lim sơn son cao 12 mét vẽ rồng ẩn mây cuốn chung quanh. Mỗi cột còn treo thêm một bức tranh sơn thủy vẽ cảnh Huế với khung chạm rồng nổi thiếp vàng. Điều đặc biệt là sân khấu nằm ở trung tâm, với khán giả ngồi ba phía xung quanh — một thiết kế độc đáo. Vị trí đẹp nhất là lầu hai, dành riêng cho nhà vua — từ đây, vua có thể ngắm nhìn toàn bộ sân khấu. Các bà hoàng và cung tần mỹ nữ ngồi phía sau một lớp sáo trúc thưa, có thể nhìn ra mà không bị nhìn thấy — một chi tiết đầy tinh tế và kín đáo của cung đình. Hai bên vòm có treo hai câu đối bằng chữ Hán của vua Minh Mạng, nói về sức mạnh của âm nhạc trong việc nuôi dưỡng chí khí con người. Bên hữu nhà hát là Ngự y viện, nơi sao chế thuốc cho vua và hoàng gia. Ngày nay, Duyệt Thị Đường vẫn là nơi biểu diễn Nhã nhạc cung đình Huế — Di sản Văn hóa phi vật thể của UNESCO, với hai suất diễn mỗi ngày vào lúc 10 giờ sáng và 3 giờ chiều. Nhà hát đã phục dựng 8 trong số 11 điệu múa cổ và 40 bài nhã nhạc — một kho báu văn hóa đang sống động từng ngày. Nếu có dịp, bạn hãy dừng chân ở đây để thưởng thức những điệu múa cung đình và tiếng nhạc du dương — chắc chắn sẽ là một trải nghiệm khó quên!
+
+=== VISIBLE HIGHLIGHTS ===
+Sân khấu Nhã nhạc cung đình: khu biểu diễn chính với rèm nhung và đèn chùm cổ điển. Nội thất sơn son thếp vàng tầng một: hệ thống cột gỗ lim chạm rồng phượng. Khu ngồi dành cho hoàng gia tầng hai: ban công gỗ nhìn xuống sân khấu — chỉ vua và hoàng gia được ngồi đây. Hành lang và tiền sảnh tầng một: nơi quan lại chờ đợi và chuẩn bị.
+
+=== SUGGESTED VISIT FLOW ===
+Vào từ cổng chính phía Nam — quan sát tổng thể mặt tiền nhà hát với mái ngói và trụ cột. Bước vào tiền sảnh: chiêm ngưỡng bộ cột gỗ lim sơn son và hệ thống vì kèo. Tiến vào khu khán phòng: quan sát sân khấu từ dưới lên, nhìn lên khu ngồi hoàng gia tầng hai. Leo cầu thang lên tầng hai — ngồi vào vị trí hoàng gia nhìn xuống sân khấu. Sau đó thăm phòng trưng bày về Nhã nhạc UNESCO và các hiện vật nhạc cụ cung đình.
+
+=== NEARBY CONTEXT ===
+Ngay phía Tây: Điện Kiến Trung. Phía Nam trên trục thần đạo: Điện Thái Hòa. Phía Đông Bắc: Phủ Nội Vụ — kho lưu trữ vật phẩm hoàng gia.
+
+=== NOTABLE OBJECTS ===
+Đàn Nguyệt và Đàn Tranh: nhạc cụ dây cung đình trưng bày trong nhà hát. Trống Nhã nhạc: bộ trống lớn dùng trong các buổi biểu diễn Nhã nhạc hoàng cung. Trang phục biểu diễn: áo dài cung đình thêu rồng phượng tái hiện tại phòng trưng bày.
+────────────────────────────────────────────────────────────
+[2026-06-26 22:28:38] (source: llm)
+Câu hỏi: cái này hồi xưa để làm gì
+Data lấy từ data của bạn: Name: Điện Kiến Trung
+Year: 1921
+Author: Vua Khải Định
+Location ID: 1
+
+=== HISTORY ===
+Điện Kiến Trung tọa lạc ở điểm cực Bắc của trục thần đạo xuyên suốt Tử Cấm Thành, được vua Khải Định cho xây dựng từ năm 1921 đến 1923. Trước khi có điện này, nơi đây từng là lầu Minh Viễn thời Minh Mạng (1827-1876) rồi lầu Du Cửu thời Đồng Khánh (1913-1916), nhưng vua Khải Định đã cho triệt giải hoàn toàn để xây một tòa cung điện mới, làm nơi sinh hoạt và làm việc của mình. Điện Kiến Trung là đỉnh cao của phong cách kiến trúc Đông Dương, pha trộn hài hòa giữa kiến trúc Baroque, Phục Hưng của châu Âu với nét cổ truyền Việt Nam. Mặt tiền được trang trí bằng những mảnh gốm sứ nhiều màu tinh xảo, tạo nên một vẻ đẹp sang trọng và độc đáo. Tầng chính trổ 13 cửa hiên, tầng trên là gác mái ngói có lan can trang trí theo phong cách Việt Nam. Trước điện là vườn cảnh với ba cầu thang đắp rồng uốn lượn dẫn lên thềm điện. Đây là nơi ở của hai vị vua cuối cùng triều Nguyễn: Khải Định và Bảo Đại. Chính tại đây, Hoàng hậu Nam Phương đã hạ sinh Thái tử Bảo Long vào ngày 4 tháng 1 năm 1936. Ngày 11 tháng 3 năm 1945, vua Bảo Đại triệu cố vấn tối cao Nhật Bản là đại sứ Yokoyama vào điện này để tuyên bố nước Việt Nam độc lập. Tháng 8 năm 1945, vua Bảo Đại đã tiếp phái đoàn Chính phủ Lâm thời tại điện để trao ấn kiếm thoái vị, khép lại hơn 143 năm trị vì của triều Nguyễn. Điện bị phá hủy tháng 2 năm 1947 trong chiến dịch tiêu thổ kháng chiến, và được phục dựng hoàn thành vào năm 2024 với kinh phí hơn 123 tỉ đồng. Hãy nhìn lên những mái ngói lưu ly kia — chúng đã được các nghệ nhân phục dựng tỉ mỉ dựa trên những bức ảnh tư liệu từ thập niên 1920. Quá trình phục dựng kéo dài nhiều năm với sự hợp tác của các nhà nghiên cứu lịch sử, văn hóa và mỹ thuật Huế, cùng với sự tham gia của Phân viện khoa học công nghệ xây dựng Miền Trung. Hôm nay, bạn đang đứng trước một kỳ tích phục dựng đầy cảm động — một công trình đã sống lại từ đống tro tàn.
+
+=== VISIBLE HIGHLIGHTS ===
+Mặt tiền Đông – Tây khảm gốm sứ đa màu sắc — điểm nhấn kiến trúc Đông Dương độc đáo. Ba cầu thang rồng đắp nổi uốn lượn dẫn lên thềm điện. Tầng một: 13 cửa hiên vòm Baroque, ban công tầng hai lan can trang trí Việt Nam. Nội thất: bàn làm việc phòng của vua Bảo Đại được phục dựng, bản đồ toàn quốc treo tường. Sân thượng tầng hai: view nhìn xuống toàn bộ Tử Cấm Thành về phía Nam.
+
+=== SUGGESTED VISIT FLOW ===
+Tiếp cận từ phía Nam qua sân vườn với ba cầu thang rồng. Chiêm ngưỡng toàn bộ mặt tiền trước khi bước lên — chú ý mảnh sứ khảm và cột đèn kiểu Pháp. Bước vào tầng một: quan sát khu vực phòng khách, không gian làm việc và cầu thang rộng giữa nhà. Lên tầng hai: phòng ngủ hoàng gia và ban công nhìn ra vườn phía trước. Ra phía sân thượng để ngắm tổng thể Tử Cấm Thành từ trên cao — hướng về Điện Thái Hòa ở phía Nam.
+
+=== NEARBY CONTEXT ===
+Phía Nam: Điện Thái Hòa và sân Đại triều nghi nổi tiếng. Phía Bắc: Cửa Hòa Bình và hướng ra sông Hương. Gần đó: Duyệt Thị Đường — nhà hát cung đình còn nguyên vẹn nhất Việt Nam.
+
+=== NOTABLE OBJECTS ===
+Bộ gốm sứ khảm mặt tiền: hàng trăm mảnh ghép tạo thành những bức tranh phong cảnh. Cầu thang rồng: đá đắp nổi hình rồng uốn lượn — biểu tượng quyền uy. Đèn chùm pha lê phòng đón khách: di vật thời Khải Định — Bảo Đại. Bản đồ Đông Dương và phòng làm việc của vua Bảo Đại: tái hiện chính xác theo tư liệu lịch sử.
+────────────────────────────────────────────────────────────
+[2026-06-26 22:29:21] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Ngọ Môn
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Triều Nguyễn / Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Ngọ Môn là cổng chính phía Nam của Hoàng thành Huế — bộ mặt của cả một triều đại và là cổng lớn nhất trong bốn cổng chính. Được xây dựng vào năm 1833 dưới triều vua Minh Mạng, Ngọ Môn thay thế cho Nam Khuyết Đài thời Gia Long. Tên gọi 'Ngọ Môn' có nghĩa là 'cổng hướng về phương Ngọ' — tức phương Nam, hướng mà bậc thiên tử quay mặt để cai trị thiên hạ theo quan niệm 'Thánh nhân Nam diện nhi thính thiên hạ'. Kiến trúc Ngọ Môn gồm hai phần chính: phần đài cổng hình chữ U vững chãi và phần lầu Ngũ Phụng thanh thoát phía trên. Đài cao gần 5m, diện tích hơn 1.560m², đáy dài 57,77m, trổ 5 lối đi. Lối chính giữa (Ngọ Môn) dành riêng cho vua, hai lối bên (Tả Giáp Môn và Hữu Giáp Môn) cho quan văn võ, hai lối ngoài cùng (Tả Dịch Môn và Hữu Dịch Môn) cho binh lính và voi ngựa. Lầu Ngũ Phụng có hai tầng, kết cấu hoàn toàn bằng gỗ lim với chẵn 100 cây cột, mái chính giữa lợp ngói lưu ly vàng, tám mái còn lại lợp ngói xanh, với nhiều hình chim phụng trang trí ở bờ nóc và bờ quyết. Ngoài ra còn có 4 tòa nhà nhỏ phụ trợ hai bên Đông, Tây dực lâu. Ngọ Môn chứng kiến nhiều sự kiện lịch sử trọng đại: lễ Ban Sóc (ban lịch mới), lễ Truyền Lô (tuyên đọc tên tiến sĩ), và đặc biệt là ngày 30 tháng 8 năm 1945, vua Bảo Đại đọc Tuyên ngôn Thoái vị, trao chính quyền lại cho Chính phủ Lâm thời, khép lại chế độ quân chủ hơn 143 năm. Năm 1968, Ngọ Môn bị hư hại nặng trong trận Mậu Thân và được trùng tu với kinh phí 80 tỷ đồng, hoàn thành năm 2019. Câu ca dao xưa nhắc: 'Ngọ Môn 5 cửa 9 lầu, 1 lầu vàng 8 lầu xanh, 3 cửa thẳng 2 cửa quanh' — hãy tự mình kiểm tra xem có đúng không nhé!
+
+=== VISIBLE HIGHLIGHTS ===
+Đài nền hình chữ U: cao gần 5m, dài 57,77m, trổ 5 lối đi — mỗi lối dành cho một tầng lớp khác nhau. Lầu Ngũ Phụng: 100 cột gỗ lim, mái vàng trung tâm và 8 mái xanh xung quanh — biểu tượng phượng hoàng. Bốn tòa nhà phụ Đông, Tây dực lâu hai bên: tạo thành quần thể hoàn chỉnh nhìn từ sân. Sân Đại triều nghi phía Bắc: chứng kiến lễ thoái vị của vua Bảo Đại ngày 30/8/1945.
+
+=== SUGGESTED VISIT FLOW ===
+Đứng ở phía Nam Ngọ Môn — quan sát tổng thể đài hình chữ U và 5 lối đi, đếm thử số cửa. Tiếp cận gần: nhìn kỹ vật liệu xây dựng đài — gạch vồ, đá Thanh, và những lớp rêu phong. Bước qua cửa chính giữa (cửa Ngọ Môn) vào sân — đây là lối dành cho vua xưa. Đứng dưới chân lầu Ngũ Phụng nhìn lên — đếm hoa văn phụng trang trí trên bờ nóc. Leo lên lầu Ngũ Phụng (nếu mở): nhìn xuống sân Ngọ Môn và toàn cảnh phía Nam Hoàng thành. Nhìn ra phía Bắc để thấy trục thần đạo chính dẫn thẳng vào Điện Thái Hòa.
+
+=== NEARBY CONTEXT ===
+Phía Bắc ngay sau cổng: sân Đại triều nghi và Điện Thái Hòa. Phía Nam: Hồ Thái Dịch và quảng trường trước Ngọ Môn — nơi du khách thường chụp ảnh. Đây là điểm bắt đầu lý tưởng cho hành trình khám phá Hoàng thành theo trục Bắc-Nam.
+
+=== NOTABLE OBJECTS ===
+5 lối đi đài Ngọ Môn: Cửa Ngọ, Tả Giáp, Hữu Giáp, Tả Dịch, Hữu Dịch — phân tầng theo phẩm trật. Lầu Ngũ Phụng: 100 cột gỗ lim, biểu tượng 5 con phụng — đặc trưng kiến trúc quan trọng nhất. Mái ngói hoàng lưu ly và thanh lưu ly: màu vàng tượng trưng cho đế vương, màu xanh cho quan lại.
+
+=== PHOTO SPOTS ===
+Góc kinh điển: đứng phía Nam hồ Thái Dịch nhìn vào Ngọ Môn với hồ làm tiền cảnh phản chiếu. Góc từ lầu Ngũ Phụng: nhìn xuống sân Đại triều nghi — thấy cả Điện Thái Hòa ở phía Bắc. Góc hoàng hôn: mặt Tây của Ngọ Môn khi ánh chiều tà nhuộm vàng các mái ngói.
+────────────────────────────────────────────────────────────
+[2026-06-26 22:32:11] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Ngọ Môn
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Triều Nguyễn / Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Ngọ Môn là cổng chính phía Nam của Hoàng thành Huế — bộ mặt của cả một triều đại và là cổng lớn nhất trong bốn cổng chính. Được xây dựng vào năm 1833 dưới triều vua Minh Mạng, Ngọ Môn thay thế cho Nam Khuyết Đài thời Gia Long. Tên gọi 'Ngọ Môn' có nghĩa là 'cổng hướng về phương Ngọ' — tức phương Nam, hướng mà bậc thiên tử quay mặt để cai trị thiên hạ theo quan niệm 'Thánh nhân Nam diện nhi thính thiên hạ'. Kiến trúc Ngọ Môn gồm hai phần chính: phần đài cổng hình chữ U vững chãi và phần lầu Ngũ Phụng thanh thoát phía trên. Đài cao gần 5m, diện tích hơn 1.560m², đáy dài 57,77m, trổ 5 lối đi. Lối chính giữa (Ngọ Môn) dành riêng cho vua, hai lối bên (Tả Giáp Môn và Hữu Giáp Môn) cho quan văn võ, hai lối ngoài cùng (Tả Dịch Môn và Hữu Dịch Môn) cho binh lính và voi ngựa. Lầu Ngũ Phụng có hai tầng, kết cấu hoàn toàn bằng gỗ lim với chẵn 100 cây cột, mái chính giữa lợp ngói lưu ly vàng, tám mái còn lại lợp ngói xanh, với nhiều hình chim phụng trang trí ở bờ nóc và bờ quyết. Ngoài ra còn có 4 tòa nhà nhỏ phụ trợ hai bên Đông, Tây dực lâu. Ngọ Môn chứng kiến nhiều sự kiện lịch sử trọng đại: lễ Ban Sóc (ban lịch mới), lễ Truyền Lô (tuyên đọc tên tiến sĩ), và đặc biệt là ngày 30 tháng 8 năm 1945, vua Bảo Đại đọc Tuyên ngôn Thoái vị, trao chính quyền lại cho Chính phủ Lâm thời, khép lại chế độ quân chủ hơn 143 năm. Năm 1968, Ngọ Môn bị hư hại nặng trong trận Mậu Thân và được trùng tu với kinh phí 80 tỷ đồng, hoàn thành năm 2019. Câu ca dao xưa nhắc: 'Ngọ Môn 5 cửa 9 lầu, 1 lầu vàng 8 lầu xanh, 3 cửa thẳng 2 cửa quanh' — hãy tự mình kiểm tra xem có đúng không nhé!
+
+=== VISIBLE HIGHLIGHTS ===
+Đài nền hình chữ U: cao gần 5m, dài 57,77m, trổ 5 lối đi — mỗi lối dành cho một tầng lớp khác nhau. Lầu Ngũ Phụng: 100 cột gỗ lim, mái vàng trung tâm và 8 mái xanh xung quanh — biểu tượng phượng hoàng. Bốn tòa nhà phụ Đông, Tây dực lâu hai bên: tạo thành quần thể hoàn chỉnh nhìn từ sân. Sân Đại triều nghi phía Bắc: chứng kiến lễ thoái vị của vua Bảo Đại ngày 30/8/1945.
+
+=== SUGGESTED VISIT FLOW ===
+Đứng ở phía Nam Ngọ Môn — quan sát tổng thể đài hình chữ U và 5 lối đi, đếm thử số cửa. Tiếp cận gần: nhìn kỹ vật liệu xây dựng đài — gạch vồ, đá Thanh, và những lớp rêu phong. Bước qua cửa chính giữa (cửa Ngọ Môn) vào sân — đây là lối dành cho vua xưa. Đứng dưới chân lầu Ngũ Phụng nhìn lên — đếm hoa văn phụng trang trí trên bờ nóc. Leo lên lầu Ngũ Phụng (nếu mở): nhìn xuống sân Ngọ Môn và toàn cảnh phía Nam Hoàng thành. Nhìn ra phía Bắc để thấy trục thần đạo chính dẫn thẳng vào Điện Thái Hòa.
+
+=== NEARBY CONTEXT ===
+Phía Bắc ngay sau cổng: sân Đại triều nghi và Điện Thái Hòa. Phía Nam: Hồ Thái Dịch và quảng trường trước Ngọ Môn — nơi du khách thường chụp ảnh. Đây là điểm bắt đầu lý tưởng cho hành trình khám phá Hoàng thành theo trục Bắc-Nam.
+
+=== NOTABLE OBJECTS ===
+5 lối đi đài Ngọ Môn: Cửa Ngọ, Tả Giáp, Hữu Giáp, Tả Dịch, Hữu Dịch — phân tầng theo phẩm trật. Lầu Ngũ Phụng: 100 cột gỗ lim, biểu tượng 5 con phụng — đặc trưng kiến trúc quan trọng nhất. Mái ngói hoàng lưu ly và thanh lưu ly: màu vàng tượng trưng cho đế vương, màu xanh cho quan lại.
+
+=== PHOTO SPOTS ===
+Góc kinh điển: đứng phía Nam hồ Thái Dịch nhìn vào Ngọ Môn với hồ làm tiền cảnh phản chiếu. Góc từ lầu Ngũ Phụng: nhìn xuống sân Đại triều nghi — thấy cả Điện Thái Hòa ở phía Bắc. Góc hoàng hôn: mặt Tây của Ngọ Môn khi ánh chiều tà nhuộm vàng các mái ngói.
+────────────────────────────────────────────────────────────
+[2026-06-26 22:36:42] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Điện Thái Hòa
+Data lấy từ data của bạn: Name: Điện Thái Hòa
+Year: 1805
+Author: Vua Gia Long
+Location ID: 1
+
+=== HISTORY ===
+Điện Thái Hòa là biểu tượng quyền lực tối cao của vương triều Nguyễn, nơi diễn ra các buổi thiết triều, lễ đăng quang của 13 vị vua và đón tiếp sứ thần ngoại giao. Được xây dựng lần đầu năm 1805 dưới triều vua Gia Long, đến năm 1833 vua Minh Mạng cho dời về vị trí hiện tại và làm lại đồ sộ hơn. Năm 1923, vua Khải Định lại cho đại gia trùng kiến chuẩn bị cho lễ Tứ tuần Đại khánh tiết. Điện được xây trên nền cao 1 mét, diện tích 1.360m², với 80 cột gỗ lim sơn son thếp vàng, mỗi cột đều được chạm khắc hình rồng vờn mây tinh xảo — biểu tượng của sự gặp gỡ giữa hoàng đế và quần thần. Mái điện lợp ngói hoàng lưu ly, được chia làm ba tầng chồng mí lên nhau gọi là mái 'chồng diêm', tạo ảo giác về chiều cao và sự uy nghiêm. Giữa hai tầng mái là dải cổ diêm chạy quanh bốn mặt, được trang trí 197 bài thơ trên pháp lam theo lối nhất thi nhất họa. Từ sân Đại triều nhìn vào, vua ngồi trên ngai vàng ở gian trong cùng, còn bá quan văn võ đứng hai bên sân theo thứ bậc từ nhất phẩm đến cửu phẩm — quan văn bên trái, quan võ bên phải. Tất cả vị trí đều được đánh dấu trên hai dãy đá trước sân chầu. Một chi tiết thú vị: con số 9 xuất hiện khắp nơi trong điện — 9 cấp thềm, 9 con rồng trên mỗi mái, vì 9 là biểu tượng của vua chúa trong văn hóa phương Đông. Con số 5 cũng xuất hiện tượng trưng cho ngũ hành. Điện được xây theo lối trùng thiềm điệp ốc — một kiến trúc sáng tạo với hệ thống trần vòm mai cua dưới máng thừa lưu, tạo ra một không gian nội thất liên tục, thống nhất mà không có cảm giác ghép nối. Hãy thử đếm xem bạn có thể tìm thấy bao nhiêu hình rồng trong điện này nhé!
+
+=== VISIBLE HIGHLIGHTS ===
+Mái chồng diêm ba tầng: ngói hoàng lưu ly chất thành tầng tầng lớp lớp — nhìn từ sân lên thấy rõ hiệu ứng. Dải cổ diêm quanh bốn mặt: 197 bài thơ trên pháp lam theo lối nhất thi nhất họa. 80 cột gỗ lim sơn son thếp vàng: mỗi cột đều chạm hình rồng vờn mây. Ngai vàng trong cùng: sơn son thếp vàng, đặt trên bệ cao, nhìn ra cửa Ngọ Môn. Hai hàng đá đánh dấu vị trí bá quan văn võ trên sân Đại triều nghi.
+
+=== SUGGESTED VISIT FLOW ===
+Đứng ở sân Đại triều nghi — tưởng tượng hàng trăm quan văn võ đứng hai bên theo phẩm trật. Bước dần lên 9 bậc thềm trước cửa — chú ý từng bậc đều bằng đá nguyên khối. Vào bên trong nhìn lên trần nhà: hệ thống xà gỗ chạm khắc tinh vi và màu sắc rực rỡ. Chiêm ngưỡng ngai vàng từ khoảng cách vừa phải — hướng mắt từ ngai ra cửa chính nhìn về Ngọ Môn. Đi ra hai bên hành lang để xem chi tiết cổ diêm và pháp lam ở tầm gần.
+
+=== NEARBY CONTEXT ===
+Phía Nam: sân Đại triều nghi và Ngọ Môn — đây là trục thần đạo chính của Hoàng thành. Phía Bắc: Nền điện Cần Chánh — nơi vua làm việc hàng ngày (trung tâm hành chính). Hai bên: Tả Vu và Hữu Vu — nơi quan chờ thiết triều.
+
+=== NOTABLE OBJECTS ===
+Ngai vàng: sơn son thếp vàng, bảo vật quốc gia, đặt trên bệ đá cao 3 cấp. Bảo tán vàng: lọng vàng treo trên ngai, biểu tượng quyền lực tối cao. Long đèn: đèn chùm hình rồng treo trên trần điện, thắp sáng trong các buổi thiết triều. Pháp lam: 197 bài thơ trên men màu — kỹ thuật điêu luyện thời Nguyễn.
+
+=== PHOTO SPOTS ===
+Góc chụp đẹp nhất: đứng cuối sân Đại triều nghi, căn hai hàng đá đánh dấu bá quan với cửa điện làm trung tâm. Chụp cận: ngai vàng qua khung cửa chính. Góc rộng: từ đỉnh 9 bậc thềm nhìn ngược lại sân về phía Ngọ Môn.
+────────────────────────────────────────────────────────────
+[2026-06-26 22:37:40] (source: llm)
+Câu hỏi: phòng này ở đâu và hồi xưa dùng làm gì
+Data lấy từ data của bạn: Name: Duyệt Thị Đường
+Year: 1826
+Author: Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Duyệt Thị Đường là nhà hát hoàng gia cổ nhất còn tồn tại ở Việt Nam, được xem là viên ngọc quý của nghệ thuật sân khấu cung đình. Được xây dựng vào năm 1826 dưới triều vua Minh Mạng trên nền của nhà hát Thanh Phong Đường cũ (1805), nhà hát nằm ở góc Đông Nam bên trong Tử Cấm Thành với tổng diện tích khuôn viên 11.740m². Kiến trúc nhà hát hình chữ nhật rộng rãi, với mái cong mềm mại tựa những đình chùa Huế, được chống đỡ bởi hai hàng cột lim sơn son cao 12 mét vẽ rồng ẩn mây cuốn chung quanh. Mỗi cột còn treo thêm một bức tranh sơn thủy vẽ cảnh Huế với khung chạm rồng nổi thiếp vàng. Điều đặc biệt là sân khấu nằm ở trung tâm, với khán giả ngồi ba phía xung quanh — một thiết kế độc đáo. Vị trí đẹp nhất là lầu hai, dành riêng cho nhà vua — từ đây, vua có thể ngắm nhìn toàn bộ sân khấu. Các bà hoàng và cung tần mỹ nữ ngồi phía sau một lớp sáo trúc thưa, có thể nhìn ra mà không bị nhìn thấy — một chi tiết đầy tinh tế và kín đáo của cung đình. Hai bên vòm có treo hai câu đối bằng chữ Hán của vua Minh Mạng, nói về sức mạnh của âm nhạc trong việc nuôi dưỡng chí khí con người. Bên hữu nhà hát là Ngự y viện, nơi sao chế thuốc cho vua và hoàng gia. Ngày nay, Duyệt Thị Đường vẫn là nơi biểu diễn Nhã nhạc cung đình Huế — Di sản Văn hóa phi vật thể của UNESCO, với hai suất diễn mỗi ngày vào lúc 10 giờ sáng và 3 giờ chiều. Nhà hát đã phục dựng 8 trong số 11 điệu múa cổ và 40 bài nhã nhạc — một kho báu văn hóa đang sống động từng ngày. Nếu có dịp, bạn hãy dừng chân ở đây để thưởng thức những điệu múa cung đình và tiếng nhạc du dương — chắc chắn sẽ là một trải nghiệm khó quên!
+
+=== VISIBLE HIGHLIGHTS ===
+Sân khấu Nhã nhạc cung đình: khu biểu diễn chính với rèm nhung và đèn chùm cổ điển. Nội thất sơn son thếp vàng tầng một: hệ thống cột gỗ lim chạm rồng phượng. Khu ngồi dành cho hoàng gia tầng hai: ban công gỗ nhìn xuống sân khấu — chỉ vua và hoàng gia được ngồi đây. Hành lang và tiền sảnh tầng một: nơi quan lại chờ đợi và chuẩn bị.
+
+=== SUGGESTED VISIT FLOW ===
+Vào từ cổng chính phía Nam — quan sát tổng thể mặt tiền nhà hát với mái ngói và trụ cột. Bước vào tiền sảnh: chiêm ngưỡng bộ cột gỗ lim sơn son và hệ thống vì kèo. Tiến vào khu khán phòng: quan sát sân khấu từ dưới lên, nhìn lên khu ngồi hoàng gia tầng hai. Leo cầu thang lên tầng hai — ngồi vào vị trí hoàng gia nhìn xuống sân khấu. Sau đó thăm phòng trưng bày về Nhã nhạc UNESCO và các hiện vật nhạc cụ cung đình.
+
+=== NEARBY CONTEXT ===
+Ngay phía Tây: Điện Kiến Trung. Phía Nam trên trục thần đạo: Điện Thái Hòa. Phía Đông Bắc: Phủ Nội Vụ — kho lưu trữ vật phẩm hoàng gia.
+
+=== NOTABLE OBJECTS ===
+Đàn Nguyệt và Đàn Tranh: nhạc cụ dây cung đình trưng bày trong nhà hát. Trống Nhã nhạc: bộ trống lớn dùng trong các buổi biểu diễn Nhã nhạc hoàng cung. Trang phục biểu diễn: áo dài cung đình thêu rồng phượng tái hiện tại phòng trưng bày.
+────────────────────────────────────────────────────────────
+[2026-06-26 22:45:45] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Ngọ Môn
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Triều Nguyễn / Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Ngọ Môn là cổng chính phía Nam của Hoàng thành Huế — bộ mặt của cả một triều đại và là cổng lớn nhất trong bốn cổng chính. Được xây dựng vào năm 1833 dưới triều vua Minh Mạng, Ngọ Môn thay thế cho Nam Khuyết Đài thời Gia Long. Tên gọi 'Ngọ Môn' có nghĩa là 'cổng hướng về phương Ngọ' — tức phương Nam, hướng mà bậc thiên tử quay mặt để cai trị thiên hạ theo quan niệm 'Thánh nhân Nam diện nhi thính thiên hạ'. Kiến trúc Ngọ Môn gồm hai phần chính: phần đài cổng hình chữ U vững chãi và phần lầu Ngũ Phụng thanh thoát phía trên. Đài cao gần 5m, diện tích hơn 1.560m², đáy dài 57,77m, trổ 5 lối đi. Lối chính giữa (Ngọ Môn) dành riêng cho vua, hai lối bên (Tả Giáp Môn và Hữu Giáp Môn) cho quan văn võ, hai lối ngoài cùng (Tả Dịch Môn và Hữu Dịch Môn) cho binh lính và voi ngựa. Lầu Ngũ Phụng có hai tầng, kết cấu hoàn toàn bằng gỗ lim với chẵn 100 cây cột, mái chính giữa lợp ngói lưu ly vàng, tám mái còn lại lợp ngói xanh, với nhiều hình chim phụng trang trí ở bờ nóc và bờ quyết. Ngoài ra còn có 4 tòa nhà nhỏ phụ trợ hai bên Đông, Tây dực lâu. Ngọ Môn chứng kiến nhiều sự kiện lịch sử trọng đại: lễ Ban Sóc (ban lịch mới), lễ Truyền Lô (tuyên đọc tên tiến sĩ), và đặc biệt là ngày 30 tháng 8 năm 1945, vua Bảo Đại đọc Tuyên ngôn Thoái vị, trao chính quyền lại cho Chính phủ Lâm thời, khép lại chế độ quân chủ hơn 143 năm. Năm 1968, Ngọ Môn bị hư hại nặng trong trận Mậu Thân và được trùng tu với kinh phí 80 tỷ đồng, hoàn thành năm 2019. Câu ca dao xưa nhắc: 'Ngọ Môn 5 cửa 9 lầu, 1 lầu vàng 8 lầu xanh, 3 cửa thẳng 2 cửa quanh' — hãy tự mình kiểm tra xem có đúng không nhé!
+
+=== VISIBLE HIGHLIGHTS ===
+Đài nền hình chữ U: cao gần 5m, dài 57,77m, trổ 5 lối đi — mỗi lối dành cho một tầng lớp khác nhau. Lầu Ngũ Phụng: 100 cột gỗ lim, mái vàng trung tâm và 8 mái xanh xung quanh — biểu tượng phượng hoàng. Bốn tòa nhà phụ Đông, Tây dực lâu hai bên: tạo thành quần thể hoàn chỉnh nhìn từ sân. Sân Đại triều nghi phía Bắc: chứng kiến lễ thoái vị của vua Bảo Đại ngày 30/8/1945.
+
+=== SUGGESTED VISIT FLOW ===
+Đứng ở phía Nam Ngọ Môn — quan sát tổng thể đài hình chữ U và 5 lối đi, đếm thử số cửa. Tiếp cận gần: nhìn kỹ vật liệu xây dựng đài — gạch vồ, đá Thanh, và những lớp rêu phong. Bước qua cửa chính giữa (cửa Ngọ Môn) vào sân — đây là lối dành cho vua xưa. Đứng dưới chân lầu Ngũ Phụng nhìn lên — đếm hoa văn phụng trang trí trên bờ nóc. Leo lên lầu Ngũ Phụng (nếu mở): nhìn xuống sân Ngọ Môn và toàn cảnh phía Nam Hoàng thành. Nhìn ra phía Bắc để thấy trục thần đạo chính dẫn thẳng vào Điện Thái Hòa.
+
+=== NEARBY CONTEXT ===
+Phía Bắc ngay sau cổng: sân Đại triều nghi và Điện Thái Hòa. Phía Nam: Hồ Thái Dịch và quảng trường trước Ngọ Môn — nơi du khách thường chụp ảnh. Đây là điểm bắt đầu lý tưởng cho hành trình khám phá Hoàng thành theo trục Bắc-Nam.
+
+=== NOTABLE OBJECTS ===
+5 lối đi đài Ngọ Môn: Cửa Ngọ, Tả Giáp, Hữu Giáp, Tả Dịch, Hữu Dịch — phân tầng theo phẩm trật. Lầu Ngũ Phụng: 100 cột gỗ lim, biểu tượng 5 con phụng — đặc trưng kiến trúc quan trọng nhất. Mái ngói hoàng lưu ly và thanh lưu ly: màu vàng tượng trưng cho đế vương, màu xanh cho quan lại.
+
+=== PHOTO SPOTS ===
+Góc kinh điển: đứng phía Nam hồ Thái Dịch nhìn vào Ngọ Môn với hồ làm tiền cảnh phản chiếu. Góc từ lầu Ngũ Phụng: nhìn xuống sân Đại triều nghi — thấy cả Điện Thái Hòa ở phía Bắc. Góc hoàng hôn: mặt Tây của Ngọ Môn khi ánh chiều tà nhuộm vàng các mái ngói.
+────────────────────────────────────────────────────────────
+[2026-06-26 22:46:26] (source: llm)
+Câu hỏi: đây là đâu
+Data lấy từ data của bạn: Name: Duyệt Thị Đường
+Year: 1826
+Author: Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Duyệt Thị Đường là nhà hát hoàng gia cổ nhất còn tồn tại ở Việt Nam, được xem là viên ngọc quý của nghệ thuật sân khấu cung đình. Được xây dựng vào năm 1826 dưới triều vua Minh Mạng trên nền của nhà hát Thanh Phong Đường cũ (1805), nhà hát nằm ở góc Đông Nam bên trong Tử Cấm Thành với tổng diện tích khuôn viên 11.740m². Kiến trúc nhà hát hình chữ nhật rộng rãi, với mái cong mềm mại tựa những đình chùa Huế, được chống đỡ bởi hai hàng cột lim sơn son cao 12 mét vẽ rồng ẩn mây cuốn chung quanh. Mỗi cột còn treo thêm một bức tranh sơn thủy vẽ cảnh Huế với khung chạm rồng nổi thiếp vàng. Điều đặc biệt là sân khấu nằm ở trung tâm, với khán giả ngồi ba phía xung quanh — một thiết kế độc đáo. Vị trí đẹp nhất là lầu hai, dành riêng cho nhà vua — từ đây, vua có thể ngắm nhìn toàn bộ sân khấu. Các bà hoàng và cung tần mỹ nữ ngồi phía sau một lớp sáo trúc thưa, có thể nhìn ra mà không bị nhìn thấy — một chi tiết đầy tinh tế và kín đáo của cung đình. Hai bên vòm có treo hai câu đối bằng chữ Hán của vua Minh Mạng, nói về sức mạnh của âm nhạc trong việc nuôi dưỡng chí khí con người. Bên hữu nhà hát là Ngự y viện, nơi sao chế thuốc cho vua và hoàng gia. Ngày nay, Duyệt Thị Đường vẫn là nơi biểu diễn Nhã nhạc cung đình Huế — Di sản Văn hóa phi vật thể của UNESCO, với hai suất diễn mỗi ngày vào lúc 10 giờ sáng và 3 giờ chiều. Nhà hát đã phục dựng 8 trong số 11 điệu múa cổ và 40 bài nhã nhạc — một kho báu văn hóa đang sống động từng ngày. Nếu có dịp, bạn hãy dừng chân ở đây để thưởng thức những điệu múa cung đình và tiếng nhạc du dương — chắc chắn sẽ là một trải nghiệm khó quên!
+
+=== VISIBLE HIGHLIGHTS ===
+Sân khấu Nhã nhạc cung đình: khu biểu diễn chính với rèm nhung và đèn chùm cổ điển. Nội thất sơn son thếp vàng tầng một: hệ thống cột gỗ lim chạm rồng phượng. Khu ngồi dành cho hoàng gia tầng hai: ban công gỗ nhìn xuống sân khấu — chỉ vua và hoàng gia được ngồi đây. Hành lang và tiền sảnh tầng một: nơi quan lại chờ đợi và chuẩn bị.
+
+=== SUGGESTED VISIT FLOW ===
+Vào từ cổng chính phía Nam — quan sát tổng thể mặt tiền nhà hát với mái ngói và trụ cột. Bước vào tiền sảnh: chiêm ngưỡng bộ cột gỗ lim sơn son và hệ thống vì kèo. Tiến vào khu khán phòng: quan sát sân khấu từ dưới lên, nhìn lên khu ngồi hoàng gia tầng hai. Leo cầu thang lên tầng hai — ngồi vào vị trí hoàng gia nhìn xuống sân khấu. Sau đó thăm phòng trưng bày về Nhã nhạc UNESCO và các hiện vật nhạc cụ cung đình.
+
+=== NEARBY CONTEXT ===
+Ngay phía Tây: Điện Kiến Trung. Phía Nam trên trục thần đạo: Điện Thái Hòa. Phía Đông Bắc: Phủ Nội Vụ — kho lưu trữ vật phẩm hoàng gia.
+
+=== NOTABLE OBJECTS ===
+Đàn Nguyệt và Đàn Tranh: nhạc cụ dây cung đình trưng bày trong nhà hát. Trống Nhã nhạc: bộ trống lớn dùng trong các buổi biểu diễn Nhã nhạc hoàng cung. Trang phục biểu diễn: áo dài cung đình thêu rồng phượng tái hiện tại phòng trưng bày.
+────────────────────────────────────────────────────────────
+[2026-06-26 22:49:46] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Điện Thái Hòa
+Data lấy từ data của bạn: Name: Điện Thái Hòa
+Year: 1805
+Author: Vua Gia Long
+Location ID: 1
+
+=== HISTORY ===
+Điện Thái Hòa là biểu tượng quyền lực tối cao của vương triều Nguyễn, nơi diễn ra các buổi thiết triều, lễ đăng quang của 13 vị vua và đón tiếp sứ thần ngoại giao. Được xây dựng lần đầu năm 1805 dưới triều vua Gia Long, đến năm 1833 vua Minh Mạng cho dời về vị trí hiện tại và làm lại đồ sộ hơn. Năm 1923, vua Khải Định lại cho đại gia trùng kiến chuẩn bị cho lễ Tứ tuần Đại khánh tiết. Điện được xây trên nền cao 1 mét, diện tích 1.360m², với 80 cột gỗ lim sơn son thếp vàng, mỗi cột đều được chạm khắc hình rồng vờn mây tinh xảo — biểu tượng của sự gặp gỡ giữa hoàng đế và quần thần. Mái điện lợp ngói hoàng lưu ly, được chia làm ba tầng chồng mí lên nhau gọi là mái 'chồng diêm', tạo ảo giác về chiều cao và sự uy nghiêm. Giữa hai tầng mái là dải cổ diêm chạy quanh bốn mặt, được trang trí 197 bài thơ trên pháp lam theo lối nhất thi nhất họa. Từ sân Đại triều nhìn vào, vua ngồi trên ngai vàng ở gian trong cùng, còn bá quan văn võ đứng hai bên sân theo thứ bậc từ nhất phẩm đến cửu phẩm — quan văn bên trái, quan võ bên phải. Tất cả vị trí đều được đánh dấu trên hai dãy đá trước sân chầu. Một chi tiết thú vị: con số 9 xuất hiện khắp nơi trong điện — 9 cấp thềm, 9 con rồng trên mỗi mái, vì 9 là biểu tượng của vua chúa trong văn hóa phương Đông. Con số 5 cũng xuất hiện tượng trưng cho ngũ hành. Điện được xây theo lối trùng thiềm điệp ốc — một kiến trúc sáng tạo với hệ thống trần vòm mai cua dưới máng thừa lưu, tạo ra một không gian nội thất liên tục, thống nhất mà không có cảm giác ghép nối. Hãy thử đếm xem bạn có thể tìm thấy bao nhiêu hình rồng trong điện này nhé!
+
+=== VISIBLE HIGHLIGHTS ===
+Mái chồng diêm ba tầng: ngói hoàng lưu ly chất thành tầng tầng lớp lớp — nhìn từ sân lên thấy rõ hiệu ứng. Dải cổ diêm quanh bốn mặt: 197 bài thơ trên pháp lam theo lối nhất thi nhất họa. 80 cột gỗ lim sơn son thếp vàng: mỗi cột đều chạm hình rồng vờn mây. Ngai vàng trong cùng: sơn son thếp vàng, đặt trên bệ cao, nhìn ra cửa Ngọ Môn. Hai hàng đá đánh dấu vị trí bá quan văn võ trên sân Đại triều nghi.
+
+=== SUGGESTED VISIT FLOW ===
+Đứng ở sân Đại triều nghi — tưởng tượng hàng trăm quan văn võ đứng hai bên theo phẩm trật. Bước dần lên 9 bậc thềm trước cửa — chú ý từng bậc đều bằng đá nguyên khối. Vào bên trong nhìn lên trần nhà: hệ thống xà gỗ chạm khắc tinh vi và màu sắc rực rỡ. Chiêm ngưỡng ngai vàng từ khoảng cách vừa phải — hướng mắt từ ngai ra cửa chính nhìn về Ngọ Môn. Đi ra hai bên hành lang để xem chi tiết cổ diêm và pháp lam ở tầm gần.
+
+=== NEARBY CONTEXT ===
+Phía Nam: sân Đại triều nghi và Ngọ Môn — đây là trục thần đạo chính của Hoàng thành. Phía Bắc: Nền điện Cần Chánh — nơi vua làm việc hàng ngày (trung tâm hành chính). Hai bên: Tả Vu và Hữu Vu — nơi quan chờ thiết triều.
+
+=== NOTABLE OBJECTS ===
+Ngai vàng: sơn son thếp vàng, bảo vật quốc gia, đặt trên bệ đá cao 3 cấp. Bảo tán vàng: lọng vàng treo trên ngai, biểu tượng quyền lực tối cao. Long đèn: đèn chùm hình rồng treo trên trần điện, thắp sáng trong các buổi thiết triều. Pháp lam: 197 bài thơ trên men màu — kỹ thuật điêu luyện thời Nguyễn.
+
+=== PHOTO SPOTS ===
+Góc chụp đẹp nhất: đứng cuối sân Đại triều nghi, căn hai hàng đá đánh dấu bá quan với cửa điện làm trung tâm. Chụp cận: ngai vàng qua khung cửa chính. Góc rộng: từ đỉnh 9 bậc thềm nhìn ngược lại sân về phía Ngọ Môn.
+────────────────────────────────────────────────────────────
+[2026-06-26 22:50:59] (source: llm)
+Câu hỏi: cái này xưa để làm gì
+Data lấy từ data của bạn: Name: Duyệt Thị Đường
+Year: 1826
+Author: Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Duyệt Thị Đường là nhà hát hoàng gia cổ nhất còn tồn tại ở Việt Nam, được xem là viên ngọc quý của nghệ thuật sân khấu cung đình. Được xây dựng vào năm 1826 dưới triều vua Minh Mạng trên nền của nhà hát Thanh Phong Đường cũ (1805), nhà hát nằm ở góc Đông Nam bên trong Tử Cấm Thành với tổng diện tích khuôn viên 11.740m². Kiến trúc nhà hát hình chữ nhật rộng rãi, với mái cong mềm mại tựa những đình chùa Huế, được chống đỡ bởi hai hàng cột lim sơn son cao 12 mét vẽ rồng ẩn mây cuốn chung quanh. Mỗi cột còn treo thêm một bức tranh sơn thủy vẽ cảnh Huế với khung chạm rồng nổi thiếp vàng. Điều đặc biệt là sân khấu nằm ở trung tâm, với khán giả ngồi ba phía xung quanh — một thiết kế độc đáo. Vị trí đẹp nhất là lầu hai, dành riêng cho nhà vua — từ đây, vua có thể ngắm nhìn toàn bộ sân khấu. Các bà hoàng và cung tần mỹ nữ ngồi phía sau một lớp sáo trúc thưa, có thể nhìn ra mà không bị nhìn thấy — một chi tiết đầy tinh tế và kín đáo của cung đình. Hai bên vòm có treo hai câu đối bằng chữ Hán của vua Minh Mạng, nói về sức mạnh của âm nhạc trong việc nuôi dưỡng chí khí con người. Bên hữu nhà hát là Ngự y viện, nơi sao chế thuốc cho vua và hoàng gia. Ngày nay, Duyệt Thị Đường vẫn là nơi biểu diễn Nhã nhạc cung đình Huế — Di sản Văn hóa phi vật thể của UNESCO, với hai suất diễn mỗi ngày vào lúc 10 giờ sáng và 3 giờ chiều. Nhà hát đã phục dựng 8 trong số 11 điệu múa cổ và 40 bài nhã nhạc — một kho báu văn hóa đang sống động từng ngày. Nếu có dịp, bạn hãy dừng chân ở đây để thưởng thức những điệu múa cung đình và tiếng nhạc du dương — chắc chắn sẽ là một trải nghiệm khó quên!
+
+=== VISIBLE HIGHLIGHTS ===
+Sân khấu Nhã nhạc cung đình: khu biểu diễn chính với rèm nhung và đèn chùm cổ điển. Nội thất sơn son thếp vàng tầng một: hệ thống cột gỗ lim chạm rồng phượng. Khu ngồi dành cho hoàng gia tầng hai: ban công gỗ nhìn xuống sân khấu — chỉ vua và hoàng gia được ngồi đây. Hành lang và tiền sảnh tầng một: nơi quan lại chờ đợi và chuẩn bị.
+
+=== SUGGESTED VISIT FLOW ===
+Vào từ cổng chính phía Nam — quan sát tổng thể mặt tiền nhà hát với mái ngói và trụ cột. Bước vào tiền sảnh: chiêm ngưỡng bộ cột gỗ lim sơn son và hệ thống vì kèo. Tiến vào khu khán phòng: quan sát sân khấu từ dưới lên, nhìn lên khu ngồi hoàng gia tầng hai. Leo cầu thang lên tầng hai — ngồi vào vị trí hoàng gia nhìn xuống sân khấu. Sau đó thăm phòng trưng bày về Nhã nhạc UNESCO và các hiện vật nhạc cụ cung đình.
+
+=== NEARBY CONTEXT ===
+Ngay phía Tây: Điện Kiến Trung. Phía Nam trên trục thần đạo: Điện Thái Hòa. Phía Đông Bắc: Phủ Nội Vụ — kho lưu trữ vật phẩm hoàng gia.
+
+=== NOTABLE OBJECTS ===
+Đàn Nguyệt và Đàn Tranh: nhạc cụ dây cung đình trưng bày trong nhà hát. Trống Nhã nhạc: bộ trống lớn dùng trong các buổi biểu diễn Nhã nhạc hoàng cung. Trang phục biểu diễn: áo dài cung đình thêu rồng phượng tái hiện tại phòng trưng bày.
+────────────────────────────────────────────────────────────
+[2026-06-26 22:55:11] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Ngọ Môn
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Triều Nguyễn / Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Ngọ Môn là cổng chính phía Nam của Hoàng thành Huế — bộ mặt của cả một triều đại và là cổng lớn nhất trong bốn cổng chính. Được xây dựng vào năm 1833 dưới triều vua Minh Mạng, Ngọ Môn thay thế cho Nam Khuyết Đài thời Gia Long. Tên gọi 'Ngọ Môn' có nghĩa là 'cổng hướng về phương Ngọ' — tức phương Nam, hướng mà bậc thiên tử quay mặt để cai trị thiên hạ theo quan niệm 'Thánh nhân Nam diện nhi thính thiên hạ'. Kiến trúc Ngọ Môn gồm hai phần chính: phần đài cổng hình chữ U vững chãi và phần lầu Ngũ Phụng thanh thoát phía trên. Đài cao gần 5m, diện tích hơn 1.560m², đáy dài 57,77m, trổ 5 lối đi. Lối chính giữa (Ngọ Môn) dành riêng cho vua, hai lối bên (Tả Giáp Môn và Hữu Giáp Môn) cho quan văn võ, hai lối ngoài cùng (Tả Dịch Môn và Hữu Dịch Môn) cho binh lính và voi ngựa. Lầu Ngũ Phụng có hai tầng, kết cấu hoàn toàn bằng gỗ lim với chẵn 100 cây cột, mái chính giữa lợp ngói lưu ly vàng, tám mái còn lại lợp ngói xanh, với nhiều hình chim phụng trang trí ở bờ nóc và bờ quyết. Ngoài ra còn có 4 tòa nhà nhỏ phụ trợ hai bên Đông, Tây dực lâu. Ngọ Môn chứng kiến nhiều sự kiện lịch sử trọng đại: lễ Ban Sóc (ban lịch mới), lễ Truyền Lô (tuyên đọc tên tiến sĩ), và đặc biệt là ngày 30 tháng 8 năm 1945, vua Bảo Đại đọc Tuyên ngôn Thoái vị, trao chính quyền lại cho Chính phủ Lâm thời, khép lại chế độ quân chủ hơn 143 năm. Năm 1968, Ngọ Môn bị hư hại nặng trong trận Mậu Thân và được trùng tu với kinh phí 80 tỷ đồng, hoàn thành năm 2019. Câu ca dao xưa nhắc: 'Ngọ Môn 5 cửa 9 lầu, 1 lầu vàng 8 lầu xanh, 3 cửa thẳng 2 cửa quanh' — hãy tự mình kiểm tra xem có đúng không nhé!
+
+=== VISIBLE HIGHLIGHTS ===
+Đài nền hình chữ U: cao gần 5m, dài 57,77m, trổ 5 lối đi — mỗi lối dành cho một tầng lớp khác nhau. Lầu Ngũ Phụng: 100 cột gỗ lim, mái vàng trung tâm và 8 mái xanh xung quanh — biểu tượng phượng hoàng. Bốn tòa nhà phụ Đông, Tây dực lâu hai bên: tạo thành quần thể hoàn chỉnh nhìn từ sân. Sân Đại triều nghi phía Bắc: chứng kiến lễ thoái vị của vua Bảo Đại ngày 30/8/1945.
+
+=== SUGGESTED VISIT FLOW ===
+Đứng ở phía Nam Ngọ Môn — quan sát tổng thể đài hình chữ U và 5 lối đi, đếm thử số cửa. Tiếp cận gần: nhìn kỹ vật liệu xây dựng đài — gạch vồ, đá Thanh, và những lớp rêu phong. Bước qua cửa chính giữa (cửa Ngọ Môn) vào sân — đây là lối dành cho vua xưa. Đứng dưới chân lầu Ngũ Phụng nhìn lên — đếm hoa văn phụng trang trí trên bờ nóc. Leo lên lầu Ngũ Phụng (nếu mở): nhìn xuống sân Ngọ Môn và toàn cảnh phía Nam Hoàng thành. Nhìn ra phía Bắc để thấy trục thần đạo chính dẫn thẳng vào Điện Thái Hòa.
+
+=== NEARBY CONTEXT ===
+Phía Bắc ngay sau cổng: sân Đại triều nghi và Điện Thái Hòa. Phía Nam: Hồ Thái Dịch và quảng trường trước Ngọ Môn — nơi du khách thường chụp ảnh. Đây là điểm bắt đầu lý tưởng cho hành trình khám phá Hoàng thành theo trục Bắc-Nam.
+
+=== NOTABLE OBJECTS ===
+5 lối đi đài Ngọ Môn: Cửa Ngọ, Tả Giáp, Hữu Giáp, Tả Dịch, Hữu Dịch — phân tầng theo phẩm trật. Lầu Ngũ Phụng: 100 cột gỗ lim, biểu tượng 5 con phụng — đặc trưng kiến trúc quan trọng nhất. Mái ngói hoàng lưu ly và thanh lưu ly: màu vàng tượng trưng cho đế vương, màu xanh cho quan lại.
+
+=== PHOTO SPOTS ===
+Góc kinh điển: đứng phía Nam hồ Thái Dịch nhìn vào Ngọ Môn với hồ làm tiền cảnh phản chiếu. Góc từ lầu Ngũ Phụng: nhìn xuống sân Đại triều nghi — thấy cả Điện Thái Hòa ở phía Bắc. Góc hoàng hôn: mặt Tây của Ngọ Môn khi ánh chiều tà nhuộm vàng các mái ngói.
+────────────────────────────────────────────────────────────
+[2026-06-26 22:55:48] (source: llm)
+Câu hỏi:  Cửa anh này do ai xây?
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Triều Nguyễn / Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Ngọ Môn là cổng chính phía Nam của Hoàng thành Huế — bộ mặt của cả một triều đại và là cổng lớn nhất trong bốn cổng chính. Được xây dựng vào năm 1833 dưới triều vua Minh Mạng, Ngọ Môn thay thế cho Nam Khuyết Đài thời Gia Long. Tên gọi 'Ngọ Môn' có nghĩa là 'cổng hướng về phương Ngọ' — tức phương Nam, hướng mà bậc thiên tử quay mặt để cai trị thiên hạ theo quan niệm 'Thánh nhân Nam diện nhi thính thiên hạ'. Kiến trúc Ngọ Môn gồm hai phần chính: phần đài cổng hình chữ U vững chãi và phần lầu Ngũ Phụng thanh thoát phía trên. Đài cao gần 5m, diện tích hơn 1.560m², đáy dài 57,77m, trổ 5 lối đi. Lối chính giữa (Ngọ Môn) dành riêng cho vua, hai lối bên (Tả Giáp Môn và Hữu Giáp Môn) cho quan văn võ, hai lối ngoài cùng (Tả Dịch Môn và Hữu Dịch Môn) cho binh lính và voi ngựa. Lầu Ngũ Phụng có hai tầng, kết cấu hoàn toàn bằng gỗ lim với chẵn 100 cây cột, mái chính giữa lợp ngói lưu ly vàng, tám mái còn lại lợp ngói xanh, với nhiều hình chim phụng trang trí ở bờ nóc và bờ quyết. Ngoài ra còn có 4 tòa nhà nhỏ phụ trợ hai bên Đông, Tây dực lâu. Ngọ Môn chứng kiến nhiều sự kiện lịch sử trọng đại: lễ Ban Sóc (ban lịch mới), lễ Truyền Lô (tuyên đọc tên tiến sĩ), và đặc biệt là ngày 30 tháng 8 năm 1945, vua Bảo Đại đọc Tuyên ngôn Thoái vị, trao chính quyền lại cho Chính phủ Lâm thời, khép lại chế độ quân chủ hơn 143 năm. Năm 1968, Ngọ Môn bị hư hại nặng trong trận Mậu Thân và được trùng tu với kinh phí 80 tỷ đồng, hoàn thành năm 2019. Câu ca dao xưa nhắc: 'Ngọ Môn 5 cửa 9 lầu, 1 lầu vàng 8 lầu xanh, 3 cửa thẳng 2 cửa quanh' — hãy tự mình kiểm tra xem có đúng không nhé!
+
+=== VISIBLE HIGHLIGHTS ===
+Đài nền hình chữ U: cao gần 5m, dài 57,77m, trổ 5 lối đi — mỗi lối dành cho một tầng lớp khác nhau. Lầu Ngũ Phụng: 100 cột gỗ lim, mái vàng trung tâm và 8 mái xanh xung quanh — biểu tượng phượng hoàng. Bốn tòa nhà phụ Đông, Tây dực lâu hai bên: tạo thành quần thể hoàn chỉnh nhìn từ sân. Sân Đại triều nghi phía Bắc: chứng kiến lễ thoái vị của vua Bảo Đại ngày 30/8/1945.
+
+=== SUGGESTED VISIT FLOW ===
+Đứng ở phía Nam Ngọ Môn — quan sát tổng thể đài hình chữ U và 5 lối đi, đếm thử số cửa. Tiếp cận gần: nhìn kỹ vật liệu xây dựng đài — gạch vồ, đá Thanh, và những lớp rêu phong. Bước qua cửa chính giữa (cửa Ngọ Môn) vào sân — đây là lối dành cho vua xưa. Đứng dưới chân lầu Ngũ Phụng nhìn lên — đếm hoa văn phụng trang trí trên bờ nóc. Leo lên lầu Ngũ Phụng (nếu mở): nhìn xuống sân Ngọ Môn và toàn cảnh phía Nam Hoàng thành. Nhìn ra phía Bắc để thấy trục thần đạo chính dẫn thẳng vào Điện Thái Hòa.
+
+=== NEARBY CONTEXT ===
+Phía Bắc ngay sau cổng: sân Đại triều nghi và Điện Thái Hòa. Phía Nam: Hồ Thái Dịch và quảng trường trước Ngọ Môn — nơi du khách thường chụp ảnh. Đây là điểm bắt đầu lý tưởng cho hành trình khám phá Hoàng thành theo trục Bắc-Nam.
+
+=== NOTABLE OBJECTS ===
+5 lối đi đài Ngọ Môn: Cửa Ngọ, Tả Giáp, Hữu Giáp, Tả Dịch, Hữu Dịch — phân tầng theo phẩm trật. Lầu Ngũ Phụng: 100 cột gỗ lim, biểu tượng 5 con phụng — đặc trưng kiến trúc quan trọng nhất. Mái ngói hoàng lưu ly và thanh lưu ly: màu vàng tượng trưng cho đế vương, màu xanh cho quan lại.
+
+=== PHOTO SPOTS ===
+Góc kinh điển: đứng phía Nam hồ Thái Dịch nhìn vào Ngọ Môn với hồ làm tiền cảnh phản chiếu. Góc từ lầu Ngũ Phụng: nhìn xuống sân Đại triều nghi — thấy cả Điện Thái Hòa ở phía Bắc. Góc hoàng hôn: mặt Tây của Ngọ Môn khi ánh chiều tà nhuộm vàng các mái ngói.
+────────────────────────────────────────────────────────────
+[2026-06-26 22:56:59] (source: cache)
+Câu hỏi: Nghe giới thiệu ngắn về Ngọ Môn
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Triều Nguyễn / Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Ngọ Môn là cổng chính phía Nam của Hoàng thành Huế — bộ mặt của cả một triều đại và là cổng lớn nhất trong bốn cổng chính. Được xây dựng vào năm 1833 dưới triều vua Minh Mạng, Ngọ Môn thay thế cho Nam Khuyết Đài thời Gia Long. Tên gọi 'Ngọ Môn' có nghĩa là 'cổng hướng về phương Ngọ' — tức phương Nam, hướng mà bậc thiên tử quay mặt để cai trị thiên hạ theo quan niệm 'Thánh nhân Nam diện nhi thính thiên hạ'. Kiến trúc Ngọ Môn gồm hai phần chính: phần đài cổng hình chữ U vững chãi và phần lầu Ngũ Phụng thanh thoát phía trên. Đài cao gần 5m, diện tích hơn 1.560m², đáy dài 57,77m, trổ 5 lối đi. Lối chính giữa (Ngọ Môn) dành riêng cho vua, hai lối bên (Tả Giáp Môn và Hữu Giáp Môn) cho quan văn võ, hai lối ngoài cùng (Tả Dịch Môn và Hữu Dịch Môn) cho binh lính và voi ngựa. Lầu Ngũ Phụng có hai tầng, kết cấu hoàn toàn bằng gỗ lim với chẵn 100 cây cột, mái chính giữa lợp ngói lưu ly vàng, tám mái còn lại lợp ngói xanh, với nhiều hình chim phụng trang trí ở bờ nóc và bờ quyết. Ngoài ra còn có 4 tòa nhà nhỏ phụ trợ hai bên Đông, Tây dực lâu. Ngọ Môn chứng kiến nhiều sự kiện lịch sử trọng đại: lễ Ban Sóc (ban lịch mới), lễ Truyền Lô (tuyên đọc tên tiến sĩ), và đặc biệt là ngày 30 tháng 8 năm 1945, vua Bảo Đại đọc Tuyên ngôn Thoái vị, trao chính quyền lại cho Chính phủ Lâm thời, khép lại chế độ quân chủ hơn 143 năm. Năm 1968, Ngọ Môn bị hư hại nặng trong trận Mậu Thân và được trùng tu với kinh phí 80 tỷ đồng, hoàn thành năm 2019. Câu ca dao xưa nhắc: 'Ngọ Môn 5 cửa 9 lầu, 1 lầu vàng 8 lầu xanh, 3 cửa thẳng 2 cửa quanh' — hãy tự mình kiểm tra xem có đúng không nhé!
+
+=== VISIBLE HIGHLIGHTS ===
+Đài nền hình chữ U: cao gần 5m, dài 57,77m, trổ 5 lối đi — mỗi lối dành cho một tầng lớp khác nhau. Lầu Ngũ Phụng: 100 cột gỗ lim, mái vàng trung tâm và 8 mái xanh xung quanh — biểu tượng phượng hoàng. Bốn tòa nhà phụ Đông, Tây dực lâu hai bên: tạo thành quần thể hoàn chỉnh nhìn từ sân. Sân Đại triều nghi phía Bắc: chứng kiến lễ thoái vị của vua Bảo Đại ngày 30/8/1945.
+
+=== SUGGESTED VISIT FLOW ===
+Đứng ở phía Nam Ngọ Môn — quan sát tổng thể đài hình chữ U và 5 lối đi, đếm thử số cửa. Tiếp cận gần: nhìn kỹ vật liệu xây dựng đài — gạch vồ, đá Thanh, và những lớp rêu phong. Bước qua cửa chính giữa (cửa Ngọ Môn) vào sân — đây là lối dành cho vua xưa. Đứng dưới chân lầu Ngũ Phụng nhìn lên — đếm hoa văn phụng trang trí trên bờ nóc. Leo lên lầu Ngũ Phụng (nếu mở): nhìn xuống sân Ngọ Môn và toàn cảnh phía Nam Hoàng thành. Nhìn ra phía Bắc để thấy trục thần đạo chính dẫn thẳng vào Điện Thái Hòa.
+
+=== NEARBY CONTEXT ===
+Phía Bắc ngay sau cổng: sân Đại triều nghi và Điện Thái Hòa. Phía Nam: Hồ Thái Dịch và quảng trường trước Ngọ Môn — nơi du khách thường chụp ảnh. Đây là điểm bắt đầu lý tưởng cho hành trình khám phá Hoàng thành theo trục Bắc-Nam.
+
+=== NOTABLE OBJECTS ===
+5 lối đi đài Ngọ Môn: Cửa Ngọ, Tả Giáp, Hữu Giáp, Tả Dịch, Hữu Dịch — phân tầng theo phẩm trật. Lầu Ngũ Phụng: 100 cột gỗ lim, biểu tượng 5 con phụng — đặc trưng kiến trúc quan trọng nhất. Mái ngói hoàng lưu ly và thanh lưu ly: màu vàng tượng trưng cho đế vương, màu xanh cho quan lại.
+
+=== PHOTO SPOTS ===
+Góc kinh điển: đứng phía Nam hồ Thái Dịch nhìn vào Ngọ Môn với hồ làm tiền cảnh phản chiếu. Góc từ lầu Ngũ Phụng: nhìn xuống sân Đại triều nghi — thấy cả Điện Thái Hòa ở phía Bắc. Góc hoàng hôn: mặt Tây của Ngọ Môn khi ánh chiều tà nhuộm vàng các mái ngói.
+────────────────────────────────────────────────────────────
+[2026-06-26 22:57:49] (source: llm)
+Câu hỏi: này là gì và để làm gì
+Data lấy từ data của bạn: Name: Duyệt Thị Đường
+Year: 1826
+Author: Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Duyệt Thị Đường là nhà hát hoàng gia cổ nhất còn tồn tại ở Việt Nam, được xem là viên ngọc quý của nghệ thuật sân khấu cung đình. Được xây dựng vào năm 1826 dưới triều vua Minh Mạng trên nền của nhà hát Thanh Phong Đường cũ (1805), nhà hát nằm ở góc Đông Nam bên trong Tử Cấm Thành với tổng diện tích khuôn viên 11.740m². Kiến trúc nhà hát hình chữ nhật rộng rãi, với mái cong mềm mại tựa những đình chùa Huế, được chống đỡ bởi hai hàng cột lim sơn son cao 12 mét vẽ rồng ẩn mây cuốn chung quanh. Mỗi cột còn treo thêm một bức tranh sơn thủy vẽ cảnh Huế với khung chạm rồng nổi thiếp vàng. Điều đặc biệt là sân khấu nằm ở trung tâm, với khán giả ngồi ba phía xung quanh — một thiết kế độc đáo. Vị trí đẹp nhất là lầu hai, dành riêng cho nhà vua — từ đây, vua có thể ngắm nhìn toàn bộ sân khấu. Các bà hoàng và cung tần mỹ nữ ngồi phía sau một lớp sáo trúc thưa, có thể nhìn ra mà không bị nhìn thấy — một chi tiết đầy tinh tế và kín đáo của cung đình. Hai bên vòm có treo hai câu đối bằng chữ Hán của vua Minh Mạng, nói về sức mạnh của âm nhạc trong việc nuôi dưỡng chí khí con người. Bên hữu nhà hát là Ngự y viện, nơi sao chế thuốc cho vua và hoàng gia. Ngày nay, Duyệt Thị Đường vẫn là nơi biểu diễn Nhã nhạc cung đình Huế — Di sản Văn hóa phi vật thể của UNESCO, với hai suất diễn mỗi ngày vào lúc 10 giờ sáng và 3 giờ chiều. Nhà hát đã phục dựng 8 trong số 11 điệu múa cổ và 40 bài nhã nhạc — một kho báu văn hóa đang sống động từng ngày. Nếu có dịp, bạn hãy dừng chân ở đây để thưởng thức những điệu múa cung đình và tiếng nhạc du dương — chắc chắn sẽ là một trải nghiệm khó quên!
+
+=== VISIBLE HIGHLIGHTS ===
+Sân khấu Nhã nhạc cung đình: khu biểu diễn chính với rèm nhung và đèn chùm cổ điển. Nội thất sơn son thếp vàng tầng một: hệ thống cột gỗ lim chạm rồng phượng. Khu ngồi dành cho hoàng gia tầng hai: ban công gỗ nhìn xuống sân khấu — chỉ vua và hoàng gia được ngồi đây. Hành lang và tiền sảnh tầng một: nơi quan lại chờ đợi và chuẩn bị.
+
+=== SUGGESTED VISIT FLOW ===
+Vào từ cổng chính phía Nam — quan sát tổng thể mặt tiền nhà hát với mái ngói và trụ cột. Bước vào tiền sảnh: chiêm ngưỡng bộ cột gỗ lim sơn son và hệ thống vì kèo. Tiến vào khu khán phòng: quan sát sân khấu từ dưới lên, nhìn lên khu ngồi hoàng gia tầng hai. Leo cầu thang lên tầng hai — ngồi vào vị trí hoàng gia nhìn xuống sân khấu. Sau đó thăm phòng trưng bày về Nhã nhạc UNESCO và các hiện vật nhạc cụ cung đình.
+
+=== NEARBY CONTEXT ===
+Ngay phía Tây: Điện Kiến Trung. Phía Nam trên trục thần đạo: Điện Thái Hòa. Phía Đông Bắc: Phủ Nội Vụ — kho lưu trữ vật phẩm hoàng gia.
+
+=== NOTABLE OBJECTS ===
+Đàn Nguyệt và Đàn Tranh: nhạc cụ dây cung đình trưng bày trong nhà hát. Trống Nhã nhạc: bộ trống lớn dùng trong các buổi biểu diễn Nhã nhạc hoàng cung. Trang phục biểu diễn: áo dài cung đình thêu rồng phượng tái hiện tại phòng trưng bày.
+────────────────────────────────────────────────────────────
+[2026-06-26 23:06:34] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Ngọ Môn
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Triều Nguyễn / Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Ngọ Môn là cổng chính phía Nam của Hoàng thành Huế — bộ mặt của cả một triều đại và là cổng lớn nhất trong bốn cổng chính. Được xây dựng vào năm 1833 dưới triều vua Minh Mạng, Ngọ Môn thay thế cho Nam Khuyết Đài thời Gia Long. Tên gọi 'Ngọ Môn' có nghĩa là 'cổng hướng về phương Ngọ' — tức phương Nam, hướng mà bậc thiên tử quay mặt để cai trị thiên hạ theo quan niệm 'Thánh nhân Nam diện nhi thính thiên hạ'. Kiến trúc Ngọ Môn gồm hai phần chính: phần đài cổng hình chữ U vững chãi và phần lầu Ngũ Phụng thanh thoát phía trên. Đài cao gần 5m, diện tích hơn 1.560m², đáy dài 57,77m, trổ 5 lối đi. Lối chính giữa (Ngọ Môn) dành riêng cho vua, hai lối bên (Tả Giáp Môn và Hữu Giáp Môn) cho quan văn võ, hai lối ngoài cùng (Tả Dịch Môn và Hữu Dịch Môn) cho binh lính và voi ngựa. Lầu Ngũ Phụng có hai tầng, kết cấu hoàn toàn bằng gỗ lim với chẵn 100 cây cột, mái chính giữa lợp ngói lưu ly vàng, tám mái còn lại lợp ngói xanh, với nhiều hình chim phụng trang trí ở bờ nóc và bờ quyết. Ngoài ra còn có 4 tòa nhà nhỏ phụ trợ hai bên Đông, Tây dực lâu. Ngọ Môn chứng kiến nhiều sự kiện lịch sử trọng đại: lễ Ban Sóc (ban lịch mới), lễ Truyền Lô (tuyên đọc tên tiến sĩ), và đặc biệt là ngày 30 tháng 8 năm 1945, vua Bảo Đại đọc Tuyên ngôn Thoái vị, trao chính quyền lại cho Chính phủ Lâm thời, khép lại chế độ quân chủ hơn 143 năm. Năm 1968, Ngọ Môn bị hư hại nặng trong trận Mậu Thân và được trùng tu với kinh phí 80 tỷ đồng, hoàn thành năm 2019. Câu ca dao xưa nhắc: 'Ngọ Môn 5 cửa 9 lầu, 1 lầu vàng 8 lầu xanh, 3 cửa thẳng 2 cửa quanh' — hãy tự mình kiểm tra xem có đúng không nhé!
+
+=== VISIBLE HIGHLIGHTS ===
+Đài nền hình chữ U: cao gần 5m, dài 57,77m, trổ 5 lối đi — mỗi lối dành cho một tầng lớp khác nhau. Lầu Ngũ Phụng: 100 cột gỗ lim, mái vàng trung tâm và 8 mái xanh xung quanh — biểu tượng phượng hoàng. Bốn tòa nhà phụ Đông, Tây dực lâu hai bên: tạo thành quần thể hoàn chỉnh nhìn từ sân. Sân Đại triều nghi phía Bắc: chứng kiến lễ thoái vị của vua Bảo Đại ngày 30/8/1945.
+
+=== SUGGESTED VISIT FLOW ===
+Đứng ở phía Nam Ngọ Môn — quan sát tổng thể đài hình chữ U và 5 lối đi, đếm thử số cửa. Tiếp cận gần: nhìn kỹ vật liệu xây dựng đài — gạch vồ, đá Thanh, và những lớp rêu phong. Bước qua cửa chính giữa (cửa Ngọ Môn) vào sân — đây là lối dành cho vua xưa. Đứng dưới chân lầu Ngũ Phụng nhìn lên — đếm hoa văn phụng trang trí trên bờ nóc. Leo lên lầu Ngũ Phụng (nếu mở): nhìn xuống sân Ngọ Môn và toàn cảnh phía Nam Hoàng thành. Nhìn ra phía Bắc để thấy trục thần đạo chính dẫn thẳng vào Điện Thái Hòa.
+
+=== NEARBY CONTEXT ===
+Phía Bắc ngay sau cổng: sân Đại triều nghi và Điện Thái Hòa. Phía Nam: Hồ Thái Dịch và quảng trường trước Ngọ Môn — nơi du khách thường chụp ảnh. Đây là điểm bắt đầu lý tưởng cho hành trình khám phá Hoàng thành theo trục Bắc-Nam.
+
+=== NOTABLE OBJECTS ===
+5 lối đi đài Ngọ Môn: Cửa Ngọ, Tả Giáp, Hữu Giáp, Tả Dịch, Hữu Dịch — phân tầng theo phẩm trật. Lầu Ngũ Phụng: 100 cột gỗ lim, biểu tượng 5 con phụng — đặc trưng kiến trúc quan trọng nhất. Mái ngói hoàng lưu ly và thanh lưu ly: màu vàng tượng trưng cho đế vương, màu xanh cho quan lại.
+
+=== PHOTO SPOTS ===
+Góc kinh điển: đứng phía Nam hồ Thái Dịch nhìn vào Ngọ Môn với hồ làm tiền cảnh phản chiếu. Góc từ lầu Ngũ Phụng: nhìn xuống sân Đại triều nghi — thấy cả Điện Thái Hòa ở phía Bắc. Góc hoàng hôn: mặt Tây của Ngọ Môn khi ánh chiều tà nhuộm vàng các mái ngói.
+────────────────────────────────────────────────────────────
+[2026-06-26 23:07:15] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Cửa Hòa Bình
+Data lấy từ data của bạn: Name: Cửa Hòa Bình
+Year: 1804
+Author: Triều Nguyễn
+Location ID: 1
+
+=== HISTORY ===
+Cửa Hòa Bình là cánh cổng phía Bắc của Hoàng thành Huế, lặng lẽ nép mình bên dòng sông Hương thơ mộng. Dưới thời vua Gia Long, cửa mang tên Củng Thần — một cái tên đầy vẻ thần bí và uy nghi, gợi nhắc về chốn thâm nghiêm của hoàng cung. Nhưng đến năm 1833, vua Minh Mạng cho đại trùng tu và đổi tên thành Hòa Bình, gửi gắm khát vọng thiên hạ thái bình, quốc thái dân an. Không giống như Ngọ Môn ồn ào nơi cửa chính, Cửa Hòa Bình khoác lên mình một vẻ đẹp trầm mặc, cổ kính, như một cụ già hiền từ đang kể chuyện xưa. Cánh cổng này từng là lối đi riêng của các cung tần, mỹ nữ và thái giám trong hoàng cung — những bóng hồng khuất nẻo sau bức tường thành cao vời vợi. Những gánh hàng lương thực, nhu yếu phẩm cũng lặng lẽ qua đây để nuôi sống cuộc sống xa hoa bên trong Tử Cấm Thành. Kiến trúc cửa gồm phần nền đài vững chãi xây bằng gạch đá kết hợp với phần lầu canh hai tầng tao nhã phía trên, với những mái ngói cong cong uyển chuyển và những đường nét chạm khắc tinh xảo trên gỗ. Bước qua cửa, bạn sẽ cảm nhận ngay sự chuyển giao giữa không gian sầm uất bên ngoài và thế giới tĩnh lặng, linh thiêng bên trong. Những viên gạch rêu phong dưới chân đã chứng kiến bao cuộc chiến tranh, bao đổi thay của thời cuộc mà vẫn đứng đó, kiên cường và bền bỉ. Bạn có để ý thấy những đường nét chạm khắc trên mái không? Mỗi họa tiết hoa lá, mỗi đường cong mái ngói đều mang một triết lý phong thủy sâu xa, kể cho chúng ta nghe về quan niệm vũ trụ của người xưa. Hãy thử tưởng tượng một buổi chiều tà, ánh hoàng hôn nhuộm vàng cánh cổng, tiếng chuông chùa vọng ra từ xa — có gì đó bình yên đến lạ thường giữa chốn kinh kỳ náo nhiệt này. Cổng còn có một vẻ đẹp rất riêng vào những ngày mưa bay, khi những hạt mưa nhẹ rơi trên mái ngói rêu phong tạo nên một bản nhạc dịu dàng của quá khứ. Người Huế xưa có câu: 'Cửa Hòa Bình mở ra, gió sông Hương thổi vào mát rượi' — như một lời chào đón ân tình từ cố đô. Hãy dành chút thời gian đứng lại đây, hít hà không khí trong lành và để tâm hồn mình hòa vào nhịp điệu chậm rãi của Huế, nơi quá khứ và hiện tại cùng tồn tại trong một khoảnh khắc giao hòa kỳ diệu.
+
+=== VISIBLE HIGHLIGHTS ===
+Phần đài bên dưới: nền gạch đá hình thang vững chãi, bốn bức tường phủ rêu phong cổ kính. Lầu canh hai tầng bên trên: mái ngói cong uyển chuyển, đường chạm khắc hoa lá trên gỗ. Hướng Bắc nhìn ra dòng sông Hương thơ mộng qua cổng. Khoảng sân nhỏ trong lòng cổng: không gian chuyển giao giữa nội và ngoại thành.
+
+=== SUGGESTED VISIT FLOW ===
+Bắt đầu từ phía ngoài, quan sát tổng thể phần đài bằng gạch đá và hai cánh cổng gỗ. Bước qua ngưỡng cửa, chú ý tấm đá lát bên dưới đã mòn sau hàng thế kỷ. Đứng trong lòng cổng nhìn lên hệ thống mái lầu hai tầng — quan sát đầu đao và hoa văn trên nóc. Ra phía trong, quay lại nhìn toàn bộ mặt Nam cổng — bố cục đối xứng hoàn hảo. Từ đây có thể đi về phía Đông tới Điện Kiến Trung hoặc phía Tây tới Cung Trường Sanh.
+
+=== NEARBY CONTEXT ===
+Ngay phía Nam cổng: đường lớn nội thành dẫn về Điện Thái Hòa và Ngọ Môn. Phía Tây: Cung Trường Sanh — nơi nghỉ ngơi của các Hoàng thái hậu. Phía Đông: Điện Kiến Trung — cung điện cuối cùng thời Nguyễn, vừa được phục dựng năm 2024.
+────────────────────────────────────────────────────────────
+[2026-06-26 23:08:49] (source: llm)
+Câu hỏi: phòng này xưa làm gì
+Data lấy từ data của bạn: Name: Điện Kiến Trung
+Year: 1921
+Author: Vua Khải Định
+Location ID: 1
+
+=== HISTORY ===
+Điện Kiến Trung tọa lạc ở điểm cực Bắc của trục thần đạo xuyên suốt Tử Cấm Thành, được vua Khải Định cho xây dựng từ năm 1921 đến 1923. Trước khi có điện này, nơi đây từng là lầu Minh Viễn thời Minh Mạng (1827-1876) rồi lầu Du Cửu thời Đồng Khánh (1913-1916), nhưng vua Khải Định đã cho triệt giải hoàn toàn để xây một tòa cung điện mới, làm nơi sinh hoạt và làm việc của mình. Điện Kiến Trung là đỉnh cao của phong cách kiến trúc Đông Dương, pha trộn hài hòa giữa kiến trúc Baroque, Phục Hưng của châu Âu với nét cổ truyền Việt Nam. Mặt tiền được trang trí bằng những mảnh gốm sứ nhiều màu tinh xảo, tạo nên một vẻ đẹp sang trọng và độc đáo. Tầng chính trổ 13 cửa hiên, tầng trên là gác mái ngói có lan can trang trí theo phong cách Việt Nam. Trước điện là vườn cảnh với ba cầu thang đắp rồng uốn lượn dẫn lên thềm điện. Đây là nơi ở của hai vị vua cuối cùng triều Nguyễn: Khải Định và Bảo Đại. Chính tại đây, Hoàng hậu Nam Phương đã hạ sinh Thái tử Bảo Long vào ngày 4 tháng 1 năm 1936. Ngày 11 tháng 3 năm 1945, vua Bảo Đại triệu cố vấn tối cao Nhật Bản là đại sứ Yokoyama vào điện này để tuyên bố nước Việt Nam độc lập. Tháng 8 năm 1945, vua Bảo Đại đã tiếp phái đoàn Chính phủ Lâm thời tại điện để trao ấn kiếm thoái vị, khép lại hơn 143 năm trị vì của triều Nguyễn. Điện bị phá hủy tháng 2 năm 1947 trong chiến dịch tiêu thổ kháng chiến, và được phục dựng hoàn thành vào năm 2024 với kinh phí hơn 123 tỉ đồng. Hãy nhìn lên những mái ngói lưu ly kia — chúng đã được các nghệ nhân phục dựng tỉ mỉ dựa trên những bức ảnh tư liệu từ thập niên 1920. Quá trình phục dựng kéo dài nhiều năm với sự hợp tác của các nhà nghiên cứu lịch sử, văn hóa và mỹ thuật Huế, cùng với sự tham gia của Phân viện khoa học công nghệ xây dựng Miền Trung. Hôm nay, bạn đang đứng trước một kỳ tích phục dựng đầy cảm động — một công trình đã sống lại từ đống tro tàn.
+
+=== VISIBLE HIGHLIGHTS ===
+Mặt tiền Đông – Tây khảm gốm sứ đa màu sắc — điểm nhấn kiến trúc Đông Dương độc đáo. Ba cầu thang rồng đắp nổi uốn lượn dẫn lên thềm điện. Tầng một: 13 cửa hiên vòm Baroque, ban công tầng hai lan can trang trí Việt Nam. Nội thất: bàn làm việc phòng của vua Bảo Đại được phục dựng, bản đồ toàn quốc treo tường. Sân thượng tầng hai: view nhìn xuống toàn bộ Tử Cấm Thành về phía Nam.
+
+=== SUGGESTED VISIT FLOW ===
+Tiếp cận từ phía Nam qua sân vườn với ba cầu thang rồng. Chiêm ngưỡng toàn bộ mặt tiền trước khi bước lên — chú ý mảnh sứ khảm và cột đèn kiểu Pháp. Bước vào tầng một: quan sát khu vực phòng khách, không gian làm việc và cầu thang rộng giữa nhà. Lên tầng hai: phòng ngủ hoàng gia và ban công nhìn ra vườn phía trước. Ra phía sân thượng để ngắm tổng thể Tử Cấm Thành từ trên cao — hướng về Điện Thái Hòa ở phía Nam.
+
+=== NEARBY CONTEXT ===
+Phía Nam: Điện Thái Hòa và sân Đại triều nghi nổi tiếng. Phía Bắc: Cửa Hòa Bình và hướng ra sông Hương. Gần đó: Duyệt Thị Đường — nhà hát cung đình còn nguyên vẹn nhất Việt Nam.
+
+=== NOTABLE OBJECTS ===
+Bộ gốm sứ khảm mặt tiền: hàng trăm mảnh ghép tạo thành những bức tranh phong cảnh. Cầu thang rồng: đá đắp nổi hình rồng uốn lượn — biểu tượng quyền uy. Đèn chùm pha lê phòng đón khách: di vật thời Khải Định — Bảo Đại. Bản đồ Đông Dương và phòng làm việc của vua Bảo Đại: tái hiện chính xác theo tư liệu lịch sử.
+────────────────────────────────────────────────────────────
+[2026-06-26 23:15:39] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Ngọ Môn
+Data lấy từ data của bạn: Name: Ngọ Môn
+Year: 1833
+Author: Triều Nguyễn / Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Ngọ Môn là cổng chính phía Nam của Hoàng thành Huế — bộ mặt của cả một triều đại và là cổng lớn nhất trong bốn cổng chính. Được xây dựng vào năm 1833 dưới triều vua Minh Mạng, Ngọ Môn thay thế cho Nam Khuyết Đài thời Gia Long. Tên gọi 'Ngọ Môn' có nghĩa là 'cổng hướng về phương Ngọ' — tức phương Nam, hướng mà bậc thiên tử quay mặt để cai trị thiên hạ theo quan niệm 'Thánh nhân Nam diện nhi thính thiên hạ'. Kiến trúc Ngọ Môn gồm hai phần chính: phần đài cổng hình chữ U vững chãi và phần lầu Ngũ Phụng thanh thoát phía trên. Đài cao gần 5m, diện tích hơn 1.560m², đáy dài 57,77m, trổ 5 lối đi. Lối chính giữa (Ngọ Môn) dành riêng cho vua, hai lối bên (Tả Giáp Môn và Hữu Giáp Môn) cho quan văn võ, hai lối ngoài cùng (Tả Dịch Môn và Hữu Dịch Môn) cho binh lính và voi ngựa. Lầu Ngũ Phụng có hai tầng, kết cấu hoàn toàn bằng gỗ lim với chẵn 100 cây cột, mái chính giữa lợp ngói lưu ly vàng, tám mái còn lại lợp ngói xanh, với nhiều hình chim phụng trang trí ở bờ nóc và bờ quyết. Ngoài ra còn có 4 tòa nhà nhỏ phụ trợ hai bên Đông, Tây dực lâu. Ngọ Môn chứng kiến nhiều sự kiện lịch sử trọng đại: lễ Ban Sóc (ban lịch mới), lễ Truyền Lô (tuyên đọc tên tiến sĩ), và đặc biệt là ngày 30 tháng 8 năm 1945, vua Bảo Đại đọc Tuyên ngôn Thoái vị, trao chính quyền lại cho Chính phủ Lâm thời, khép lại chế độ quân chủ hơn 143 năm. Năm 1968, Ngọ Môn bị hư hại nặng trong trận Mậu Thân và được trùng tu với kinh phí 80 tỷ đồng, hoàn thành năm 2019. Câu ca dao xưa nhắc: 'Ngọ Môn 5 cửa 9 lầu, 1 lầu vàng 8 lầu xanh, 3 cửa thẳng 2 cửa quanh' — hãy tự mình kiểm tra xem có đúng không nhé!
+
+=== VISIBLE HIGHLIGHTS ===
+Đài nền hình chữ U: cao gần 5m, dài 57,77m, trổ 5 lối đi — mỗi lối dành cho một tầng lớp khác nhau. Lầu Ngũ Phụng: 100 cột gỗ lim, mái vàng trung tâm và 8 mái xanh xung quanh — biểu tượng phượng hoàng. Bốn tòa nhà phụ Đông, Tây dực lâu hai bên: tạo thành quần thể hoàn chỉnh nhìn từ sân. Sân Đại triều nghi phía Bắc: chứng kiến lễ thoái vị của vua Bảo Đại ngày 30/8/1945.
+
+=== SUGGESTED VISIT FLOW ===
+Đứng ở phía Nam Ngọ Môn — quan sát tổng thể đài hình chữ U và 5 lối đi, đếm thử số cửa. Tiếp cận gần: nhìn kỹ vật liệu xây dựng đài — gạch vồ, đá Thanh, và những lớp rêu phong. Bước qua cửa chính giữa (cửa Ngọ Môn) vào sân — đây là lối dành cho vua xưa. Đứng dưới chân lầu Ngũ Phụng nhìn lên — đếm hoa văn phụng trang trí trên bờ nóc. Leo lên lầu Ngũ Phụng (nếu mở): nhìn xuống sân Ngọ Môn và toàn cảnh phía Nam Hoàng thành. Nhìn ra phía Bắc để thấy trục thần đạo chính dẫn thẳng vào Điện Thái Hòa.
+
+=== NEARBY CONTEXT ===
+Phía Bắc ngay sau cổng: sân Đại triều nghi và Điện Thái Hòa. Phía Nam: Hồ Thái Dịch và quảng trường trước Ngọ Môn — nơi du khách thường chụp ảnh. Đây là điểm bắt đầu lý tưởng cho hành trình khám phá Hoàng thành theo trục Bắc-Nam.
+
+=== NOTABLE OBJECTS ===
+5 lối đi đài Ngọ Môn: Cửa Ngọ, Tả Giáp, Hữu Giáp, Tả Dịch, Hữu Dịch — phân tầng theo phẩm trật. Lầu Ngũ Phụng: 100 cột gỗ lim, biểu tượng 5 con phụng — đặc trưng kiến trúc quan trọng nhất. Mái ngói hoàng lưu ly và thanh lưu ly: màu vàng tượng trưng cho đế vương, màu xanh cho quan lại.
+
+=== PHOTO SPOTS ===
+Góc kinh điển: đứng phía Nam hồ Thái Dịch nhìn vào Ngọ Môn với hồ làm tiền cảnh phản chiếu. Góc từ lầu Ngũ Phụng: nhìn xuống sân Đại triều nghi — thấy cả Điện Thái Hòa ở phía Bắc. Góc hoàng hôn: mặt Tây của Ngọ Môn khi ánh chiều tà nhuộm vàng các mái ngói.
+────────────────────────────────────────────────────────────
+[2026-06-26 23:16:35] (source: llm)
+Câu hỏi: đây là đâu và dùng để làm gì
+Data lấy từ data của bạn: Name: Duyệt Thị Đường
+Year: 1826
+Author: Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Duyệt Thị Đường là nhà hát hoàng gia cổ nhất còn tồn tại ở Việt Nam, được xem là viên ngọc quý của nghệ thuật sân khấu cung đình. Được xây dựng vào năm 1826 dưới triều vua Minh Mạng trên nền của nhà hát Thanh Phong Đường cũ (1805), nhà hát nằm ở góc Đông Nam bên trong Tử Cấm Thành với tổng diện tích khuôn viên 11.740m². Kiến trúc nhà hát hình chữ nhật rộng rãi, với mái cong mềm mại tựa những đình chùa Huế, được chống đỡ bởi hai hàng cột lim sơn son cao 12 mét vẽ rồng ẩn mây cuốn chung quanh. Mỗi cột còn treo thêm một bức tranh sơn thủy vẽ cảnh Huế với khung chạm rồng nổi thiếp vàng. Điều đặc biệt là sân khấu nằm ở trung tâm, với khán giả ngồi ba phía xung quanh — một thiết kế độc đáo. Vị trí đẹp nhất là lầu hai, dành riêng cho nhà vua — từ đây, vua có thể ngắm nhìn toàn bộ sân khấu. Các bà hoàng và cung tần mỹ nữ ngồi phía sau một lớp sáo trúc thưa, có thể nhìn ra mà không bị nhìn thấy — một chi tiết đầy tinh tế và kín đáo của cung đình. Hai bên vòm có treo hai câu đối bằng chữ Hán của vua Minh Mạng, nói về sức mạnh của âm nhạc trong việc nuôi dưỡng chí khí con người. Bên hữu nhà hát là Ngự y viện, nơi sao chế thuốc cho vua và hoàng gia. Ngày nay, Duyệt Thị Đường vẫn là nơi biểu diễn Nhã nhạc cung đình Huế — Di sản Văn hóa phi vật thể của UNESCO, với hai suất diễn mỗi ngày vào lúc 10 giờ sáng và 3 giờ chiều. Nhà hát đã phục dựng 8 trong số 11 điệu múa cổ và 40 bài nhã nhạc — một kho báu văn hóa đang sống động từng ngày. Nếu có dịp, bạn hãy dừng chân ở đây để thưởng thức những điệu múa cung đình và tiếng nhạc du dương — chắc chắn sẽ là một trải nghiệm khó quên!
+
+=== VISIBLE HIGHLIGHTS ===
+Sân khấu Nhã nhạc cung đình: khu biểu diễn chính với rèm nhung và đèn chùm cổ điển. Nội thất sơn son thếp vàng tầng một: hệ thống cột gỗ lim chạm rồng phượng. Khu ngồi dành cho hoàng gia tầng hai: ban công gỗ nhìn xuống sân khấu — chỉ vua và hoàng gia được ngồi đây. Hành lang và tiền sảnh tầng một: nơi quan lại chờ đợi và chuẩn bị.
+
+=== SUGGESTED VISIT FLOW ===
+Vào từ cổng chính phía Nam — quan sát tổng thể mặt tiền nhà hát với mái ngói và trụ cột. Bước vào tiền sảnh: chiêm ngưỡng bộ cột gỗ lim sơn son và hệ thống vì kèo. Tiến vào khu khán phòng: quan sát sân khấu từ dưới lên, nhìn lên khu ngồi hoàng gia tầng hai. Leo cầu thang lên tầng hai — ngồi vào vị trí hoàng gia nhìn xuống sân khấu. Sau đó thăm phòng trưng bày về Nhã nhạc UNESCO và các hiện vật nhạc cụ cung đình.
+
+=== NEARBY CONTEXT ===
+Ngay phía Tây: Điện Kiến Trung. Phía Nam trên trục thần đạo: Điện Thái Hòa. Phía Đông Bắc: Phủ Nội Vụ — kho lưu trữ vật phẩm hoàng gia.
+
+=== NOTABLE OBJECTS ===
+Đàn Nguyệt và Đàn Tranh: nhạc cụ dây cung đình trưng bày trong nhà hát. Trống Nhã nhạc: bộ trống lớn dùng trong các buổi biểu diễn Nhã nhạc hoàng cung. Trang phục biểu diễn: áo dài cung đình thêu rồng phượng tái hiện tại phòng trưng bày.
+────────────────────────────────────────────────────────────
+[2026-06-26 23:17:19] (source: llm)
+Câu hỏi: nó thường dùng để biểu diễn gì
+Data lấy từ data của bạn: Name: Duyệt Thị Đường
+Year: 1826
+Author: Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Duyệt Thị Đường là nhà hát hoàng gia cổ nhất còn tồn tại ở Việt Nam, được xem là viên ngọc quý của nghệ thuật sân khấu cung đình. Được xây dựng vào năm 1826 dưới triều vua Minh Mạng trên nền của nhà hát Thanh Phong Đường cũ (1805), nhà hát nằm ở góc Đông Nam bên trong Tử Cấm Thành với tổng diện tích khuôn viên 11.740m². Kiến trúc nhà hát hình chữ nhật rộng rãi, với mái cong mềm mại tựa những đình chùa Huế, được chống đỡ bởi hai hàng cột lim sơn son cao 12 mét vẽ rồng ẩn mây cuốn chung quanh. Mỗi cột còn treo thêm một bức tranh sơn thủy vẽ cảnh Huế với khung chạm rồng nổi thiếp vàng. Điều đặc biệt là sân khấu nằm ở trung tâm, với khán giả ngồi ba phía xung quanh — một thiết kế độc đáo. Vị trí đẹp nhất là lầu hai, dành riêng cho nhà vua — từ đây, vua có thể ngắm nhìn toàn bộ sân khấu. Các bà hoàng và cung tần mỹ nữ ngồi phía sau một lớp sáo trúc thưa, có thể nhìn ra mà không bị nhìn thấy — một chi tiết đầy tinh tế và kín đáo của cung đình. Hai bên vòm có treo hai câu đối bằng chữ Hán của vua Minh Mạng, nói về sức mạnh của âm nhạc trong việc nuôi dưỡng chí khí con người. Bên hữu nhà hát là Ngự y viện, nơi sao chế thuốc cho vua và hoàng gia. Ngày nay, Duyệt Thị Đường vẫn là nơi biểu diễn Nhã nhạc cung đình Huế — Di sản Văn hóa phi vật thể của UNESCO, với hai suất diễn mỗi ngày vào lúc 10 giờ sáng và 3 giờ chiều. Nhà hát đã phục dựng 8 trong số 11 điệu múa cổ và 40 bài nhã nhạc — một kho báu văn hóa đang sống động từng ngày. Nếu có dịp, bạn hãy dừng chân ở đây để thưởng thức những điệu múa cung đình và tiếng nhạc du dương — chắc chắn sẽ là một trải nghiệm khó quên!
+
+=== VISIBLE HIGHLIGHTS ===
+Sân khấu Nhã nhạc cung đình: khu biểu diễn chính với rèm nhung và đèn chùm cổ điển. Nội thất sơn son thếp vàng tầng một: hệ thống cột gỗ lim chạm rồng phượng. Khu ngồi dành cho hoàng gia tầng hai: ban công gỗ nhìn xuống sân khấu — chỉ vua và hoàng gia được ngồi đây. Hành lang và tiền sảnh tầng một: nơi quan lại chờ đợi và chuẩn bị.
+
+=== SUGGESTED VISIT FLOW ===
+Vào từ cổng chính phía Nam — quan sát tổng thể mặt tiền nhà hát với mái ngói và trụ cột. Bước vào tiền sảnh: chiêm ngưỡng bộ cột gỗ lim sơn son và hệ thống vì kèo. Tiến vào khu khán phòng: quan sát sân khấu từ dưới lên, nhìn lên khu ngồi hoàng gia tầng hai. Leo cầu thang lên tầng hai — ngồi vào vị trí hoàng gia nhìn xuống sân khấu. Sau đó thăm phòng trưng bày về Nhã nhạc UNESCO và các hiện vật nhạc cụ cung đình.
+
+=== NEARBY CONTEXT ===
+Ngay phía Tây: Điện Kiến Trung. Phía Nam trên trục thần đạo: Điện Thái Hòa. Phía Đông Bắc: Phủ Nội Vụ — kho lưu trữ vật phẩm hoàng gia.
+
+=== NOTABLE OBJECTS ===
+Đàn Nguyệt và Đàn Tranh: nhạc cụ dây cung đình trưng bày trong nhà hát. Trống Nhã nhạc: bộ trống lớn dùng trong các buổi biểu diễn Nhã nhạc hoàng cung. Trang phục biểu diễn: áo dài cung đình thêu rồng phượng tái hiện tại phòng trưng bày.
+────────────────────────────────────────────────────────────
+[2026-06-26 23:18:03] (source: llm)
+Câu hỏi: Nghe giới thiệu ngắn về Duyệt Thị Đường
+Data lấy từ data của bạn: Name: Duyệt Thị Đường
+Year: 1826
+Author: Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Duyệt Thị Đường là nhà hát hoàng gia cổ nhất còn tồn tại ở Việt Nam, được xem là viên ngọc quý của nghệ thuật sân khấu cung đình. Được xây dựng vào năm 1826 dưới triều vua Minh Mạng trên nền của nhà hát Thanh Phong Đường cũ (1805), nhà hát nằm ở góc Đông Nam bên trong Tử Cấm Thành với tổng diện tích khuôn viên 11.740m². Kiến trúc nhà hát hình chữ nhật rộng rãi, với mái cong mềm mại tựa những đình chùa Huế, được chống đỡ bởi hai hàng cột lim sơn son cao 12 mét vẽ rồng ẩn mây cuốn chung quanh. Mỗi cột còn treo thêm một bức tranh sơn thủy vẽ cảnh Huế với khung chạm rồng nổi thiếp vàng. Điều đặc biệt là sân khấu nằm ở trung tâm, với khán giả ngồi ba phía xung quanh — một thiết kế độc đáo. Vị trí đẹp nhất là lầu hai, dành riêng cho nhà vua — từ đây, vua có thể ngắm nhìn toàn bộ sân khấu. Các bà hoàng và cung tần mỹ nữ ngồi phía sau một lớp sáo trúc thưa, có thể nhìn ra mà không bị nhìn thấy — một chi tiết đầy tinh tế và kín đáo của cung đình. Hai bên vòm có treo hai câu đối bằng chữ Hán của vua Minh Mạng, nói về sức mạnh của âm nhạc trong việc nuôi dưỡng chí khí con người. Bên hữu nhà hát là Ngự y viện, nơi sao chế thuốc cho vua và hoàng gia. Ngày nay, Duyệt Thị Đường vẫn là nơi biểu diễn Nhã nhạc cung đình Huế — Di sản Văn hóa phi vật thể của UNESCO, với hai suất diễn mỗi ngày vào lúc 10 giờ sáng và 3 giờ chiều. Nhà hát đã phục dựng 8 trong số 11 điệu múa cổ và 40 bài nhã nhạc — một kho báu văn hóa đang sống động từng ngày. Nếu có dịp, bạn hãy dừng chân ở đây để thưởng thức những điệu múa cung đình và tiếng nhạc du dương — chắc chắn sẽ là một trải nghiệm khó quên!
+
+=== VISIBLE HIGHLIGHTS ===
+Sân khấu Nhã nhạc cung đình: khu biểu diễn chính với rèm nhung và đèn chùm cổ điển. Nội thất sơn son thếp vàng tầng một: hệ thống cột gỗ lim chạm rồng phượng. Khu ngồi dành cho hoàng gia tầng hai: ban công gỗ nhìn xuống sân khấu — chỉ vua và hoàng gia được ngồi đây. Hành lang và tiền sảnh tầng một: nơi quan lại chờ đợi và chuẩn bị.
+
+=== SUGGESTED VISIT FLOW ===
+Vào từ cổng chính phía Nam — quan sát tổng thể mặt tiền nhà hát với mái ngói và trụ cột. Bước vào tiền sảnh: chiêm ngưỡng bộ cột gỗ lim sơn son và hệ thống vì kèo. Tiến vào khu khán phòng: quan sát sân khấu từ dưới lên, nhìn lên khu ngồi hoàng gia tầng hai. Leo cầu thang lên tầng hai — ngồi vào vị trí hoàng gia nhìn xuống sân khấu. Sau đó thăm phòng trưng bày về Nhã nhạc UNESCO và các hiện vật nhạc cụ cung đình.
+
+=== NEARBY CONTEXT ===
+Ngay phía Tây: Điện Kiến Trung. Phía Nam trên trục thần đạo: Điện Thái Hòa. Phía Đông Bắc: Phủ Nội Vụ — kho lưu trữ vật phẩm hoàng gia.
+
+=== NOTABLE OBJECTS ===
+Đàn Nguyệt và Đàn Tranh: nhạc cụ dây cung đình trưng bày trong nhà hát. Trống Nhã nhạc: bộ trống lớn dùng trong các buổi biểu diễn Nhã nhạc hoàng cung. Trang phục biểu diễn: áo dài cung đình thêu rồng phượng tái hiện tại phòng trưng bày.
+────────────────────────────────────────────────────────────
+[2026-06-26 23:18:46] (source: llm)
+Câu hỏi: này là ở đâu trong duyệt thị đường
+Data lấy từ data của bạn: Name: Duyệt Thị Đường
+Year: 1826
+Author: Vua Minh Mạng
+Location ID: 1
+
+=== HISTORY ===
+Duyệt Thị Đường là nhà hát hoàng gia cổ nhất còn tồn tại ở Việt Nam, được xem là viên ngọc quý của nghệ thuật sân khấu cung đình. Được xây dựng vào năm 1826 dưới triều vua Minh Mạng trên nền của nhà hát Thanh Phong Đường cũ (1805), nhà hát nằm ở góc Đông Nam bên trong Tử Cấm Thành với tổng diện tích khuôn viên 11.740m². Kiến trúc nhà hát hình chữ nhật rộng rãi, với mái cong mềm mại tựa những đình chùa Huế, được chống đỡ bởi hai hàng cột lim sơn son cao 12 mét vẽ rồng ẩn mây cuốn chung quanh. Mỗi cột còn treo thêm một bức tranh sơn thủy vẽ cảnh Huế với khung chạm rồng nổi thiếp vàng. Điều đặc biệt là sân khấu nằm ở trung tâm, với khán giả ngồi ba phía xung quanh — một thiết kế độc đáo. Vị trí đẹp nhất là lầu hai, dành riêng cho nhà vua — từ đây, vua có thể ngắm nhìn toàn bộ sân khấu. Các bà hoàng và cung tần mỹ nữ ngồi phía sau một lớp sáo trúc thưa, có thể nhìn ra mà không bị nhìn thấy — một chi tiết đầy tinh tế và kín đáo của cung đình. Hai bên vòm có treo hai câu đối bằng chữ Hán của vua Minh Mạng, nói về sức mạnh của âm nhạc trong việc nuôi dưỡng chí khí con người. Bên hữu nhà hát là Ngự y viện, nơi sao chế thuốc cho vua và hoàng gia. Ngày nay, Duyệt Thị Đường vẫn là nơi biểu diễn Nhã nhạc cung đình Huế — Di sản Văn hóa phi vật thể của UNESCO, với hai suất diễn mỗi ngày vào lúc 10 giờ sáng và 3 giờ chiều. Nhà hát đã phục dựng 8 trong số 11 điệu múa cổ và 40 bài nhã nhạc — một kho báu văn hóa đang sống động từng ngày. Nếu có dịp, bạn hãy dừng chân ở đây để thưởng thức những điệu múa cung đình và tiếng nhạc du dương — chắc chắn sẽ là một trải nghiệm khó quên!
+
+=== VISIBLE HIGHLIGHTS ===
+Sân khấu Nhã nhạc cung đình: khu biểu diễn chính với rèm nhung và đèn chùm cổ điển. Nội thất sơn son thếp vàng tầng một: hệ thống cột gỗ lim chạm rồng phượng. Khu ngồi dành cho hoàng gia tầng hai: ban công gỗ nhìn xuống sân khấu — chỉ vua và hoàng gia được ngồi đây. Hành lang và tiền sảnh tầng một: nơi quan lại chờ đợi và chuẩn bị.
+
+=== SUGGESTED VISIT FLOW ===
+Vào từ cổng chính phía Nam — quan sát tổng thể mặt tiền nhà hát với mái ngói và trụ cột. Bước vào tiền sảnh: chiêm ngưỡng bộ cột gỗ lim sơn son và hệ thống vì kèo. Tiến vào khu khán phòng: quan sát sân khấu từ dưới lên, nhìn lên khu ngồi hoàng gia tầng hai. Leo cầu thang lên tầng hai — ngồi vào vị trí hoàng gia nhìn xuống sân khấu. Sau đó thăm phòng trưng bày về Nhã nhạc UNESCO và các hiện vật nhạc cụ cung đình.
+
+=== NEARBY CONTEXT ===
+Ngay phía Tây: Điện Kiến Trung. Phía Nam trên trục thần đạo: Điện Thái Hòa. Phía Đông Bắc: Phủ Nội Vụ — kho lưu trữ vật phẩm hoàng gia.
+
+=== NOTABLE OBJECTS ===
+Đàn Nguyệt và Đàn Tranh: nhạc cụ dây cung đình trưng bày trong nhà hát. Trống Nhã nhạc: bộ trống lớn dùng trong các buổi biểu diễn Nhã nhạc hoàng cung. Trang phục biểu diễn: áo dài cung đình thêu rồng phượng tái hiện tại phòng trưng bày.
+────────────────────────────────────────────────────────────

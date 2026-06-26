@@ -42,10 +42,12 @@ Tạo `.env` ở thư mục root:
 ENVIRONMENT=development
 LOG_LEVEL=INFO
 GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_API_KEY_2=your_backup_gemini_api_key_here
 GROQ_API_KEY=your_groq_api_key_here
 DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/ai_tour_guide
 LLM_PROVIDER_ORDER=gemini,groq
 GEMINI_TEXT_MODEL=gemini-2.5-flash
+GEMINI_TEXT_MODEL_2=gemini-3.1-flash-lite
 GEMINI_VISION_MODEL=gemini-2.5-flash
 GROQ_LLM_MODEL=llama-3.3-70b-versatile
 GROQ_STT_MODEL=whisper-large-v3
@@ -53,6 +55,8 @@ LLM_TEMPERATURE=0.6
 LLM_MAX_TOKENS=2048
 LLM_MAX_TOKENS_FOLLOWUP=800
 ```
+
+Nếu cấu hình cả `GEMINI_API_KEY` và `GEMINI_API_KEY_2`, phần chat sẽ thử Gemini key đầu tiên trước, nếu lỗi/hết quota thì thử key thứ hai, rồi mới fallback sang Groq theo `LLM_PROVIDER_ORDER=gemini,groq`. `GEMINI_TEXT_MODEL_2` cho phép key thứ hai dùng model khác để tránh cùng bị 503 khi model chính quá tải. Phần nhận diện ảnh cũng fallback qua các Gemini key đã cấu hình nhưng vẫn dùng chung một `GEMINI_VISION_MODEL`, không cần model ảnh thứ hai. Có thể dùng thêm `GEMINI_API_KEYS=key3,key4` và `GEMINI_TEXT_MODELS=model3,model4` nếu cần nhiều key/model hơn.
 
 ### 2. Chạy PostgreSQL
 

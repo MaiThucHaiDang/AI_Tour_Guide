@@ -16,6 +16,7 @@ class GroqLLMProvider(BaseLLM):
         api_key = current_settings.GROQ_API_KEY.strip()
         if not api_key:
             raise ValueError("GROQ_API_KEY is not set in environment variables.")
+        self._label = "groq"
         self._client = AsyncGroq(api_key=api_key)
         self._model = current_settings.GROQ_LLM_MODEL
 

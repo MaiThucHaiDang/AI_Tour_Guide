@@ -16,7 +16,7 @@ valid_base64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAA
 def test_recognize_valid(mock_generate, mock_get_artifact, mock_recognize):
     mock_recognize_result = MagicMock()
     mock_recognize_result.recognized = True
-    mock_recognize_result.artifact_id = 1
+    mock_recognize_result.artifact_id = "1"
     mock_recognize_result.confidence_score = 0.95
     mock_recognize.return_value = mock_recognize_result
 
@@ -37,7 +37,7 @@ def test_recognize_valid(mock_generate, mock_get_artifact, mock_recognize):
     assert response.status_code == 200
     json_resp = response.json()
     assert json_resp["success"] is True
-    assert json_resp["artifact_id"] == 1
+    assert json_resp["artifact_id"] == "1"
     assert json_resp["artifact_name"] == "Ngọ Môn"
     assert json_resp["response_text"] == "Đây là Ngọ Môn."
 
@@ -120,7 +120,7 @@ def test_recognize_low_confidence(mock_recognize):
 def test_recognize_db_not_found(mock_get_artifact, mock_recognize):
     mock_recognize_result = MagicMock()
     mock_recognize_result.recognized = True
-    mock_recognize_result.artifact_id = 999
+    mock_recognize_result.artifact_id = "999"
     mock_recognize_result.confidence_score = 0.95
     mock_recognize.return_value = mock_recognize_result
 
@@ -143,7 +143,7 @@ def test_recognize_db_not_found(mock_get_artifact, mock_recognize):
 def test_recognize_llm_fail(mock_generate, mock_get_artifact, mock_recognize):
     mock_recognize_result = MagicMock()
     mock_recognize_result.recognized = True
-    mock_recognize_result.artifact_id = 1
+    mock_recognize_result.artifact_id = "1"
     mock_recognize_result.confidence_score = 0.95
     mock_recognize.return_value = mock_recognize_result
 
@@ -171,7 +171,7 @@ def test_recognize_llm_fail(mock_generate, mock_get_artifact, mock_recognize):
 def test_recognize_with_session(mock_generate, mock_get_artifact, mock_recognize):
     mock_recognize_result = MagicMock()
     mock_recognize_result.recognized = True
-    mock_recognize_result.artifact_id = 1
+    mock_recognize_result.artifact_id = "1"
     mock_recognize_result.confidence_score = 0.95
     mock_recognize.return_value = mock_recognize_result
 

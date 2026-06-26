@@ -12,7 +12,7 @@ from api.routers.rating_router import (
     list_location_ratings,
     get_location_rating_summary,
 )
-from models.location_rating import LocationRating
+from models.artifact_rating import ArtifactRating
 
 # --- RatingCreateRequest ---
 
@@ -76,8 +76,8 @@ def test_rating_clean_name_max_length():
 
 def test_rating_to_response_alias_fields():
     dt = datetime.now(timezone.utc)
-    rating = LocationRating(
-        id=1, location_id=10, location_name="Hue", service_rating=5, 
+    rating = ArtifactRating(
+        id=1, artifact_id=10, artifact_name="Hue", service_rating=5, 
         scenery_rating=4, price_rating=3, review="Great", customer_name="Alice", created_at=dt
     )
     resp = _rating_to_response(rating)
@@ -93,8 +93,8 @@ def test_rating_to_response_alias_fields():
 
 def test_rating_to_response_none_review():
     dt = datetime.now(timezone.utc)
-    rating = LocationRating(
-        id=1, location_id=10, location_name="Hue", service_rating=5, 
+    rating = ArtifactRating(
+        id=1, artifact_id=10, artifact_name="Hue", service_rating=5, 
         scenery_rating=4, price_rating=3, review=None, customer_name="Alice", created_at=dt
     )
     resp = _rating_to_response(rating)
@@ -169,8 +169,8 @@ async def test_list_ratings_success():
     mock_count.scalar_one.return_value = 1
     
     dt = datetime.now(timezone.utc)
-    rating = LocationRating(
-        id=1, location_id=1, location_name="Hue", service_rating=5, 
+    rating = ArtifactRating(
+        id=1, artifact_id=1, artifact_name="Hue", service_rating=5, 
         scenery_rating=4, price_rating=3, review="Great", customer_name="Alice", created_at=dt
     )
     

@@ -4681,7 +4681,8 @@ body {
   min-height: 100dvh;
   height: 100dvh;
   overflow: auto;
-  grid-template-columns: minmax(300px, 0.78fr) minmax(400px, 0.72fr);
+  grid-template-columns: minmax(280px, 0.68fr) minmax(420px, 1fr);
+  justify-items: center;
 }
 
 .phone-device-shell {
@@ -4689,6 +4690,8 @@ body {
   min-height: 0;
   align-self: center;
   justify-self: center;
+  display: grid;
+  place-items: center;
 }
 
 .phone-device {
@@ -4976,7 +4979,7 @@ body {
 
 @media (max-width: 1120px) {
   .phone-preview-stage {
-    grid-template-columns: minmax(280px, 0.74fr) minmax(380px, 0.76fr);
+    grid-template-columns: minmax(260px, 0.62fr) minmax(380px, 1fr);
     gap: clamp(18px, 3vw, 34px);
   }
 }
@@ -7097,6 +7100,41 @@ body {
   align-items: center;
   gap: 8px;
   z-index: 6100;
+}
+
+.tour-header-guide-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 34px;
+  min-height: 34px;
+  padding: 0 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border-hover);
+  background: var(--color-bg-surface-glass);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+  font-size: 12px;
+  font-weight: 850;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tour-header-guide-button:hover {
+  background: var(--color-btn-secondary-hover);
+}
+
+.phone-preview-mode .tour-header-guide-button,
+.is-phone-frame .tour-header-guide-button {
+  width: 34px;
+  min-width: 34px;
+  padding: 0;
+}
+
+.phone-preview-mode .tour-header-guide-button span,
+.is-phone-frame .tour-header-guide-button span {
+  display: none;
 }
 
 .tour-header-game-button:hover:not(:disabled) {

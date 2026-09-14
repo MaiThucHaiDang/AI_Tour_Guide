@@ -10,7 +10,7 @@ AI Tour Guide is a web application for visitors exploring cultural and historica
 - Backend: FastAPI unified backend in `backend/`.
 - Database: PostgreSQL 16 with async SQLAlchemy.
 - Migration: Alembic in `migrations/`.
-- AI providers: Gemini Vision/Text via `google-genai`, Groq STT/LLM fallback.
+- AI providers: Google Gemini for text, image understanding, and embeddings; Groq API for Whisper Large V3 speech-to-text and alternate text generation.
 - Browser narration: Web Speech API in the frontend, with chunked playback plus pause/resume/stop controls.
 
 ## Main User Flow
@@ -52,10 +52,10 @@ Visitor opens the web app
 
 ## Data Flow
 
-PostgreSQL stores locations, artifacts, bilingual content, and precomputed audio metadata. Seed data is loaded by `scripts/seed_data.py` after `alembic upgrade head`.
+PostgreSQL stores locations, artifacts, bilingual content, vectorized RAG documents, knowledge-graph relations, conversation turns, and product data. Seed data is loaded by `scripts/seed_data.py` after `alembic upgrade head`.
 
-Artifact retrieval currently uses exact name matching, normalized Vietnamese/English matching, and token-overlap scoring. This keeps the local system fast without requiring a vector database for the current dataset.
+Artifact retrieval combines exact and normalized Vietnamese/English matching, `pg_trgm` fuzzy matching, `pgvector` cosine-distance search, and one-hop graph expansion. `scripts/build_rag_index.py` creates deterministic 768-dimensional embedding records, while `scripts/build_graph.py` constructs the graph data used for context expansion.
 
 ## Running
 
-See `guideRun.md` in the project root.
+See the project-root `README.md` for local setup, database initialization, tests, and evaluation commands.

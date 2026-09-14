@@ -1,1 +1,0 @@
-- giới thiệu các điểm dừng ở bên dưới

@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "test": "npm run test:api && npm run test:tour-memory && npm run test:web-speech && npm run test:photo-booth",
+    "test:api": "node scripts/apiService.test.mjs && node scripts/apiService.contract.test.mjs",
     "test:photo-booth": "node scripts/photoBoothAlbum.test.mjs",
+    "test:tour-memory": "node scripts/tourMemoryService.test.mjs && node scripts/tourMemoryService.contract.test.mjs",
     "test:web-speech": "node scripts/webSpeechTts.test.mjs",
     "preview": "vite preview"
   },

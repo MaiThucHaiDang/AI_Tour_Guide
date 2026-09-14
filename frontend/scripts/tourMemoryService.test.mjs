@@ -2,44 +2,42 @@ import assert from 'node:assert/strict';
 import {
   createEmptyTourMemory,
   normalizeArtifactForPassport,
-  normalizeCatalogForPassport,
   loadTourMemory,
   saveTourMemory,
-  resetTourMemory,
   clearTourMemory,
   completeTourMemory,
-  recordCheckIn,
-  recordPhoto,
-  recordQuestion,
-  recordAudio,
-  buildTourSummary
+  recordCheckIn
 } from '../src/services/tourMemoryService.js';
 
-// Mock localStorage
-const store = {};
-global.localStorage = {
-  getItem: (key) => store[key] || null,
-  setItem: (key, val) => { store[key] = String(val); },
-  removeItem: (key) => { delete store[key]; },
-  clear: () => { Object.keys(store).forEach(k => delete store[k]); }
+const makeStorage = () => {
+  const store = {};
+  return {
+    getItem: (key) => store[key] || null,
+    setItem: (key, val) => { store[key] = String(val); },
+    removeItem: (key) => { delete store[key]; },
+    clear: () => { Object.keys(store).forEach((key) => delete store[key]); }
+  };
 };
+
+global.localStorage = makeStorage();
+global.sessionStorage = makeStorage();
 
 function test_create_empty_memory_has_version_session_defaults() {
   const mem = createEmptyTourMemory();
-  assert.equal(mem.version, '1.1');
+  assert.equal(mem.version, 1);
   assert.ok(mem.sessionId);
   assert.ok(Array.isArray(mem.route));
   assert.equal(mem.totalAudioSeconds, 0);
-  assert.equal(mem.status, 'active');
+  assert.equal(mem.completedAt, null);
 }
 
 function test_normalize_artifact_accepts_api_variants() {
   const art1 = normalizeArtifactForPassport({ id: '1', name: 'Ngo Mon', lat: 16.4, lng: 107.5 });
-  assert.equal(art1.id, '1');
-  assert.equal(art1.name, 'Ngo Mon');
+  assert.equal(art1.id, 1);
+  assert.equal(art1.name_vi, 'Ngo Mon');
   
   const art2 = normalizeArtifactForPassport({ artifact_id: '2', name: 'Thai Hoa', coordinates: { lat: 16.4, lng: 107.5 } });
-  assert.equal(art2.id, '2');
+  assert.equal(art2.id, 2);
 }
 
 function test_normalize_artifact_rejects_missing_id() {
@@ -48,18 +46,18 @@ function test_normalize_artifact_rejects_missing_id() {
 }
 
 function test_save_and_load_memory() {
-  global.localStorage.clear();
+  global.sessionStorage.clear();
   const mem = createEmptyTourMemory();
-  mem.route.push('1');
+  mem.route.push({ artifactId: 1 });
   saveTourMemory(mem);
   
   const loaded = loadTourMemory();
   assert.equal(loaded.sessionId, mem.sessionId);
-  assert.deepEqual(loaded.route, ['1']);
+  assert.deepEqual(loaded.route, [{ artifactId: 1 }]);
 }
 
 function test_clear_memory_removes_storage() {
-  global.localStorage.clear();
+  global.sessionStorage.clear();
   saveTourMemory(createEmptyTourMemory());
   clearTourMemory();
   const loaded = loadTourMemory();
@@ -67,23 +65,23 @@ function test_clear_memory_removes_storage() {
 }
 
 function test_record_checkin_first_and_repeat_visit() {
-  global.localStorage.clear();
+  global.sessionStorage.clear();
   let mem = loadTourMemory();
-  mem = recordCheckIn(mem, { id: '1', name: 'Ngo Mon', lat: 16.4, lng: 107.5 });
-  assert.deepEqual(mem.route, ['1']);
-  assert.equal(mem.visitedCatalogs['1'].visits, 1);
+  const artifact = { id: '1', name_vi: 'Ngo Mon', lat: 16.4, lng: 107.5 };
+  mem = recordCheckIn(mem, artifact);
+  assert.equal(mem.route.length, 1);
+  assert.equal(mem.checkIns['1'].visits, 1);
   
   // Repeat
-  mem = recordCheckIn(mem, { id: '1', name: 'Ngo Mon', lat: 16.4, lng: 107.5 });
-  assert.deepEqual(mem.route, ['1']); // Not duplicated in route
-  assert.equal(mem.visitedCatalogs['1'].visits, 2);
+  mem = recordCheckIn(mem, artifact);
+  assert.equal(mem.route.length, 1);
+  assert.equal(mem.checkIns['1'].visits, 2);
 }
 
 function test_complete_memory_sets_completed_at() {
-  global.localStorage.clear();
+  global.sessionStorage.clear();
   let mem = loadTourMemory();
   mem = completeTourMemory(mem);
-  assert.equal(mem.status, 'completed');
   assert.ok(mem.completedAt);
 }
 

@@ -5,33 +5,17 @@ import {
   unifiedChatAPI,
   submitFeedbackAPI,
   getMapConfigAPI,
-  getRouteAPI,
-  saveMapConfigAPI,
-  planTourAPI,
-  getNextSuggestionAPI,
-  createGameRoomAPI,
-  joinGameRoomAPI,
-  startGameAPI,
-  submitAnswerAPI,
-  nextGameQuestionAPI,
-  endGameAPI,
-  getGameStatusAPI,
-  generateAIPraiseAPI,
-  getLocalIpAPI,
-  fetchBlogPostsAPI,
-  fetchBlogPostDetailAPI,
-  createBlogPostAPI,
-  createBlogCommentAPI,
-  recordBlogInteractionAPI
+  createGameRoomAPI
 } from '../src/services/apiService.js';
 
 // Setup global fetch mock
 global.fetch = async (url, options) => {
   if (url.includes('/api/v1/recognize')) {
-    if (options.body.get('image')?.size > 1000) {
+    const payload = JSON.parse(options.body);
+    if (payload.image_base64?.length > 1000) {
       return { ok: false, status: 413, json: async () => ({ message: 'Image too large' }) };
     }
-    return { ok: true, json: async () => ({ success: true, data: { artifact_id: '1' } }) };
+    return { ok: true, json: async () => ({ success: true, artifact_id: '1' }) };
   }
   if (url.includes('/api/v1/voice/chat')) {
     if (url.includes('/stream')) {
@@ -43,7 +27,11 @@ global.fetch = async (url, options) => {
     return { ok: true, json: async () => ({ success: true, audio_base64: 'abcd' }) };
   }
   if (url.includes('/api/v1/chat/unified')) {
-    return { ok: true, json: async () => ({ success: true, text: 'Hello' }) };
+    return {
+      ok: true,
+      headers: { get: () => 'application/json' },
+      json: async () => ({ success: true, response_text: 'Hello' })
+    };
   }
   if (url.includes('/api/v1/feedback')) {
     return { ok: true, json: async () => ({ success: true }) };
@@ -72,16 +60,8 @@ global.fetch = async (url, options) => {
   return { ok: false, status: 404, json: async () => ({ message: 'Not found' }) };
 };
 
-global.File = class File {
-  constructor(bits, name, options) {
-    this.size = bits[0]?.length || 0;
-    this.name = name;
-  }
-};
-
 async function test_recognize_api_success_maps_backend_fields() {
-  const file = new global.File(['tiny'], 'test.jpg', { type: 'image/jpeg' });
-  const result = await recognizeArtifactAPI(file, { lat: 16.4, lng: 107.5 });
+  const result = await recognizeArtifactAPI('data:image/jpeg;base64,dGlueQ==', 'vi', 'sess');
   assert.equal(result.status, 'success');
   assert.equal(result.data.artifact_id, '1');
 }
@@ -90,28 +70,32 @@ async function test_recognize_api_backend_error_returns_status_error() {
   const origFetch = global.fetch;
   global.fetch = async () => ({ ok: true, json: async () => ({ success: false, message: 'Recognize failed' }) });
   try {
-    const file = new global.File(['tiny'], 'test.jpg', { type: 'image/jpeg' });
-    const result = await recognizeArtifactAPI(file, {});
+    const result = await recognizeArtifactAPI('data:image/jpeg;base64,dGlueQ==');
     assert.equal(result.status, 'error');
-    assert.equal(result.error, 'Recognize failed');
+    assert.equal(result.message, 'Recognize failed');
   } finally {
     global.fetch = origFetch;
   }
 }
 
 async function test_voice_chat_api_builds_formdata_and_abort_signal() {
-  const file = new global.File(['tiny'], 'test.webm', { type: 'audio/webm' });
-  const result = await voiceChatAPI(file, 'vi', 'sess', { lat: 16.4, lng: 107.5 }, '123', null);
-  assert.equal(result.success, true);
+  const audio = new Blob(['tiny'], { type: 'audio/webm' });
+  const result = await voiceChatAPI(audio, 'vi', null, 'test.webm', 'sess', '123');
+  assert.equal(result.responseText, 'Hello');
 }
 
 async function test_unified_chat_api_builds_text_image_audio_formdata() {
-  const result = await unifiedChatAPI('Hello', null, null, 'vi', 'sess', null);
+  const result = await unifiedChatAPI({ text: 'Hello', lang: 'vi', sessionId: 'sess' });
   assert.equal(result.success, true);
 }
 
 async function test_submit_feedback_api_payload_shape() {
-  const result = await submitFeedbackAPI('sess', '123', true, 'Good');
+  const result = await submitFeedbackAPI({
+    sessionId: 'sess',
+    messageId: '123',
+    rating: 'helpful',
+    comment: 'Good'
+  });
   assert.equal(result.success, true);
 }
 

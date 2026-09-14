@@ -10,11 +10,13 @@ import logging
 from time import perf_counter
 import uuid
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi.errors import RateLimitExceeded
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from core.config import settings
 from core.cache import setup_cache
@@ -110,6 +112,10 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+uploads_dir = Path(settings.UPLOADS_DIR)
+uploads_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")
 
 # ─── Register Routers ────────────────────────────────────────────────────────
 from api.routers.health_router import router as health_router

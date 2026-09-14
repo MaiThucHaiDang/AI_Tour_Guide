@@ -9,14 +9,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.database import get_db_session
 from core.observability import increment
+from core.config import settings
+from core.security import limiter
 from models.feedback_event import FeedbackEvent
 from schemas.feedback import FeedbackRequest, FeedbackResponse
-
+    
 router = APIRouter(prefix="/api/v1", tags=["Feedback"])
 _LOGGER = logging.getLogger(__name__)
 
 
 @router.post("/feedback", response_model=FeedbackResponse)
+@limiter.limit(settings.RATE_LIMIT)
 async def submit_feedback(
     request: Request,
     body: FeedbackRequest,

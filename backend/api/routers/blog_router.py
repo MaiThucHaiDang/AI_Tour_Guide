@@ -6,15 +6,20 @@ import logging
 import math
 import re
 import unicodedata
+import uuid
+from io import BytesIO
 from datetime import datetime, timezone
+from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from PIL import Image, UnidentifiedImageError
 from sqlalchemy import func, or_, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from core.database import get_db_session
+from core.config import settings
 from core.observability import increment
 from models.blog import BlogComment, BlogPost
 from schemas.blog import (
@@ -30,6 +35,12 @@ from schemas.blog import (
 
 router = APIRouter(prefix="/api/v1/blog-posts", tags=["Blog"])
 _LOGGER = logging.getLogger(__name__)
+_ALLOWED_COVER_TYPES = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+}
+_UPLOAD_DIR = Path(settings.UPLOADS_DIR) / "blog"
 
 
 def _estimate_reading_time(content: str) -> int:
@@ -104,6 +115,14 @@ def _post_to_detail(post: BlogPost) -> dict:
     return detail
 
 
+def _created_post_to_detail(post: BlogPost) -> dict:
+    """Build a response for a just-created post without touching lazy comments."""
+    detail = _post_to_summary(post)
+    detail["content"] = post.content
+    detail["comments"] = []
+    return detail
+
+
 async def _get_published_post(db: AsyncSession, slug: str, *, with_comments: bool = False) -> BlogPost:
     stmt = select(BlogPost).where(BlogPost.slug == slug, BlogPost.status == "published")
     if with_comments:
@@ -156,6 +175,41 @@ async def list_blog_posts(
     return BlogListResponse(posts=[_post_to_summary(post) for post in posts], total=total)
 
 
+@router.post("/upload-cover")
+async def upload_blog_cover(
+    cover: UploadFile = File(...),
+) -> dict:
+    """Upload a blog cover image and return a public URL."""
+    content_type = (cover.content_type or "").lower()
+    if content_type not in _ALLOWED_COVER_TYPES:
+        raise HTTPException(status_code=400, detail="Cover image must be JPG, PNG, or WebP.")
+
+    content = await cover.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="Cover image is empty.")
+    if len(content) > settings.BLOG_COVER_MAX_BYTES:
+        raise HTTPException(status_code=413, detail="Cover image is too large.")
+
+    try:
+        with Image.open(BytesIO(content)) as image:
+            image.verify()
+    except (UnidentifiedImageError, OSError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail="Invalid cover image file.") from exc
+
+    _UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    suffix = _ALLOWED_COVER_TYPES[content_type]
+    filename = f"{uuid.uuid4().hex}{suffix}"
+    path = _UPLOAD_DIR / filename
+    try:
+        with open(path, "wb") as output:
+            output.write(content)
+    except OSError as exc:
+        _LOGGER.exception("Failed to save blog cover upload")
+        raise HTTPException(status_code=503, detail="Unable to save cover image right now.") from exc
+
+    return {"success": True, "url": f"/uploads/blog/{filename}"}
+
+
 @router.get("/{slug}", response_model=BlogDetailResponse)
 async def get_blog_post(
     slug: str,
@@ -194,13 +248,14 @@ async def create_blog_post(
     try:
         await db.flush()
         await db.commit()
+        await db.refresh(post)
     except SQLAlchemyError:
         await db.rollback()
         _LOGGER.exception("Failed to create blog post title=%s", body.title)
         raise HTTPException(status_code=503, detail="Unable to create blog post right now.")
 
     increment("blog.post_created")
-    return BlogDetailResponse(post=_post_to_detail(post))
+    return BlogDetailResponse(post=_created_post_to_detail(post))
 
 
 @router.post("/{slug}/comments", response_model=BlogCommentResponse, status_code=201)
@@ -220,6 +275,7 @@ async def add_blog_comment(
     try:
         await db.flush()
         await db.commit()
+        await db.refresh(comment)
     except SQLAlchemyError:
         await db.rollback()
         _LOGGER.exception("Failed to add blog comment slug=%s", slug)

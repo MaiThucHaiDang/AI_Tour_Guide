@@ -31,7 +31,9 @@ from utils.image_utils import validate_and_preprocess_image, optimize_image_for_
 logger = logging.getLogger(__name__)
 
 _vision_model = None
+_vision_clients: dict[str, Any] = {}
 _vision_lock = threading.Lock()
+_vision_next_client_index = 0
 _FEATURES_PATH = Path(__file__).resolve().parents[2] / "data" / "vision_artifact_features.json"
 _DETAIL_RECOGNITION_TYPES = {"architectural_detail", "interior_detail", "museum_object"}
 
@@ -49,8 +51,76 @@ def _get_vision_model():
         api_key = settings.GEMINI_API_KEY.strip()
         if not api_key:
             raise RuntimeError("401: GEMINI_API_KEY is not configured.")
-        _vision_model = genai.Client(api_key=api_key)
+        _vision_model = genai.Client(
+            api_key=api_key,
+            http_options=types.HttpOptions(
+                retry_options=types.HttpRetryOptions(attempts=1)
+            ),
+        )
         return _vision_model
+
+
+def _get_vision_providers() -> list[tuple[str, Any]]:
+    """Return configured Gemini vision clients in fallback order."""
+    api_keys = getattr(settings, "gemini_api_key_list", None)
+    if api_keys is None:
+        api_keys = [
+            key.strip()
+            for key in (
+                getattr(settings, "GEMINI_API_KEY", ""),
+                getattr(settings, "GEMINI_API_KEY_2", ""),
+            )
+            if key.strip()
+        ]
+
+    if not api_keys:
+        raise RuntimeError("401: GEMINI_API_KEY is not configured.")
+
+    providers: list[tuple[str, Any]] = []
+    with _vision_lock:
+        for index, api_key in enumerate(api_keys, start=1):
+            if api_key not in _vision_clients:
+                _vision_clients[api_key] = genai.Client(
+                    api_key=api_key,
+                    http_options=types.HttpOptions(
+                        retry_options=types.HttpRetryOptions(attempts=1)
+                    ),
+                )
+            providers.append((f"gemini_key_{index}", _vision_clients[api_key]))
+    return providers
+
+
+async def _generate_vision_content(prompt: str, image: Any):
+    """Call Gemini Vision, falling back to the next API key with the same model."""
+    global _vision_next_client_index
+    providers = _get_vision_providers()
+    model_name = settings.GEMINI_VISION_MODEL
+    last_error: Exception | None = None
+
+    with _vision_lock:
+        start_index = _vision_next_client_index % len(providers)
+        _vision_next_client_index = (start_index + 1) % len(providers)
+    ordered_providers = providers[start_index:] + providers[:start_index]
+
+    for provider_label, client in ordered_providers:
+        try:
+            response = await client.aio.models.generate_content(
+                model=model_name,
+                contents=[prompt, image],
+                config=types.GenerateContentConfig(response_mime_type="application/json"),
+            )
+            logger.info("Vision provider %s succeeded with model %s", provider_label, model_name)
+            return response
+        except Exception as api_error:
+            last_error = api_error
+            logger.warning(
+                "Vision provider %s failed with model %s: %s",
+                provider_label,
+                model_name,
+                api_error,
+            )
+
+    raise last_error or RuntimeError("Vision provider failed.")
 
 
 @lru_cache(maxsize=1)
@@ -333,16 +403,11 @@ async def recognize_image(image_base64: str, lang: str = "vi", lat: float = None
         prompt = build_vision_recognition_prompt(lang)
 
         try:
-            response = await _get_vision_model().aio.models.generate_content(
-                model=settings.GEMINI_VISION_MODEL,
-                contents=[prompt, image],
-                config=types.GenerateContentConfig(response_mime_type="application/json"),
-            )
+            response = await _generate_vision_content(prompt, image)
         except Exception as api_error:
             # Retry logic with exponential backoff for transient errors
             error_str = str(api_error).lower()
             is_retryable = (
-                "429" in str(api_error) or  # Rate limit
                 "500" in str(api_error) or  # Server error
                 "timeout" in error_str or
                 "temporarily" in error_str or

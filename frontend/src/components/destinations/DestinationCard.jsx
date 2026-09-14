@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowRight, Clock, MapPin, Star } from 'lucide-react';
 
 const DestinationCard = ({ destination, language, onSelect, eager = false }) => {
   const isVi = language === 'vi';
+  const [ratingSummary, setRatingSummary] = useState(null);
   const name = isVi ? destination.nameVi : destination.nameEn;
   const subtitle = isVi ? destination.subtitleVi : destination.subtitleEn;
   const summary = isVi ? destination.summaryVi : destination.summaryEn;
@@ -11,6 +12,34 @@ const DestinationCard = ({ destination, language, onSelect, eager = false }) => 
   const address = isVi ? destination.addressVi : destination.addressEn;
   const status = isVi ? destination.statusVi : destination.statusEn;
   const alt = isVi ? destination.imageAltVi : destination.imageAltEn;
+  const artifactId = destination.artifactId || destination.id;
+  const hasRealRating = ratingSummary && ratingSummary.totalRatings > 0;
+
+  useEffect(() => {
+    let cancelled = false;
+    setRatingSummary(null);
+
+    if (!artifactId) return () => {
+      cancelled = true;
+    };
+
+    fetch(`/api/v1/ratings/location/${artifactId}/summary`)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (!cancelled) {
+          setRatingSummary(data?.summary || null);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setRatingSummary(null);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [artifactId]);
 
   return (
     <button
@@ -55,9 +84,18 @@ const DestinationCard = ({ destination, language, onSelect, eager = false }) => 
         </span>
 
         <span className="destination-card-footer">
-          <span className="destination-rating">
+          <span
+            className="destination-rating"
+            aria-label={hasRealRating
+              ? (isVi
+                ? `Điểm đánh giá trung bình ${ratingSummary.avgOverall} trên 5 từ ${ratingSummary.totalRatings} đánh giá`
+                : `Average rating ${ratingSummary.avgOverall} out of 5 from ${ratingSummary.totalRatings} reviews`)
+              : (isVi ? 'Chưa có đánh giá thật' : 'No real reviews yet')}
+          >
             <Star size={15} />
-            {destination.rating}
+            {hasRealRating
+              ? `${ratingSummary.avgOverall} (${ratingSummary.totalRatings})`
+              : (isVi ? 'Chưa có' : 'No reviews')}
           </span>
           <span className="destination-card-cta">
             {isVi ? 'Xem chi tiết' : 'View details'}

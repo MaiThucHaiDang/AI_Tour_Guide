@@ -133,7 +133,14 @@ const buildTourArtifact = (artifact, language, entryAction = 'context') => {
   };
 };
 
-const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) => {
+const ExploreDashboard = ({
+  onBack,
+  onOpenBlog,
+  showGuideShortcut = false,
+  language,
+  setLanguage,
+  initialLocation
+}) => {
   const isVi = language === 'vi';
   const location = initialLocation || DEFAULT_LOCATION;
   const initialArtifact = location.initialArtifact || null;
@@ -526,6 +533,18 @@ const ExploreDashboard = ({ onBack, language, setLanguage, initialLocation }) =>
         </div>
 
         <div className="tour-shell-actions-simplified">
+          {showGuideShortcut && onOpenBlog && (
+            <button
+              type="button"
+              className="tour-header-guide-button"
+              onClick={onOpenBlog}
+              title={isVi ? 'Cẩm nang' : 'Guide'}
+              aria-label={isVi ? 'Mở cẩm nang tham quan' : 'Open visit guide'}
+            >
+              <BookOpen size={16} />
+              <span>{isVi ? 'Cẩm nang' : 'Guide'}</span>
+            </button>
+          )}
           
           <button 
             onClick={() => setIsPassportModalOpen(true)}

@@ -801,10 +801,9 @@ class UnifiedOrchestrator:
         )
 
     async def _find_multi_artifacts(self, query: str) -> list[ArtifactInfo]:
-        normalized = self._normalize_text(query)
-        for sep in (" va ", " and ", " & "):
-            if sep in normalized:
-                parts = [p.strip() for p in normalized.split(sep) if p.strip()]
+        for sep in (" và ", " va ", " and ", " & ", ", "):
+            if sep in query:
+                parts = [p.strip() for p in query.split(sep) if p.strip()]
                 artifacts = []
                 for part in parts:
                     art = await find_artifact_by_name(part)

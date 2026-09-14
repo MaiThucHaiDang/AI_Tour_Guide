@@ -7,6 +7,7 @@ Logic preserved exactly — only import paths updated.
 from __future__ import annotations
 
 import asyncio
+import logging
 import os
 import tempfile
 from pathlib import Path
@@ -20,6 +21,7 @@ from core.config import get_settings, settings
 MAX_NO_SPEECH_PROB = 0.6
 MIN_AVG_LOGPROB = -1.0
 MAX_COMPRESSION_RATIO = 2.8
+_LOGGER = logging.getLogger(__name__)
 
 
 class GroqSTTProvider(BaseSTT):
@@ -39,10 +41,13 @@ class GroqSTTProvider(BaseSTT):
 
     def __init__(self) -> None:
         current_settings = get_settings()
-        api_key = current_settings.GROQ_API_KEY.strip()
-        if not api_key:
+        api_keys = current_settings.groq_api_key_list
+        if not api_keys:
             raise ValueError("GROQ_API_KEY is not set in environment variables.")
-        self._client = Groq(api_key=api_key)
+        self._clients = [
+            Groq(api_key=api_key, max_retries=0) for api_key in api_keys
+        ]
+        self._client = self._clients[0]
         self._model = current_settings.GROQ_STT_MODEL.strip()
 
     async def transcribe(
@@ -59,22 +64,34 @@ class GroqSTTProvider(BaseSTT):
                 temp_file.write(audio_bytes)
                 temp_path = temp_file.name
 
-            def _do_transcribe() -> Any:
-                with open(temp_path, "rb") as audio_file:
-                    request = {
-                        "model": self._model,
-                        "file": audio_file,
-                        "temperature": 0.0,
-                        "response_format": "verbose_json",
-                    }
-                    if language_hint:
-                        request["language"] = language_hint
-                    prompt = self._build_prompt(language_hint)
-                    if prompt:
-                        request["prompt"] = prompt
-                    return self._client.audio.transcriptions.create(**request)
+            response = None
+            last_exc: Exception | None = None
+            for index, client in enumerate(self._clients, start=1):
+                def _do_transcribe() -> Any:
+                    with open(temp_path, "rb") as audio_file:
+                        request = {
+                            "model": self._model,
+                            "file": audio_file,
+                            "temperature": 0.0,
+                            "response_format": "verbose_json",
+                        }
+                        if language_hint:
+                            request["language"] = language_hint
+                        prompt = self._build_prompt(language_hint)
+                        if prompt:
+                            request["prompt"] = prompt
+                        return client.audio.transcriptions.create(**request)
 
-            response = await asyncio.to_thread(_do_transcribe)
+                try:
+                    response = await asyncio.to_thread(_do_transcribe)
+                    _LOGGER.info("Groq STT key %d succeeded", index)
+                    break
+                except Exception as exc:
+                    last_exc = exc
+                    _LOGGER.warning("Groq STT key %d failed: %s", index, exc)
+
+            if response is None:
+                raise RuntimeError("All Groq STT keys failed.") from last_exc
             text = self._extract_text(response)
             detected_lang = self._extract_language(response)
             if self._is_low_confidence_transcription(response, text):

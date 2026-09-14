@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Image, PenLine, Save, Send } from 'lucide-react';
-import { BLOG_TAGS, createBlogPostAPI } from '../../services/apiService';
+import { BLOG_TAGS, createBlogPostAPI, uploadBlogCoverAPI } from '../../services/apiService';
 import { clearBlogDraft, getBlogDraft, saveBlogDraft } from './blogLocalStorage';
 
 const UNSAFE_TEXT_PATTERN = /(<\s*\/?\s*script\b|javascript\s*:|on[a-z]+\s*=)/i;
@@ -36,6 +36,8 @@ const BlogEditorPage = ({ language, onBackList, onPostCreated }) => {
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState(draft?.savedAt ? (isVi ? 'Đã mở lại bản viết dở.' : 'Draft restored.') : '');
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const coverInputRef = useRef(null);
 
   const copy = {
     back: isVi ? 'Quay lại cẩm nang' : 'Back to guide',
@@ -46,7 +48,10 @@ const BlogEditorPage = ({ language, onBackList, onPostCreated }) => {
       : 'A manageable route, good photo angle, sunny section, dish to try, or remembered story can all help.',
     titleLabel: isVi ? 'Tiêu đề' : 'Title',
     coverLabel: isVi ? 'Ảnh bìa' : 'Cover image',
-    coverPlaceholder: isVi ? 'Dán link ảnh, hoặc để trống để dùng ảnh bìa mặc định' : 'Paste an image link, or leave blank for the default cover photo',
+    coverPlaceholder: isVi ? 'Chọn ảnh từ máy hoặc dán link ảnh' : 'Choose an image from your device or paste a link',
+    chooseCover: isVi ? 'Chọn ảnh từ máy' : 'Choose from device',
+    uploadingCover: isVi ? 'Đang tải ảnh...' : 'Uploading image...',
+    uploadFailed: isVi ? 'Không tải được ảnh. Vui lòng chọn JPG, PNG hoặc WebP dưới 5MB.' : 'Could not upload image. Choose a JPG, PNG, or WebP under 5MB.',
     coverAltLabel: isVi ? 'Ảnh này nói về điều gì?' : 'What does this image show?',
     excerptLabel: isVi ? 'Tóm tắt cho người sắp đi' : 'Summary for visitors',
     contentLabel: isVi ? 'Kinh nghiệm chi tiết' : 'Detailed note',
@@ -103,6 +108,24 @@ const BlogEditorPage = ({ language, onBackList, onPostCreated }) => {
   const handleSaveDraft = () => {
     saveBlogDraft(form);
     setMessage(copy.saved);
+  };
+
+  const handleCoverFileChange = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+
+    setMessage('');
+    setErrors((current) => ({ ...current, coverImage: '' }));
+    setUploadingCover(true);
+    try {
+      const uploadedUrl = await uploadBlogCoverAPI(file);
+      updateField('coverImage', uploadedUrl);
+    } catch (err) {
+      setErrors((current) => ({ ...current, coverImage: err.message || copy.uploadFailed }));
+    } finally {
+      setUploadingCover(false);
+    }
   };
 
   const handleSubmit = async (event) => {
@@ -177,6 +200,22 @@ const BlogEditorPage = ({ language, onBackList, onPostCreated }) => {
           <div className="blog-form-grid">
             <label>
               <span>{copy.coverLabel}</span>
+              <input
+                ref={coverInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleCoverFileChange}
+                style={{ display: 'none' }}
+              />
+              <button
+                type="button"
+                className="blog-back-button"
+                onClick={() => coverInputRef.current?.click()}
+                disabled={uploadingCover}
+              >
+                <Image size={17} />
+                {uploadingCover ? copy.uploadingCover : copy.chooseCover}
+              </button>
               <input
                 type="text"
                 value={form.coverImage}

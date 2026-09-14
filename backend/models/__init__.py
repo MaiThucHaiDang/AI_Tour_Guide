@@ -6,6 +6,7 @@ from models.feedback_event import FeedbackEvent
 from models.graph import ArtifactFAQ, ArtifactRelation, KnowledgeFact
 from models.chat_history import ChatTurn
 from models.blog import BlogComment, BlogPost
+from models.artifact_rating import ArtifactRating
 
 __all__ = [
     "Location",
@@ -19,4 +20,5 @@ __all__ = [
     "ChatTurn",
     "BlogComment",
     "BlogPost",
+    "ArtifactRating",
 ]

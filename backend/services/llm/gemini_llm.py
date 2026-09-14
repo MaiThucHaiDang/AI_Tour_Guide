@@ -15,7 +15,7 @@ from core.config import get_settings
 
 _LOGGER = logging.getLogger(__name__)
 
-_RETRY_CODES = {429, 500, 503}
+_RETRY_CODES = {500, 503}
 _MAX_RETRIES = 1
 _RETRY_BACKOFF = [1.0]
 
@@ -23,15 +23,21 @@ _RETRY_BACKOFF = [1.0]
 class GeminiLLMProvider(BaseLLM):
     """LLM implementation backed by Gemini models."""
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        api_key: str | None = None,
+        model_name: str | None = None,
+        label: str = "gemini",
+    ) -> None:
         current_settings = get_settings()
-        api_key = current_settings.GEMINI_API_KEY.strip()
-        if not api_key:
+        resolved_api_key = (api_key or current_settings.GEMINI_API_KEY).strip()
+        if not resolved_api_key:
             raise ValueError("GEMINI_API_KEY is not set in environment variables.")
 
-        self._model_name = current_settings.GEMINI_TEXT_MODEL.strip() or "gemini-2.0-flash"
-        self._client = genai.Client(api_key=api_key)
-        _LOGGER.info("Initialized Gemini model: %s", self._model_name)
+        self._label = label
+        self._model_name = (model_name or current_settings.GEMINI_TEXT_MODEL).strip() or "gemini-2.5-flash-lite"
+        self._client = genai.Client(api_key=resolved_api_key)
+        _LOGGER.info("Initialized Gemini model: %s (%s)", self._model_name, self._label)
 
     async def generate_response(
         self,

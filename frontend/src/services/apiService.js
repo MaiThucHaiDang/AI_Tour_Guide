@@ -817,6 +817,18 @@ export const BLOG_TAGS = [
   'Mẹo du lịch'
 ];
 
+export const uploadBlogCoverAPI = async (file) => {
+  const formData = new FormData();
+  formData.append('cover', file);
+
+  const response = await fetch('/api/v1/blog-posts/upload-cover', {
+    method: 'POST',
+    body: formData
+  });
+  const data = await parseBlogResponse(response);
+  return data.url;
+};
+
 const normalizeBlogComment = (comment = {}) => ({
   id: comment.id ?? comment.comment_id,
   postId: comment.post_id,

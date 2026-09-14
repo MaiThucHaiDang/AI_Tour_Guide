@@ -42,17 +42,29 @@ Tạo `.env` ở thư mục root:
 ENVIRONMENT=development
 LOG_LEVEL=INFO
 GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_API_KEY_2=your_backup_gemini_api_key_here
+GEMINI_API_KEYS=gemini_key_3,gemini_key_4
 GROQ_API_KEY=your_groq_api_key_here
+GROQ_API_KEYS=groq_key_2,groq_key_3
 DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/ai_tour_guide
 LLM_PROVIDER_ORDER=gemini,groq
 GEMINI_TEXT_MODEL=gemini-2.5-flash
+GEMINI_TEXT_MODEL_2=gemini-3.1-flash-lite
 GEMINI_VISION_MODEL=gemini-2.5-flash
-GROQ_LLM_MODEL=llama-3.3-70b-versatile
+GROQ_LLM_MODEL=openai/gpt-oss-120b
 GROQ_STT_MODEL=whisper-large-v3
 LLM_TEMPERATURE=0.6
 LLM_MAX_TOKENS=2048
 LLM_MAX_TOKENS_FOLLOWUP=800
 ```
+
+Các key được thử theo thứ tự khai báo. `GEMINI_API_KEY`, `GEMINI_API_KEY_2`
+và `GEMINI_API_KEYS` dùng chung cho chat, embedding và nhận diện ảnh;
+`GROQ_API_KEY` cùng `GROQ_API_KEYS` dùng cho LLM, dựng knowledge graph và STT.
+Khi một key lỗi, hết quota hoặc provider tạm thời không khả dụng, pipeline chuyển sang
+key tiếp theo rồi mới chuyển provider theo `LLM_PROVIDER_ORDER=gemini,groq`.
+`GEMINI_TEXT_MODEL_2` và `GEMINI_TEXT_MODELS` cho phép phân bổ các Gemini key qua
+nhiều text model; Vision vẫn dùng chung `GEMINI_VISION_MODEL`.
 
 ### 2. Chạy PostgreSQL
 
@@ -136,6 +148,16 @@ npm run build
 npm run test:web-speech
 npm run lint
 ```
+
+## Đánh giá AI/RAG
+
+Bộ benchmark tái lập đo entity lookup song ngữ, pgvector RAG retrieval,
+out-of-domain rejection, nhận diện ảnh địa danh và latency. Kết quả JSON lưu cả
+dự đoán theo từng mẫu; báo cáo Markdown sinh ra kèm câu mô tả tiếng Anh có thể
+kiểm chứng trước khi đưa vào CV.
+
+Xem dữ liệu, metric và quy trình chạy bằng Docker tại
+[`evaluation/README.md`](evaluation/README.md).
 
 ## Ghi chú hiện tại
 

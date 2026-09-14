@@ -20,6 +20,10 @@ class FallbackLLMProvider(BaseLLM):
             raise ValueError("At least one LLM provider is required.")
         self._providers = providers
 
+    @staticmethod
+    def _provider_label(provider: BaseLLM) -> str:
+        return getattr(provider, "_label", type(provider).__name__)
+
     async def generate_response(
         self,
         prompt: str,
@@ -30,6 +34,7 @@ class FallbackLLMProvider(BaseLLM):
     ) -> str:
         last_exc: Exception | None = None
         for provider in self._providers:
+            provider_label = self._provider_label(provider)
             try:
                 response = await asyncio.wait_for(
                     provider.generate_response(
@@ -43,16 +48,17 @@ class FallbackLLMProvider(BaseLLM):
                 )
                 if not response.strip():
                     raise RuntimeError("Provider returned an empty response.")
+                _LOGGER.info("LLM provider %s succeeded", provider_label)
                 return response
             except asyncio.TimeoutError:
                 _LOGGER.warning(
                     "LLM provider %s timed out after %ss",
-                    type(provider).__name__, _PER_PROVIDER_TIMEOUT,
+                    provider_label, _PER_PROVIDER_TIMEOUT,
                 )
-                last_exc = TimeoutError(f"{type(provider).__name__} timed out")
+                last_exc = TimeoutError(f"{provider_label} timed out")
             except Exception as exc:
                 _LOGGER.warning(
-                    "LLM provider %s failed: %s", type(provider).__name__, exc,
+                    "LLM provider %s failed: %s", provider_label, exc,
                 )
                 last_exc = exc
         raise RuntimeError("All LLM providers failed.") from last_exc
@@ -63,6 +69,7 @@ class FallbackLLMProvider(BaseLLM):
         """Try each LLM provider's streaming endpoint in order until one succeeds."""
         last_exc: Exception | None = None
         for provider in self._providers:
+            provider_label = self._provider_label(provider)
             try:
                 async for chunk in asyncio.wait_for(
                     provider.generate_response_stream(
@@ -71,17 +78,18 @@ class FallbackLLMProvider(BaseLLM):
                     timeout=_PER_PROVIDER_TIMEOUT,
                 ):
                     yield chunk
+                _LOGGER.info("LLM stream provider %s succeeded", provider_label)
                 return  # success — stop trying other providers
             except asyncio.TimeoutError:
                 _LOGGER.warning(
                     "LLM stream provider %s timed out after %ss",
-                    type(provider).__name__, _PER_PROVIDER_TIMEOUT,
+                    provider_label, _PER_PROVIDER_TIMEOUT,
                 )
-                last_exc = TimeoutError(f"{type(provider).__name__} stream timed out")
+                last_exc = TimeoutError(f"{provider_label} stream timed out")
             except Exception as exc:
                 _LOGGER.warning(
                     "LLM stream provider %s failed: %s",
-                    type(provider).__name__,
+                    provider_label,
                     exc,
                 )
                 last_exc = exc

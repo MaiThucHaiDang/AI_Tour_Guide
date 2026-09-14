@@ -15,10 +15,12 @@ logger = logging.getLogger(__name__)
 
 def normalize_lang(lang: str | None) -> str:
     """Validate and normalize language parameter."""
+    if lang:
+        lang = lang.strip().lower()
     if lang not in ("vi", "en"):
         logger.warning("Invalid language code: %s, defaulting to 'vi'", lang)
         return "vi"
-    return lang if lang == "en" else "vi"
+    return lang
 
 
 def validate_text_size(text: str | None) -> None:

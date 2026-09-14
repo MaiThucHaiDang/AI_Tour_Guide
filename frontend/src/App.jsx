@@ -75,6 +75,20 @@ const updateViewQuery = (view, params = {}) => {
   window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
 };
 
+const isPhoneFrameRoute = () => new URLSearchParams(window.location.search).get('frame') === 'phone';
+
+const buildAppPath = (path) => {
+  const target = new URL(path, window.location.origin);
+  if (isPhoneFrameRoute()) {
+    target.searchParams.set('frame', 'phone');
+  }
+  return `${target.pathname}${target.search}${target.hash}`;
+};
+
+const pushAppPath = (path) => {
+  window.history.pushState(null, '', buildAppPath(path));
+};
+
 const getBlogRouteFromPath = () => {
   const cleanPath = window.location.pathname.replace(/\/+$/, '') || '/';
   if (cleanPath === '/blog') {
@@ -107,13 +121,13 @@ const getInitialDestinationFromUrl = () => {
 };
 
 function App() {
-  const isPhoneFrame = new URLSearchParams(window.location.search).get('frame') === 'phone';
+  const isPhoneFrame = isPhoneFrameRoute();
   const initialBlogRoute = getBlogRouteFromPath();
   const [appState, setAppState] = useState(() => {
     if (initialBlogRoute) return initialBlogRoute.view;
     const view = new URLSearchParams(window.location.search).get('view');
     if (view === 'calibrate') return 'calibrate';
-    if (view === 'phone') return 'phone';
+    if (view === 'phone' && !isPhoneFrameRoute()) return 'phone';
     if (view === 'join') return 'join';
     if (view === 'destination' && getInitialDestinationFromUrl()) return 'destination';
     if (view === 'paymentResult') return 'paymentResult';
@@ -155,7 +169,7 @@ function App() {
       if (view === 'calibrate') {
         preloadView('calibrate');
         setAppState('calibrate');
-      } else if (view === 'phone') {
+      } else if (view === 'phone' && !isPhoneFrameRoute()) {
         preloadView('phone');
         setAppState('phone');
       } else if (view === 'join') {
@@ -247,7 +261,7 @@ function App() {
     setSelectedDestination(null);
     setSelectedBlogSlug(null);
     setAppState('blog');
-    window.history.pushState(null, '', '/blog');
+    pushAppPath('/blog');
   };
 
   const openBlogDetail = (slug) => {
@@ -256,7 +270,7 @@ function App() {
     setSelectedDestination(null);
     setSelectedBlogSlug(slug);
     setAppState('blogDetail');
-    window.history.pushState(null, '', `/blog/${encodeURIComponent(slug)}`);
+    pushAppPath(`/blog/${encodeURIComponent(slug)}`);
   };
 
   const openBlogEditor = () => {
@@ -265,7 +279,7 @@ function App() {
     setSelectedDestination(null);
     setSelectedBlogSlug(null);
     setAppState('blogNew');
-    window.history.pushState(null, '', '/blog/new');
+    pushAppPath('/blog/new');
   };
 
   const transitionKey = useMemo(() => {
@@ -326,6 +340,8 @@ function App() {
       {appState === 'dashboard' && (
         <ExploreDashboard
           onBack={resetToHome}
+          onOpenBlog={openBlogList}
+          showGuideShortcut={isPhoneFrame}
           language={language}
           setLanguage={setLanguage}
           initialLocation={selectedLocation}

@@ -1,7 +1,7 @@
 """SQLAlchemy ORM models for the Knowledge Graph and Vector FAQ."""
 
 from __future__ import annotations
-from sqlalchemy import ForeignKey, Integer, String, Float, Text
+from sqlalchemy import ForeignKey, Integer, String, Float, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from pgvector.sqlalchemy import Vector
 from core.database import Base
@@ -21,6 +21,13 @@ class KnowledgeFact(Base):
 class ArtifactFAQ(Base):
     """Stores hypothetical questions (FAQ) for artifacts and their vector embeddings."""
     __tablename__ = "artifact_faqs"
+    __table_args__ = (
+        UniqueConstraint(
+            "artifact_id",
+            "question_text",
+            name="uq_artifact_faq_document",
+        ),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     artifact_id: Mapped[int] = mapped_column(Integer, ForeignKey("artifacts.art_id"), nullable=False)

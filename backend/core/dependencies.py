@@ -40,9 +40,33 @@ def get_llm_provider() -> BaseLLM:
     for name in settings.llm_provider_list:
         try:
             if name == "groq":
-                providers.append(GroqLLMProvider())
+                groq_keys = getattr(settings, "groq_api_key_list", None)
+                if groq_keys is None:
+                    providers.append(GroqLLMProvider())
+                elif not groq_keys:
+                    raise ValueError("GROQ_API_KEY is not set in environment variables.")
+                else:
+                    for index, api_key in enumerate(groq_keys, start=1):
+                        providers.append(
+                            GroqLLMProvider(
+                                api_key=api_key,
+                                label=f"groq_key_{index}",
+                            )
+                        )
             elif name == "gemini":
-                providers.append(GeminiLLMProvider())
+                gemini_keys = settings.gemini_api_key_list
+                if not gemini_keys:
+                    raise ValueError("GEMINI_API_KEY is not set in environment variables.")
+                gemini_models = settings.gemini_text_model_list
+                for index, api_key in enumerate(gemini_keys, start=1):
+                    model_name = gemini_models[min(index - 1, len(gemini_models) - 1)]
+                    providers.append(
+                        GeminiLLMProvider(
+                            api_key=api_key,
+                            model_name=model_name,
+                            label=f"gemini_key_{index}",
+                        )
+                    )
             else:
                 errors.append(f"Unknown provider '{name}'")
         except Exception as exc:

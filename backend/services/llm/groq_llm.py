@@ -11,12 +11,15 @@ from core.config import get_settings
 class GroqLLMProvider(BaseLLM):
     """LLM implementation backed by Groq's Llama 3 model."""
 
-    def __init__(self) -> None:
+    def __init__(self, api_key: str | None = None, label: str = "groq") -> None:
         current_settings = get_settings()
-        api_key = current_settings.GROQ_API_KEY.strip()
-        if not api_key:
+        resolved_api_key = (api_key or current_settings.GROQ_API_KEY).strip()
+        if not resolved_api_key:
             raise ValueError("GROQ_API_KEY is not set in environment variables.")
-        self._client = AsyncGroq(api_key=api_key)
+        self._label = label
+        # Provider fallback is handled by FallbackLLMProvider. Disable SDK-level
+        # retries so a throttled key does not delay the next configured key.
+        self._client = AsyncGroq(api_key=resolved_api_key, max_retries=0)
         self._model = current_settings.GROQ_LLM_MODEL
 
     async def generate_response(

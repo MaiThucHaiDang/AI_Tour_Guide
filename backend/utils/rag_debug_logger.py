@@ -11,6 +11,7 @@ Format mỗi entry:
 from __future__ import annotations
 
 import logging
+import os
 from pathlib import Path
 from datetime import datetime
 
@@ -30,6 +31,14 @@ def log_rag_context(question: str, db_context: str, answer_source: str = "") -> 
     answer_source : str
         Where the answer originated (e.g. 'llm', 'cache', 'template', 'db_direct').
     """
+    if os.getenv("RAG_DEBUG_LOG_ENABLED", "1").strip().lower() in {
+        "0",
+        "false",
+        "no",
+        "off",
+    }:
+        return
+
     try:
         _LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

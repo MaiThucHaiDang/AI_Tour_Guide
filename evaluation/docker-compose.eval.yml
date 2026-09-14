@@ -1,0 +1,33 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: ai_tour_guide_eval
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ai_tour_guide_eval"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - evaluation_pgdata:/var/lib/postgresql/data
+
+  evaluator:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    working_dir: /workspace
+    volumes:
+      - ..:/workspace
+    env_file:
+      - ../.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/ai_tour_guide_eval
+      PYTHONPATH: /workspace:/workspace/backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  evaluation_pgdata:

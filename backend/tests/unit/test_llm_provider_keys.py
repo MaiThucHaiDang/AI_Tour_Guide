@@ -36,14 +36,25 @@ def test_gemini_api_key_list_deduplicates_in_order():
     settings = Settings(
         GEMINI_API_KEY="k1",
         GEMINI_API_KEY_2="k2",
-        GEMINI_API_KEYS="k2, k3",
+        GEMINI_API_KEY_3="k3",
+        GEMINI_API_KEY_4="k4",
+        GEMINI_API_KEYS="k2, k4, k5",
         GEMINI_TEXT_MODEL="m1",
         GEMINI_TEXT_MODEL_2="m2",
         GEMINI_TEXT_MODELS="m3",
     )
 
-    assert settings.gemini_api_key_list == ["k1", "k2", "k3"]
+    assert settings.gemini_api_key_list == ["k1", "k2", "k3", "k4", "k5"]
     assert settings.gemini_text_model_list == ["m1", "m2", "m3"]
+
+
+def test_groq_api_key_list_deduplicates_in_order():
+    settings = Settings(
+        GROQ_API_KEY="g1",
+        GROQ_API_KEYS="g2, g1, g3",
+    )
+
+    assert settings.groq_api_key_list == ["g1", "g2", "g3"]
 
 
 def test_get_llm_provider_expands_gemini_keys_before_groq(monkeypatch):
@@ -77,5 +88,32 @@ def test_get_llm_provider_expands_gemini_keys_before_groq(monkeypatch):
         "m1",
         "m2",
         None,
+    ]
+    dependencies.get_llm_provider.cache_clear()
+
+
+def test_get_llm_provider_expands_all_groq_keys(monkeypatch):
+    from core import dependencies
+
+    dependencies.get_llm_provider.cache_clear()
+    monkeypatch.setattr(
+        dependencies,
+        "settings",
+        SimpleNamespace(
+            llm_provider_list=["groq"],
+            groq_api_key_list=["g1", "g2"],
+        ),
+    )
+    monkeypatch.setattr(
+        dependencies,
+        "GroqLLMProvider",
+        lambda api_key=None, label="groq": DummyLLM(label),
+    )
+
+    provider = dependencies.get_llm_provider()
+
+    assert [item._label for item in provider._providers] == [
+        "groq_key_1",
+        "groq_key_2",
     ]
     dependencies.get_llm_provider.cache_clear()

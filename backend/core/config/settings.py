@@ -17,8 +17,11 @@ class Settings(BaseSettings):
 
     GEMINI_API_KEY: str = ""
     GEMINI_API_KEY_2: str = ""
+    GEMINI_API_KEY_3: str = ""
+    GEMINI_API_KEY_4: str = ""
     GEMINI_API_KEYS: str = ""
     GROQ_API_KEY: str = ""
+    GROQ_API_KEYS: str = ""
     HUGGINGFACE_API_KEY: str = ""
     GOOGLE_MAPS_API_KEY: str = ""
 
@@ -35,7 +38,7 @@ class Settings(BaseSettings):
     GEMINI_TEXT_MODEL_2: str = "gemini-3.1-flash-lite"
     GEMINI_TEXT_MODELS: str = ""
     GEMINI_EMBEDDING_MODEL: str = "gemini-embedding-2"
-    GEMINI_VISION_MODEL: str = "gemini-2.5-flash-lite"
+    GEMINI_VISION_MODEL: str = "gemini-3.5-flash-lite"
     GROQ_LLM_MODEL: str = "llama-3.3-70b-versatile"
     GROQ_STT_MODEL: str = "whisper-large-v3"
     LLM_TEMPERATURE: float = 0.7
@@ -81,11 +84,25 @@ class Settings(BaseSettings):
     @property
     def gemini_api_key_list(self) -> list[str]:
         keys: list[str] = []
-        for key in (self.GEMINI_API_KEY, self.GEMINI_API_KEY_2):
+        for key in (
+            self.GEMINI_API_KEY,
+            self.GEMINI_API_KEY_2,
+            self.GEMINI_API_KEY_3,
+            self.GEMINI_API_KEY_4,
+        ):
             normalized = key.strip()
             if normalized and normalized not in keys:
                 keys.append(normalized)
         for key in self.GEMINI_API_KEYS.split(","):
+            normalized = key.strip()
+            if normalized and normalized not in keys:
+                keys.append(normalized)
+        return keys
+
+    @property
+    def groq_api_key_list(self) -> list[str]:
+        keys: list[str] = []
+        for key in (self.GROQ_API_KEY, *self.GROQ_API_KEYS.split(",")):
             normalized = key.strip()
             if normalized and normalized not in keys:
                 keys.append(normalized)
@@ -118,7 +135,7 @@ class Settings(BaseSettings):
         missing = []
         if not self.gemini_api_key_list:
             missing.append("GEMINI_API_KEY")
-        if not self.GROQ_API_KEY.strip():
+        if not self.groq_api_key_list:
             missing.append("GROQ_API_KEY")
         if not self.DATABASE_URL.strip():
             missing.append("DATABASE_URL")

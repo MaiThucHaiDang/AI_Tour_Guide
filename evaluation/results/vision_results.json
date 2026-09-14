@@ -1,0 +1,771 @@
+{
+  "metadata": {
+    "git_commit": "unknown",
+    "manifest": "evaluation/data/vision_manifest.json",
+    "manifest_images": 43,
+    "vision_model": "gemini-3.5-flash-lite",
+    "configured_confidence_threshold": 0.6,
+    "deduplicated": true,
+    "complete": true
+  },
+  "summary": {
+    "evaluated_images": 43,
+    "successful_inferences": 43,
+    "in_domain_images": 38,
+    "ood_images": 5,
+    "top_1_accuracy": 0.5263,
+    "top_3_recall": 0.6316,
+    "conditional_top_1_accuracy": 0.5263,
+    "recognition_classification": {
+      "count": 43,
+      "true_positive": 37,
+      "true_negative": 5,
+      "false_positive": 0,
+      "false_negative": 1,
+      "accuracy": 0.9767,
+      "precision": 1.0,
+      "recall": 0.9737,
+      "specificity": 1.0,
+      "f1": 0.9867
+    },
+    "ood_rejection_rate": 1.0,
+    "provider_failures": 0,
+    "provider_failure_rate": 0.0,
+    "latency": {
+      "count": 43,
+      "mean_ms": 4435.24,
+      "p50_ms": 3770.38,
+      "p95_ms": 7997.16
+    },
+    "by_artifact": {
+      "1": {
+        "count": 2,
+        "top_1_accuracy": 1.0
+      },
+      "2": {
+        "count": 3,
+        "top_1_accuracy": 1.0
+      },
+      "3": {
+        "count": 2,
+        "top_1_accuracy": 0.5
+      },
+      "4": {
+        "count": 2,
+        "top_1_accuracy": 0.0
+      },
+      "5": {
+        "count": 2,
+        "top_1_accuracy": 0.0
+      },
+      "6": {
+        "count": 2,
+        "top_1_accuracy": 0.0
+      },
+      "7": {
+        "count": 2,
+        "top_1_accuracy": 0.5
+      },
+      "8": {
+        "count": 2,
+        "top_1_accuracy": 1.0
+      },
+      "9": {
+        "count": 2,
+        "top_1_accuracy": 0.0
+      },
+      "10": {
+        "count": 3,
+        "top_1_accuracy": 1.0
+      },
+      "11": {
+        "count": 2,
+        "top_1_accuracy": 0.0
+      },
+      "12": {
+        "count": 2,
+        "top_1_accuracy": 0.5
+      },
+      "13": {
+        "count": 2,
+        "top_1_accuracy": 0.0
+      },
+      "14": {
+        "count": 2,
+        "top_1_accuracy": 0.0
+      },
+      "15": {
+        "count": 2,
+        "top_1_accuracy": 1.0
+      },
+      "16": {
+        "count": 2,
+        "top_1_accuracy": 1.0
+      },
+      "17": {
+        "count": 4,
+        "top_1_accuracy": 0.75
+      }
+    }
+  },
+  "skipped_duplicates": [],
+  "cases": [
+    {
+      "path": "gallery/Cuahoabinh_1.jpg",
+      "sha256": "5b6ea9ca8cd7283584da6547602b8261c8f32c4019b671a44fca816d1b010a7e",
+      "expected_artifact_id": 1,
+      "predicted_artifact_id": 1,
+      "recognized": true,
+      "raw_label": "Cửa Hòa Bình",
+      "confidence_score": 0.95,
+      "final_score": 0.583,
+      "candidate_artifact_ids": [
+        1,
+        15,
+        5
+      ],
+      "error": null,
+      "latency_ms": 5980.29
+    },
+    {
+      "path": "gallery/cuahoabinh_2.jpg",
+      "sha256": "dfc64f5c596b9db1c5cba31d795c3f3a56bd05bc287b5261dc6a873f666131c6",
+      "expected_artifact_id": 1,
+      "predicted_artifact_id": 1,
+      "recognized": true,
+      "raw_label": "Cửa Hòa Bình",
+      "confidence_score": 0.95,
+      "final_score": 0.705,
+      "candidate_artifact_ids": [
+        1,
+        15
+      ],
+      "error": null,
+      "latency_ms": 4640.572
+    },
+    {
+      "path": "gallery/dienkientrung_1.jpg",
+      "sha256": "e5675131d1041450348f6acc59702452db0e2cbf556d6e5ef8d30bc043ce684a",
+      "expected_artifact_id": 2,
+      "predicted_artifact_id": 2,
+      "recognized": true,
+      "raw_label": "Điện Kiến Trung",
+      "confidence_score": 0.98,
+      "final_score": 0.717,
+      "candidate_artifact_ids": [
+        2
+      ],
+      "error": null,
+      "latency_ms": 8134.221
+    },
+    {
+      "path": "gallery/dienkientrung_2.jpg",
+      "sha256": "9ec9b023381202622869d2ae5ab3df6ad2021d30158da47dd507244ab46195c3",
+      "expected_artifact_id": 2,
+      "predicted_artifact_id": 2,
+      "recognized": true,
+      "raw_label": "Điện Kiến Trung",
+      "confidence_score": 0.95,
+      "final_score": 0.705,
+      "candidate_artifact_ids": [
+        2
+      ],
+      "error": null,
+      "latency_ms": 3262.069
+    },
+    {
+      "path": "gallery/cungtruongsanh.jpg",
+      "sha256": "d3955d72e09b2c20b75b6371d8acda2990ccdf4b0de9f0130ea7a44ff1148803",
+      "expected_artifact_id": 3,
+      "predicted_artifact_id": 16,
+      "recognized": true,
+      "raw_label": "Điện Long An",
+      "confidence_score": 0.85,
+      "final_score": 0.627,
+      "candidate_artifact_ids": [
+        16,
+        3
+      ],
+      "error": null,
+      "latency_ms": 3438.708
+    },
+    {
+      "path": "gallery/cungtruongsanh_2.jpg",
+      "sha256": "355342e425d0bc4944baa801a9a3513c2965157ef62880d56320036a29b9b8b6",
+      "expected_artifact_id": 3,
+      "predicted_artifact_id": 3,
+      "recognized": true,
+      "raw_label": "Cung Trường Sanh",
+      "confidence_score": 0.85,
+      "final_score": 0.665,
+      "candidate_artifact_ids": [
+        3,
+        4
+      ],
+      "error": null,
+      "latency_ms": 5124.041
+    },
+    {
+      "path": "gallery/cungdientho_1.jpg",
+      "sha256": "ed5834ce71953cb22f4929a5b13a4408d32ec6ffb5056c0ff51e71e85a0bffb4",
+      "expected_artifact_id": 4,
+      "predicted_artifact_id": 15,
+      "recognized": true,
+      "raw_label": "Cửa Hiển Nhơn",
+      "confidence_score": 0.95,
+      "final_score": 0.583,
+      "candidate_artifact_ids": [
+        15,
+        5
+      ],
+      "error": null,
+      "latency_ms": 3755.444
+    },
+    {
+      "path": "gallery/cungdientho_2.jpg",
+      "sha256": "88184bc8be73f8517ea08ca0d62509652aaf2ddcede877e50bb5e10ee35b8dea",
+      "expected_artifact_id": 4,
+      "predicted_artifact_id": 3,
+      "recognized": true,
+      "raw_label": "Cung Trường Sanh",
+      "confidence_score": 0.85,
+      "final_score": 0.665,
+      "candidate_artifact_ids": [
+        3,
+        4
+      ],
+      "error": null,
+      "latency_ms": 3493.845
+    },
+    {
+      "path": "gallery/CuachuongDuc_1.jpg",
+      "sha256": "1e2e1ef930bd05e63e5a87f8db7a569be24c2fee8837f056110b347a31dbaac2",
+      "expected_artifact_id": 5,
+      "predicted_artifact_id": 15,
+      "recognized": true,
+      "raw_label": "Cửa Hiển Nhơn",
+      "confidence_score": 0.9,
+      "final_score": 0.565,
+      "candidate_artifact_ids": [
+        15,
+        5
+      ],
+      "error": null,
+      "latency_ms": 5054.991
+    },
+    {
+      "path": "gallery/CuaChuongDuc_2.jpg",
+      "sha256": "28821e0bd999925af7ed8e8b912a94d98855109291765aa682e67dc8507745f6",
+      "expected_artifact_id": 5,
+      "predicted_artifact_id": 3,
+      "recognized": true,
+      "raw_label": "Cung Trường Sanh",
+      "confidence_score": 0.85,
+      "final_score": 0.618,
+      "candidate_artifact_ids": [
+        3,
+        4
+      ],
+      "error": null,
+      "latency_ms": 3770.384
+    },
+    {
+      "path": "gallery/HungMieu.jpg",
+      "sha256": "a1a4323ef20cd82be628a03d1d8a8bc0e83f408b963a4a0a6939ee61c466529a",
+      "expected_artifact_id": 6,
+      "predicted_artifact_id": 16,
+      "recognized": true,
+      "raw_label": "Điện Long An",
+      "confidence_score": 0.85,
+      "final_score": 0.627,
+      "candidate_artifact_ids": [
+        16,
+        3
+      ],
+      "error": null,
+      "latency_ms": 11452.399
+    },
+    {
+      "path": "gallery/HungMieu_1.jpg",
+      "sha256": "d82d14249ded63d0b9745313843eaa7b2248cd1af7c002518c80b7a1afaa3379",
+      "expected_artifact_id": 6,
+      "predicted_artifact_id": 16,
+      "recognized": true,
+      "raw_label": "Điện Long An",
+      "confidence_score": 0.85,
+      "final_score": 0.627,
+      "candidate_artifact_ids": [
+        16,
+        3
+      ],
+      "error": null,
+      "latency_ms": 3899.202
+    },
+    {
+      "path": "gallery/TheMieu.jpg",
+      "sha256": "0398b84cfd6b3532a4344c7e56b221e9350b136a67b8462de72c769a7af2c750",
+      "expected_artifact_id": 7,
+      "predicted_artifact_id": 7,
+      "recognized": true,
+      "raw_label": "Thế Miếu",
+      "confidence_score": 0.85,
+      "final_score": 0.627,
+      "candidate_artifact_ids": [
+        7,
+        13
+      ],
+      "error": null,
+      "latency_ms": 3493.765
+    },
+    {
+      "path": "gallery/TheMieu_2.jpg",
+      "sha256": "195da552b73705b9308ec512f6826d91214f705e73cdea5914e95e50bfa5c0b5",
+      "expected_artifact_id": 7,
+      "predicted_artifact_id": 3,
+      "recognized": true,
+      "raw_label": "Cung Trường Sanh",
+      "confidence_score": 0.85,
+      "final_score": 0.665,
+      "candidate_artifact_ids": [
+        3,
+        4
+      ],
+      "error": null,
+      "latency_ms": 3467.105
+    },
+    {
+      "path": "gallery/Dienthaihoa_1.jpg",
+      "sha256": "3559df1deaa0492f540c852e41acdec149275b176774682871df68667ca4519c",
+      "expected_artifact_id": 8,
+      "predicted_artifact_id": 8,
+      "recognized": true,
+      "raw_label": "Điện Thái Hòa",
+      "confidence_score": 0.98,
+      "final_score": 0.593,
+      "candidate_artifact_ids": [
+        8
+      ],
+      "error": null,
+      "latency_ms": 3448.765
+    },
+    {
+      "path": "gallery/Dienthaihoa_2.jpg",
+      "sha256": "be10809a0341e1c97cfa00e7b4fab78abfbc4e63660a63436f6d245888ca56ea",
+      "expected_artifact_id": 8,
+      "predicted_artifact_id": 8,
+      "recognized": true,
+      "raw_label": "Điện Thái Hòa",
+      "confidence_score": 0.95,
+      "final_score": 0.705,
+      "candidate_artifact_ids": [
+        8
+      ],
+      "error": null,
+      "latency_ms": 3422.49
+    },
+    {
+      "path": "gallery/Diencanchanh_1.jpg",
+      "sha256": "080762f1944f304754628eb0019b290523a97ac20e56f1c37241752d4605be39",
+      "expected_artifact_id": 9,
+      "predicted_artifact_id": 4,
+      "recognized": true,
+      "raw_label": "Cung Diên Thọ",
+      "confidence_score": 0.85,
+      "final_score": 0.665,
+      "candidate_artifact_ids": [
+        4,
+        3
+      ],
+      "error": null,
+      "latency_ms": 3299.759
+    },
+    {
+      "path": "gallery/Diencanchanh_2.jpg",
+      "sha256": "59328abc79f2caff4be14a46205a75012565a161a047a6a06f09ca70b32e17b3",
+      "expected_artifact_id": 9,
+      "predicted_artifact_id": 8,
+      "recognized": true,
+      "raw_label": "Điện Thái Hòa",
+      "confidence_score": 0.95,
+      "final_score": 0.705,
+      "candidate_artifact_ids": [
+        8
+      ],
+      "error": null,
+      "latency_ms": 5812.78
+    },
+    {
+      "path": "gallery/Duyetthiduong_1.jpg",
+      "sha256": "ef8044e20d2760f11a6922cd77cb8811991af22eb77b4b93ae7ee451c32e3f31",
+      "expected_artifact_id": 10,
+      "predicted_artifact_id": 10,
+      "recognized": true,
+      "raw_label": "Duyệt Thị Đường",
+      "confidence_score": 0.85,
+      "final_score": 0.547,
+      "candidate_artifact_ids": [
+        10,
+        8
+      ],
+      "error": null,
+      "latency_ms": 3257.076
+    },
+    {
+      "path": "gallery/Duyetthiduong_2.jpg",
+      "sha256": "c0fbc8390736c321c956fa9f848e117da5b9285bf6fe2d0cddb77c4e32f0616a",
+      "expected_artifact_id": 10,
+      "predicted_artifact_id": 10,
+      "recognized": true,
+      "raw_label": "Duyệt Thị Đường",
+      "confidence_score": 0.95,
+      "final_score": 0.583,
+      "candidate_artifact_ids": [
+        10
+      ],
+      "error": null,
+      "latency_ms": 3092.607
+    },
+    {
+      "path": "gallery/PhuNoiVu.jpg",
+      "sha256": "b9cd701aa1c579ea20ee1cac5fd17d83daef04460d2825409d77efaf2be8ca37",
+      "expected_artifact_id": 11,
+      "predicted_artifact_id": 2,
+      "recognized": true,
+      "raw_label": "Điện Kiến Trung",
+      "confidence_score": 0.85,
+      "final_score": 0.665,
+      "candidate_artifact_ids": [
+        2,
+        4
+      ],
+      "error": null,
+      "latency_ms": 3967.311
+    },
+    {
+      "path": "gallery/Phunoivu_2.jpg",
+      "sha256": "33cdaf32501785d72d71cf622baaccb6ade34ee385f904dae67beea2b6f9b37d",
+      "expected_artifact_id": 11,
+      "predicted_artifact_id": 2,
+      "recognized": true,
+      "raw_label": "Điện Kiến Trung",
+      "confidence_score": 0.95,
+      "final_score": 0.705,
+      "candidate_artifact_ids": [
+        2,
+        3
+      ],
+      "error": null,
+      "latency_ms": 3907.11
+    },
+    {
+      "path": "gallery/Vuoncoha.jpg",
+      "sha256": "655a0bec124b0ccaf629e7781ed76652267ef0d8d0c8b3427975391867aad5cf",
+      "expected_artifact_id": 12,
+      "predicted_artifact_id": 3,
+      "recognized": true,
+      "raw_label": "Cung Trường Sanh",
+      "confidence_score": 0.85,
+      "final_score": 0.547,
+      "candidate_artifact_ids": [
+        3,
+        12
+      ],
+      "error": null,
+      "latency_ms": 4283.901
+    },
+    {
+      "path": "gallery/Vuoncoha_1.jpg",
+      "sha256": "4f9049a9ecbf3def9970516116f1af5e7a3a0eaad01dea3c19f42e750e7b3f0f",
+      "expected_artifact_id": 12,
+      "predicted_artifact_id": 12,
+      "recognized": true,
+      "raw_label": "Vườn Cơ Hạ",
+      "confidence_score": 0.85,
+      "final_score": 0.665,
+      "candidate_artifact_ids": [
+        12
+      ],
+      "error": null,
+      "latency_ms": 2925.886
+    },
+    {
+      "path": "gallery/Trieumieu_1.jpg",
+      "sha256": "d110666aafb0c8a8f3c4b02f2047dfeee77bb5dc08d1b0ee1979d29cefafe840",
+      "expected_artifact_id": 13,
+      "predicted_artifact_id": 16,
+      "recognized": true,
+      "raw_label": "Điện Long An",
+      "confidence_score": 0.85,
+      "final_score": 0.627,
+      "candidate_artifact_ids": [
+        16,
+        8
+      ],
+      "error": null,
+      "latency_ms": 3705.213
+    },
+    {
+      "path": "gallery/Trieumieu_2.jpg",
+      "sha256": "4a1db3da8ddb77fb109b39bff13c856378e1b40971f62a253cd9f7fb3c5f7e08",
+      "expected_artifact_id": 13,
+      "predicted_artifact_id": 8,
+      "recognized": true,
+      "raw_label": "Điện Thái Hòa",
+      "confidence_score": 0.85,
+      "final_score": 0.665,
+      "candidate_artifact_ids": [
+        8,
+        16
+      ],
+      "error": null,
+      "latency_ms": 3411.595
+    },
+    {
+      "path": "gallery/Thaimieu.jpg",
+      "sha256": "dfd7ba540f115bfb6d0b3eed583e348df02a3c24853f8f2360dc19c342e0540c",
+      "expected_artifact_id": 14,
+      "predicted_artifact_id": 8,
+      "recognized": true,
+      "raw_label": "Điện Thái Hòa",
+      "confidence_score": 0.9,
+      "final_score": 0.685,
+      "candidate_artifact_ids": [
+        8
+      ],
+      "error": null,
+      "latency_ms": 3425.222
+    },
+    {
+      "path": "gallery/ThaiMieu_2.jpg",
+      "sha256": "0509794849fdcf2c31e905f96b2dfb6485ad87e91ca377715c5fcde9b7141870",
+      "expected_artifact_id": 14,
+      "predicted_artifact_id": 16,
+      "recognized": true,
+      "raw_label": "Điện Long An",
+      "confidence_score": 0.85,
+      "final_score": 0.627,
+      "candidate_artifact_ids": [
+        16
+      ],
+      "error": null,
+      "latency_ms": 4513.736
+    },
+    {
+      "path": "gallery/CuahienNhon.jpg",
+      "sha256": "e1f19d468f06bde57b318d92103c7e08b38426ba20f313c00c5aa29dfaec9fe0",
+      "expected_artifact_id": 15,
+      "predicted_artifact_id": 15,
+      "recognized": true,
+      "raw_label": "Cửa Hiển Nhơn",
+      "confidence_score": 0.95,
+      "final_score": 0.583,
+      "candidate_artifact_ids": [
+        15,
+        5
+      ],
+      "error": null,
+      "latency_ms": 3949.866
+    },
+    {
+      "path": "gallery/Cuahiennhon_2.jpg",
+      "sha256": "b4e66c855bdc49dc7245def18e5b2ffda8091c5c57863e6586fa02f5914e64c5",
+      "expected_artifact_id": 15,
+      "predicted_artifact_id": 15,
+      "recognized": true,
+      "raw_label": "Cửa Hiển Nhơn",
+      "confidence_score": 0.95,
+      "final_score": 0.583,
+      "candidate_artifact_ids": [
+        15,
+        5
+      ],
+      "error": null,
+      "latency_ms": 4422.722
+    },
+    {
+      "path": "gallery/Dienlongan.jpg",
+      "sha256": "4f1757be0839aa3904fa45c09be4212cb36f3ff58386acb465bc75414b5e12ba",
+      "expected_artifact_id": 16,
+      "predicted_artifact_id": 16,
+      "recognized": true,
+      "raw_label": "Điện Long An",
+      "confidence_score": 0.85,
+      "final_score": 0.518,
+      "candidate_artifact_ids": [
+        16,
+        8
+      ],
+      "error": null,
+      "latency_ms": 4022.224
+    },
+    {
+      "path": "gallery/Dienlonan_2.jpg",
+      "sha256": "149464478b5cf5d91f4d0b765cda9ad3bec9ae2a297176e3eddfde68be8b5a1b",
+      "expected_artifact_id": 16,
+      "predicted_artifact_id": 16,
+      "recognized": true,
+      "raw_label": "Điện Long An",
+      "confidence_score": 0.85,
+      "final_score": 0.518,
+      "candidate_artifact_ids": [
+        16
+      ],
+      "error": null,
+      "latency_ms": 3466.965
+    },
+    {
+      "path": "gallery/NgoMon_1.jpg",
+      "sha256": "3e788fd0871cf0000490c5a2643667ee1620fc2f3ad62a617af75ba56ef172fa",
+      "expected_artifact_id": 17,
+      "predicted_artifact_id": 17,
+      "recognized": true,
+      "raw_label": "Ngọ Môn",
+      "confidence_score": 0.98,
+      "final_score": 0.717,
+      "candidate_artifact_ids": [
+        17
+      ],
+      "error": null,
+      "latency_ms": 4971.977
+    },
+    {
+      "path": "gallery/NgoMon_2.jpg",
+      "sha256": "1a668ea4f49a2d721c9e899551a5d8a2508cdf82fa8d8221c097e21394d385e0",
+      "expected_artifact_id": 17,
+      "predicted_artifact_id": 17,
+      "recognized": true,
+      "raw_label": "Ngọ Môn",
+      "confidence_score": 0.98,
+      "final_score": 0.717,
+      "candidate_artifact_ids": [
+        17
+      ],
+      "error": null,
+      "latency_ms": 3000.136
+    },
+    {
+      "path": "test_images/ngo_mon.jpg",
+      "sha256": "dfccd5841d4d6d93e01e7618e235a6db58eb301a17a7aba358b1e88b92082af4",
+      "expected_artifact_id": 17,
+      "predicted_artifact_id": null,
+      "recognized": false,
+      "raw_label": null,
+      "confidence_score": 0.0,
+      "final_score": null,
+      "candidate_artifact_ids": [],
+      "error": "UNRECOGNIZED",
+      "latency_ms": 3180.807
+    },
+    {
+      "path": "test_images/ngo_mon.png",
+      "sha256": "853bd6ae4159d9be03172b8da65a8a6013826857c267db688ad680ddf15c0274",
+      "expected_artifact_id": 17,
+      "predicted_artifact_id": 17,
+      "recognized": true,
+      "raw_label": "Ngọ Môn",
+      "confidence_score": 0.99,
+      "final_score": 0.721,
+      "candidate_artifact_ids": [
+        17
+      ],
+      "error": null,
+      "latency_ms": 5259.182
+    },
+    {
+      "path": "test_images/kientrung.jpg",
+      "sha256": "94b014ebcb2c99b2c378481689ea2ad04c0b04ea35092cef61c729d9fa6bde1e",
+      "expected_artifact_id": 2,
+      "predicted_artifact_id": 2,
+      "recognized": true,
+      "raw_label": "Điện Kiến Trung",
+      "confidence_score": 0.95,
+      "final_score": 0.583,
+      "candidate_artifact_ids": [
+        2,
+        4
+      ],
+      "error": null,
+      "latency_ms": 6508.502
+    },
+    {
+      "path": "test_images/duyet_thi_duong.jpg",
+      "sha256": "bb2b30bf58bf786d059de524d7d766e21312556dc84828e8888294d2007bc4ee",
+      "expected_artifact_id": 10,
+      "predicted_artifact_id": 10,
+      "recognized": true,
+      "raw_label": "Duyệt Thị Đường",
+      "confidence_score": 0.95,
+      "final_score": 0.583,
+      "candidate_artifact_ids": [
+        10
+      ],
+      "error": null,
+      "latency_ms": 6763.648
+    },
+    {
+      "path": "gallery/nuocngot.jpg",
+      "sha256": "a9947765ee04c460063e734e88e440462fdf09690fac086f3fa39f1fd9598c3f",
+      "expected_artifact_id": null,
+      "predicted_artifact_id": null,
+      "recognized": false,
+      "raw_label": null,
+      "confidence_score": 0.0,
+      "final_score": null,
+      "candidate_artifact_ids": [],
+      "error": "UNRECOGNIZED",
+      "latency_ms": 1969.386
+    },
+    {
+      "path": "gallery/nuocsuoi.jpg",
+      "sha256": "808cb87f8293844d1536f11ba725fead6cecb3ff1432488b7c91fa1e7b75b98d",
+      "expected_artifact_id": null,
+      "predicted_artifact_id": null,
+      "recognized": false,
+      "raw_label": null,
+      "confidence_score": 0.0,
+      "final_score": null,
+      "candidate_artifact_ids": [],
+      "error": "UNRECOGNIZED",
+      "latency_ms": 1987.052
+    },
+    {
+      "path": "test_images/f5e_tiger.jpg",
+      "sha256": "c59be2759fc04108f0fcc4700fb214e02218859c73ea219a03d160712f6bb9e6",
+      "expected_artifact_id": null,
+      "predicted_artifact_id": null,
+      "recognized": false,
+      "raw_label": null,
+      "confidence_score": 0.0,
+      "final_score": null,
+      "candidate_artifact_ids": [],
+      "error": "UNRECOGNIZED",
+      "latency_ms": 4308.302
+    },
+    {
+      "path": "test_images/tank_843.jpg",
+      "sha256": "b6c4ad554a38501814e8ab0157ca76d85fbcfaaa94feedd8e9999ffc9117b025",
+      "expected_artifact_id": null,
+      "predicted_artifact_id": null,
+      "recognized": false,
+      "raw_label": null,
+      "confidence_score": 0.0,
+      "final_score": null,
+      "candidate_artifact_ids": [],
+      "error": "UNRECOGNIZED",
+      "latency_ms": 2448.692
+    },
+    {
+      "path": "test_images/tank_843.png",
+      "sha256": "24afba625beacd6510058a1078e47a04e1d1adf8166ea2d8030d8652b9768219",
+      "expected_artifact_id": null,
+      "predicted_artifact_id": null,
+      "recognized": false,
+      "raw_label": null,
+      "confidence_score": 0.0,
+      "final_score": null,
+      "candidate_artifact_ids": [],
+      "error": "UNRECOGNIZED",
+      "latency_ms": 13015.159
+    }
+  ]
+}

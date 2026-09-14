@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 _vision_model = None
 _vision_clients: dict[str, Any] = {}
 _vision_lock = threading.Lock()
+_vision_next_client_index = 0
 _FEATURES_PATH = Path(__file__).resolve().parents[2] / "data" / "vision_artifact_features.json"
 _DETAIL_RECOGNITION_TYPES = {"architectural_detail", "interior_detail", "museum_object"}
 
@@ -50,7 +51,12 @@ def _get_vision_model():
         api_key = settings.GEMINI_API_KEY.strip()
         if not api_key:
             raise RuntimeError("401: GEMINI_API_KEY is not configured.")
-        _vision_model = genai.Client(api_key=api_key)
+        _vision_model = genai.Client(
+            api_key=api_key,
+            http_options=types.HttpOptions(
+                retry_options=types.HttpRetryOptions(attempts=1)
+            ),
+        )
         return _vision_model
 
 
@@ -74,18 +80,29 @@ def _get_vision_providers() -> list[tuple[str, Any]]:
     with _vision_lock:
         for index, api_key in enumerate(api_keys, start=1):
             if api_key not in _vision_clients:
-                _vision_clients[api_key] = genai.Client(api_key=api_key)
+                _vision_clients[api_key] = genai.Client(
+                    api_key=api_key,
+                    http_options=types.HttpOptions(
+                        retry_options=types.HttpRetryOptions(attempts=1)
+                    ),
+                )
             providers.append((f"gemini_key_{index}", _vision_clients[api_key]))
     return providers
 
 
 async def _generate_vision_content(prompt: str, image: Any):
     """Call Gemini Vision, falling back to the next API key with the same model."""
+    global _vision_next_client_index
     providers = _get_vision_providers()
     model_name = settings.GEMINI_VISION_MODEL
     last_error: Exception | None = None
 
-    for provider_label, client in providers:
+    with _vision_lock:
+        start_index = _vision_next_client_index % len(providers)
+        _vision_next_client_index = (start_index + 1) % len(providers)
+    ordered_providers = providers[start_index:] + providers[:start_index]
+
+    for provider_label, client in ordered_providers:
         try:
             response = await client.aio.models.generate_content(
                 model=model_name,
@@ -391,7 +408,6 @@ async def recognize_image(image_base64: str, lang: str = "vi", lat: float = None
             # Retry logic with exponential backoff for transient errors
             error_str = str(api_error).lower()
             is_retryable = (
-                "429" in str(api_error) or  # Rate limit
                 "500" in str(api_error) or  # Server error
                 "timeout" in error_str or
                 "temporarily" in error_str or

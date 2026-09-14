@@ -32,7 +32,14 @@ logger = logging.getLogger(__name__)
 
 class GraphBuilder:
     def __init__(self):
-        self.client = AsyncGroq(api_key=settings.GROQ_API_KEY)
+        api_keys = settings.groq_api_key_list
+        if not api_keys:
+            raise ValueError("GROQ_API_KEY is not set in environment variables.")
+        self.clients = [
+            AsyncGroq(api_key=api_key, max_retries=0) for api_key in api_keys
+        ]
+        self.client = self.clients[0]
+        self.next_client_index = 0
         self.model_name = settings.GROQ_LLM_MODEL
 
     async def get_all_artifacts(self) -> List[Artifact]:
@@ -71,25 +78,46 @@ TRẢ VỀ ĐỊNH DẠNG JSON SAU:
   ]
 }}
 """
-        try:
-            async def _call_groq():
-                response = await self.client.chat.completions.create(
-                    model=self.model_name,
-                    messages=[
-                        {"role": "system", "content": "You are a data extraction assistant. Always respond with valid JSON."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    response_format={"type": "json_object"}
+        last_exc: Exception | None = None
+        client_indices = [
+            (self.next_client_index + offset) % len(self.clients)
+            for offset in range(len(self.clients))
+        ]
+        for client_index in client_indices:
+            client = self.clients[client_index]
+            label = client_index + 1
+            try:
+                async def _call_groq():
+                    response = await client.chat.completions.create(
+                        model=self.model_name,
+                        messages=[
+                            {"role": "system", "content": "You are a data extraction assistant. Always respond with valid JSON."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        response_format={"type": "json_object"}
+                    )
+                    return response.choices[0].message.content
+
+                response_text = await retry_with_backoff(_call_groq, max_retries=0)
+                if not response_text:
+                    raise RuntimeError("Groq returned an empty graph response")
+                result = json.loads(response_text)
+                self.next_client_index = (client_index + 1) % len(self.clients)
+                logger.info("Groq graph key %d succeeded", label)
+                return result
+            except Exception as exc:
+                last_exc = exc
+                logger.warning(
+                    "Groq graph key %d failed for artifact %s: %s",
+                    label,
+                    artifact.art_id,
+                    exc,
                 )
-                return response.choices[0].message.content
-            
-            response_text = await retry_with_backoff(_call_groq)
-            if not response_text:
-                return {"facts": [], "relations": []}
-            return json.loads(response_text)
-        except Exception as e:
-            logger.error(f"Error calling Groq for artifact {artifact.art_id}: {e}")
-            return {"facts": [], "relations": []}
+
+        logger.error(
+            "All Groq keys failed for artifact %s: %s", artifact.art_id, last_exc
+        )
+        return {"facts": [], "relations": []}
 
     async def build(self):
         logger.info("Starting Knowledge Graph construction...")

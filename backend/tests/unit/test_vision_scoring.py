@@ -318,6 +318,9 @@ async def test_generate_vision_content_falls_back_to_second_api_key():
     with patch(
         "services.vision.image_recognition._get_vision_providers",
         return_value=[("gemini_key_1", first_client), ("gemini_key_2", second_client)],
+    ), patch(
+        "services.vision.image_recognition._vision_next_client_index",
+        0,
     ), patch("services.vision.image_recognition.settings") as mock_settings:
         mock_settings.GEMINI_VISION_MODEL = "same-vision-model"
         response = await _generate_vision_content("prompt", MagicMock())

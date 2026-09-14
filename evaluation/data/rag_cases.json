@@ -1,0 +1,247 @@
+{
+  "artifacts": [
+    {
+      "artifact_id": 1,
+      "name_vi": "Cửa Hòa Bình",
+      "name_en": "Hoa Binh Gate",
+      "entity_queries": {
+        "vi": ["Cửa Hòa Bình", "cua hoa binh"],
+        "en": ["Hoa Binh Gate", "Gate of Peace"]
+      },
+      "semantic_queries": {
+        "vi": ["Cổng nào nằm ở phía bắc Hoàng thành Huế?", "Tôi muốn tìm cánh cổng mang ý nghĩa hòa bình ở Đại Nội."],
+        "en": ["Which gate forms the northern entrance of the Imperial City?", "Where is the citadel entrance whose name means peace?"]
+      }
+    },
+    {
+      "artifact_id": 2,
+      "name_vi": "Điện Kiến Trung",
+      "name_en": "Kien Trung Palace",
+      "entity_queries": {
+        "vi": ["Điện Kiến Trung", "dien kien trung"],
+        "en": ["Kien Trung Palace", "Kien Trung"]
+      },
+      "semantic_queries": {
+        "vi": ["Cung điện nào kết hợp kiến trúc Á Đông và châu Âu với nghệ thuật khảm sành sứ?", "Tôi muốn xem cung điện được phục dựng có mặt tiền trang trí rất cầu kỳ."],
+        "en": ["Which restored palace combines European and Vietnamese architecture?", "What palace is known for its ornate ceramic mosaic facade?"]
+      }
+    },
+    {
+      "artifact_id": 3,
+      "name_vi": "Cung Trường Sanh",
+      "name_en": "Truong Sanh Palace",
+      "entity_queries": {
+        "vi": ["Cung Trường Sanh", "cung truong sanh"],
+        "en": ["Truong Sanh Palace", "Palace of Longevity"]
+      },
+      "semantic_queries": {
+        "vi": ["Cung điện vườn nào từng là nơi nghỉ dưỡng của các bà hoàng thái hậu?", "Nơi nào trong Tử Cấm Thành nổi bật với không gian yên tĩnh và hành lang bao quanh vườn?"],
+        "en": ["Which garden palace served as a retreat for queen mothers?", "What quiet royal residence is known for gardens and covered corridors?"]
+      }
+    },
+    {
+      "artifact_id": 4,
+      "name_vi": "Cung Diên Thọ",
+      "name_en": "Dien Tho Palace",
+      "entity_queries": {
+        "vi": ["Cung Diên Thọ", "cung dien tho"],
+        "en": ["Dien Tho Palace", "Dien Tho residence"]
+      },
+      "semantic_queries": {
+        "vi": ["Khu cung điện nào là nơi ở của Hoàng thái hậu triều Nguyễn?", "Tôi muốn tham quan nơi có điện chính, hồ và hành lang dành cho hoàng thái hậu."],
+        "en": ["Which palace complex was the residence of Nguyen dynasty queen mothers?", "What royal residence includes a main hall, garden courtyard, and covered corridor?"]
+      }
+    },
+    {
+      "artifact_id": 5,
+      "name_vi": "Cửa Chương Đức",
+      "name_en": "Chuong Duc Gate",
+      "entity_queries": {
+        "vi": ["Cửa Chương Đức", "cua chuong duc"],
+        "en": ["Chuong Duc Gate", "Chuong Duc western gate"]
+      },
+      "semantic_queries": {
+        "vi": ["Cổng phía tây nào của Hoàng thành có trang trí phượng và khảm sành sứ?", "Tôi đang tìm cánh cổng ba lối đi ở phía tây Đại Nội."],
+        "en": ["Which western imperial gate is decorated with phoenix motifs and ceramic mosaics?", "What three-passage gate stands on the west side of the Imperial City?"]
+      }
+    },
+    {
+      "artifact_id": 6,
+      "name_vi": "Hưng Miếu",
+      "name_en": "Hung Mieu Temple",
+      "entity_queries": {
+        "vi": ["Hưng Miếu", "hung to mieu"],
+        "en": ["Hung Mieu Temple", "Hung To Temple"]
+      },
+      "semantic_queries": {
+        "vi": ["Ngôi miếu thờ cha mẹ vua Gia Long nằm trong Đại Nội là nơi nào?", "Tôi muốn tìm miếu thờ tổ tiên gần Thế Miếu."],
+        "en": ["Which ancestral temple honors the parents of Emperor Gia Long?", "What solemn worship hall stands near The Mieu in the Imperial City?"]
+      }
+    },
+    {
+      "artifact_id": 7,
+      "name_vi": "Thế Miếu",
+      "name_en": "The Mieu Temple",
+      "entity_queries": {
+        "vi": ["Thế Miếu", "the to mieu"],
+        "en": ["The Mieu Temple", "Temple of the Generations"]
+      },
+      "semantic_queries": {
+        "vi": ["Ngôi miếu nào thờ các vị vua triều Nguyễn và nằm gần Cửu Đỉnh?", "Tôi muốn tìm nơi đặt án thờ các hoàng đế nhà Nguyễn."],
+        "en": ["Which temple honors the emperors of the Nguyen dynasty beside the Nine Dynastic Urns?", "Where are the ancestral altars of the Nguyen emperors located?"]
+      }
+    },
+    {
+      "artifact_id": 8,
+      "name_vi": "Điện Thái Hòa",
+      "name_en": "Thai Hoa Palace",
+      "entity_queries": {
+        "vi": ["Điện Thái Hòa", "dien thai hoa"],
+        "en": ["Thai Hoa Palace", "Palace of Supreme Harmony"]
+      },
+      "semantic_queries": {
+        "vi": ["Điện nào là nơi cử hành lễ đăng quang và các đại lễ của triều Nguyễn?", "Tôi muốn xem chính điện có ngai vàng của hoàng đế."],
+        "en": ["Which throne hall hosted coronations and major royal ceremonies?", "What palace contains the imperial throne and symbolizes supreme harmony?"]
+      }
+    },
+    {
+      "artifact_id": 9,
+      "name_vi": "Nền điện Cần Chánh",
+      "name_en": "Can Chanh Palace Foundation",
+      "entity_queries": {
+        "vi": ["Nền điện Cần Chánh", "nen dien can chanh"],
+        "en": ["Can Chanh Palace Foundation", "Can Chanh foundation"]
+      },
+      "semantic_queries": {
+        "vi": ["Phế tích nào từng là nơi vua làm việc thường ngày và đã bị phá hủy trong chiến tranh?", "Tôi muốn tìm nền móng của điện thiết triều thường xuyên phía sau Thái Hòa."],
+        "en": ["Which ruined palace foundation marks the emperor's former daily workplace?", "What audience hall behind Thai Hoa was destroyed and now survives as a foundation?"]
+      }
+    },
+    {
+      "artifact_id": 10,
+      "name_vi": "Duyệt Thị Đường",
+      "name_en": "Duyet Thi Duong Royal Theater",
+      "entity_queries": {
+        "vi": ["Duyệt Thị Đường", "duyet thi duong"],
+        "en": ["Duyet Thi Duong", "Hue Royal Theater"]
+      },
+      "semantic_queries": {
+        "vi": ["Nhà hát cổ nào trong Đại Nội được dùng để biểu diễn tuồng cung đình?", "Tôi muốn xem sân khấu hoàng gia của triều Nguyễn."],
+        "en": ["Which historic theater hosted royal court drama performances?", "Where is the Nguyen dynasty's royal stage inside the Imperial City?"]
+      }
+    },
+    {
+      "artifact_id": 11,
+      "name_vi": "Phủ Nội Vụ",
+      "name_en": "Ministry of the Interior",
+      "entity_queries": {
+        "vi": ["Phủ Nội Vụ", "phu noi vu"],
+        "en": ["Ministry of the Interior", "Phu Noi Vu"]
+      },
+      "semantic_queries": {
+        "vi": ["Cơ quan nào trong cung quản lý kho tàng và chế tác đồ dùng hoàng gia?", "Tôi muốn tìm khu làm việc của thợ thủ công phục vụ triều đình."],
+        "en": ["Which imperial office managed royal stores and palace workshops?", "Where did court artisans produce and maintain objects for the royal household?"]
+      }
+    },
+    {
+      "artifact_id": 12,
+      "name_vi": "Vườn Cơ Hạ",
+      "name_en": "Co Ha Garden",
+      "entity_queries": {
+        "vi": ["Vườn Cơ Hạ", "vuon co ha"],
+        "en": ["Co Ha Garden", "Imperial Co Ha Garden"]
+      },
+      "semantic_queries": {
+        "vi": ["Khu vườn thượng uyển nào là nơi thư giãn và học tập của các hoàng tử?", "Tôi muốn tham quan khu vườn cung đình có hồ, cây xanh và các công trình nghỉ ngơi."],
+        "en": ["Which imperial garden was used by princes for study and relaxation?", "What royal garden contains ponds, greenery, and leisure pavilions?"]
+      }
+    },
+    {
+      "artifact_id": 13,
+      "name_vi": "Triệu Miếu",
+      "name_en": "Trieu Mieu Temple",
+      "entity_queries": {
+        "vi": ["Triệu Miếu", "trieu to mieu"],
+        "en": ["Trieu Mieu Temple", "Trieu To Temple"]
+      },
+      "semantic_queries": {
+        "vi": ["Ngôi miếu nào được lập để thờ Nguyễn Kim, tổ tiên của các chúa Nguyễn?", "Tôi muốn tìm miếu thờ vị tổ khởi đầu dòng họ Nguyễn."],
+        "en": ["Which temple is dedicated to Nguyen Kim, ancestor of the Nguyen lords?", "Where is the shrine honoring the early progenitor of the Nguyen lineage?"]
+      }
+    },
+    {
+      "artifact_id": 14,
+      "name_vi": "Thái Miếu",
+      "name_en": "Thai Mieu Temple",
+      "entity_queries": {
+        "vi": ["Thái Miếu", "thai to mieu"],
+        "en": ["Thai Mieu Temple", "Thai To Temple"]
+      },
+      "semantic_queries": {
+        "vi": ["Ngôi miếu nào thờ các chúa Nguyễn trước thời Gia Long?", "Tôi muốn tìm khu thờ tổ tiên các chúa Nguyễn ở phía đông Hoàng thành."],
+        "en": ["Which ancestral temple honors the Nguyen lords who ruled before Gia Long?", "Where is the eastern Imperial City temple dedicated to the ancestors of the Nguyen lords?"]
+      }
+    },
+    {
+      "artifact_id": 15,
+      "name_vi": "Cửa Hiển Nhơn",
+      "name_en": "Hien Nhon Gate",
+      "entity_queries": {
+        "vi": ["Cửa Hiển Nhơn", "cua hien nhon"],
+        "en": ["Hien Nhon Gate", "Gate of Manifest Benevolence"]
+      },
+      "semantic_queries": {
+        "vi": ["Cánh cổng phía đông nổi bật của Hoàng thành Huế tên là gì?", "Tôi muốn tìm cổng có trang trí sành sứ ở phía đông Đại Nội."],
+        "en": ["Which decorated gate forms the eastern entrance to the Imperial City?", "What eastern citadel gate is known as the Gate of Manifest Benevolence?"]
+      }
+    },
+    {
+      "artifact_id": 16,
+      "name_vi": "Điện Long An",
+      "name_en": "Long An Palace",
+      "entity_queries": {
+        "vi": ["Điện Long An", "bao tang co vat cung dinh hue"],
+        "en": ["Long An Palace", "Hue Museum of Royal Antiquities"]
+      },
+      "semantic_queries": {
+        "vi": ["Cung điện nào hiện là Bảo tàng Cổ vật Cung đình Huế?", "Tôi muốn xem nơi trưng bày đồ dùng, mỹ thuật và cổ vật của triều Nguyễn."],
+        "en": ["Which palace now houses the Hue Museum of Royal Antiquities?", "Where can visitors see Nguyen dynasty royal objects and decorative arts?"]
+      }
+    },
+    {
+      "artifact_id": 17,
+      "name_vi": "Ngọ Môn",
+      "name_en": "Ngo Mon Gate",
+      "entity_queries": {
+        "vi": ["Ngọ Môn", "ngo mon"],
+        "en": ["Ngo Mon Gate", "Meridian Gate Hue"]
+      },
+      "semantic_queries": {
+        "vi": ["Cổng chính phía nam nào có Lầu Ngũ Phụng ở phía trên?", "Tôi muốn tìm nơi vua Bảo Đại tuyên bố thoái vị năm 1945."],
+        "en": ["Which southern ceremonial gate is topped by the Five Phoenix Pavilion?", "Where did Emperor Bao Dai announce his abdication in 1945?"]
+      }
+    }
+  ],
+  "ood_queries": [
+    {"text": "Thời tiết ở Hà Nội hôm nay thế nào?", "lang": "vi", "split": "dev"},
+    {"text": "Ai thiết kế tháp Eiffel?", "lang": "vi", "split": "dev"},
+    {"text": "Viết cho tôi một chương trình sắp xếp nhanh.", "lang": "vi", "split": "dev"},
+    {"text": "Giá Bitcoin hiện tại là bao nhiêu?", "lang": "vi", "split": "dev"},
+    {"text": "Nhà hàng ngon nhất ở Đà Nẵng?", "lang": "vi", "split": "dev"},
+    {"text": "What is the weather in Bangkok today?", "lang": "en", "split": "dev"},
+    {"text": "Who painted the Mona Lisa?", "lang": "en", "split": "dev"},
+    {"text": "Explain the theory of general relativity.", "lang": "en", "split": "dev"},
+    {"text": "What is the current stock price of Apple?", "lang": "en", "split": "dev"},
+    {"text": "Recommend a hotel in Singapore.", "lang": "en", "split": "dev"},
+    {"text": "Kết quả bóng đá tối qua là gì?", "lang": "vi", "split": "test"},
+    {"text": "Hướng dẫn tôi nấu phở bò.", "lang": "vi", "split": "test"},
+    {"text": "Tổng thống Hoa Kỳ hiện tại là ai?", "lang": "vi", "split": "test"},
+    {"text": "Tính đạo hàm của hàm số bậc ba.", "lang": "vi", "split": "test"},
+    {"text": "Cho tôi lịch chiếu phim cuối tuần.", "lang": "vi", "split": "test"},
+    {"text": "How do I install a graphics driver?", "lang": "en", "split": "test"},
+    {"text": "Write a poem about the ocean.", "lang": "en", "split": "test"},
+    {"text": "Who won the latest Formula One race?", "lang": "en", "split": "test"},
+    {"text": "Explain how photosynthesis works.", "lang": "en", "split": "test"},
+    {"text": "Find me a cheap flight to Tokyo.", "lang": "en", "split": "test"}
+  ]
+}

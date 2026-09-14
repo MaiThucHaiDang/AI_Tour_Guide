@@ -1,0 +1,5310 @@
+{
+  "metadata": {
+    "git_commit": "unknown",
+    "dataset": "evaluation/data/rag_cases.json",
+    "positive_queries": 136,
+    "ood_queries": 20,
+    "indexed_documents": 393,
+    "indexed_artifacts": 17,
+    "knowledge_facts": 105,
+    "graph_relations": 107,
+    "top_k": 3,
+    "embedding_model": "gemini-embedding-2"
+  },
+  "entity_lookup": {
+    "dev": {
+      "count": 34,
+      "accuracy": 0.9706,
+      "latency": {
+        "count": 34,
+        "mean_ms": 7.48,
+        "p50_ms": 7.34,
+        "p95_ms": 9.19
+      },
+      "accuracy_vi": 1.0,
+      "accuracy_en": 0.9412
+    },
+    "test": {
+      "count": 34,
+      "accuracy": 0.4412,
+      "latency": {
+        "count": 34,
+        "mean_ms": 6.33,
+        "p50_ms": 6.18,
+        "p95_ms": 8.37
+      },
+      "accuracy_vi": 0.5882,
+      "accuracy_en": 0.2941
+    }
+  },
+  "vector_retrieval": {
+    "dev": {
+      "overall": {
+        "count": 68,
+        "hit_at_1": 0.8676,
+        "hit_at_3": 0.9853,
+        "mrr": 0.9167
+      },
+      "breakdown": {
+        "lang:en": {
+          "count": 34,
+          "hit_at_1": 0.8529,
+          "hit_at_3": 0.9706,
+          "mrr": 0.8971
+        },
+        "lang:vi": {
+          "count": 34,
+          "hit_at_1": 0.8824,
+          "hit_at_3": 1.0,
+          "mrr": 0.9363
+        },
+        "type:entity": {
+          "count": 34,
+          "hit_at_1": 1.0,
+          "hit_at_3": 1.0,
+          "mrr": 1.0
+        },
+        "type:semantic": {
+          "count": 34,
+          "hit_at_1": 0.7353,
+          "hit_at_3": 0.9706,
+          "mrr": 0.8333
+        }
+      },
+      "latency": {
+        "count": 68,
+        "mean_ms": 8.66,
+        "p50_ms": 8.21,
+        "p95_ms": 10.62
+      }
+    },
+    "test": {
+      "overall": {
+        "count": 68,
+        "hit_at_1": 0.8824,
+        "hit_at_3": 0.9412,
+        "mrr": 0.9069
+      },
+      "breakdown": {
+        "lang:en": {
+          "count": 34,
+          "hit_at_1": 0.8824,
+          "hit_at_3": 0.9412,
+          "mrr": 0.9069
+        },
+        "lang:vi": {
+          "count": 34,
+          "hit_at_1": 0.8824,
+          "hit_at_3": 0.9412,
+          "mrr": 0.9069
+        },
+        "type:entity": {
+          "count": 34,
+          "hit_at_1": 0.9706,
+          "hit_at_3": 1.0,
+          "mrr": 0.9804
+        },
+        "type:semantic": {
+          "count": 34,
+          "hit_at_1": 0.7941,
+          "hit_at_3": 0.8824,
+          "mrr": 0.8333
+        }
+      },
+      "latency": {
+        "count": 68,
+        "mean_ms": 8.31,
+        "p50_ms": 8.08,
+        "p95_ms": 10.34
+      }
+    },
+    "test_graph_context_recall": 0.9706,
+    "test_graph_context_recall_gain": 0.0294,
+    "test_graph_context_mean_artifacts": 5.18,
+    "ood_threshold": {
+      "selected_on_dev": {
+        "threshold": 0.357536,
+        "balanced_accuracy": 1.0,
+        "classification": {
+          "count": 78,
+          "true_positive": 68,
+          "true_negative": 10,
+          "false_positive": 0,
+          "false_negative": 0,
+          "accuracy": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "specificity": 1.0,
+          "f1": 1.0
+        }
+      },
+      "test_in_domain_classification": {
+        "count": 78,
+        "true_positive": 63,
+        "true_negative": 10,
+        "false_positive": 0,
+        "false_negative": 5,
+        "accuracy": 0.9359,
+        "precision": 1.0,
+        "recall": 0.9265,
+        "specificity": 1.0,
+        "f1": 0.9618
+      },
+      "test_ood_detection": {
+        "count": 78,
+        "true_positive": 10,
+        "true_negative": 63,
+        "false_positive": 5,
+        "false_negative": 0,
+        "accuracy": 0.9359,
+        "precision": 0.6667,
+        "recall": 1.0,
+        "specificity": 0.9265,
+        "f1": 0.8
+      },
+      "test_ood_rejection_rate": 1.0,
+      "test_positive_correct_and_accepted_rate": 0.8235
+    }
+  },
+  "cases": {
+    "entity": [
+      {
+        "text": "Cửa Hòa Bình",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 1,
+        "expected_name_vi": "Cửa Hòa Bình",
+        "expected_name_en": "Hoa Binh Gate",
+        "predicted_artifact_id": 1,
+        "correct": true,
+        "latency_ms": 16.849
+      },
+      {
+        "text": "cua hoa binh",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 1,
+        "expected_name_vi": "Cửa Hòa Bình",
+        "expected_name_en": "Hoa Binh Gate",
+        "predicted_artifact_id": null,
+        "correct": false,
+        "latency_ms": 7.908
+      },
+      {
+        "text": "Hoa Binh Gate",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 1,
+        "expected_name_vi": "Cửa Hòa Bình",
+        "expected_name_en": "Hoa Binh Gate",
+        "predicted_artifact_id": 1,
+        "correct": true,
+        "latency_ms": 6.644
+      },
+      {
+        "text": "Gate of Peace",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 1,
+        "expected_name_vi": "Cửa Hòa Bình",
+        "expected_name_en": "Hoa Binh Gate",
+        "predicted_artifact_id": null,
+        "correct": false,
+        "latency_ms": 5.625
+      },
+      {
+        "text": "Điện Kiến Trung",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 2,
+        "expected_name_vi": "Điện Kiến Trung",
+        "expected_name_en": "Kien Trung Palace",
+        "predicted_artifact_id": 2,
+        "correct": true,
+        "latency_ms": 8.142
+      },
+      {
+        "text": "dien kien trung",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 2,
+        "expected_name_vi": "Điện Kiến Trung",
+        "expected_name_en": "Kien Trung Palace",
+        "predicted_artifact_id": 2,
+        "correct": true,
+        "latency_ms": 6.939
+      },
+      {
+        "text": "Kien Trung Palace",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 2,
+        "expected_name_vi": "Điện Kiến Trung",
+        "expected_name_en": "Kien Trung Palace",
+        "predicted_artifact_id": 2,
+        "correct": true,
+        "latency_ms": 7.349
+      },
+      {
+        "text": "Kien Trung",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 2,
+        "expected_name_vi": "Điện Kiến Trung",
+        "expected_name_en": "Kien Trung Palace",
+        "predicted_artifact_id": 2,
+        "correct": true,
+        "latency_ms": 6.357
+      },
+      {
+        "text": "Cung Trường Sanh",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 3,
+        "expected_name_vi": "Cung Trường Sanh",
+        "expected_name_en": "Truong Sanh Palace",
+        "predicted_artifact_id": 3,
+        "correct": true,
+        "latency_ms": 7.604
+      },
+      {
+        "text": "cung truong sanh",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 3,
+        "expected_name_vi": "Cung Trường Sanh",
+        "expected_name_en": "Truong Sanh Palace",
+        "predicted_artifact_id": 3,
+        "correct": true,
+        "latency_ms": 5.509
+      },
+      {
+        "text": "Truong Sanh Palace",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 3,
+        "expected_name_vi": "Cung Trường Sanh",
+        "expected_name_en": "Truong Sanh Palace",
+        "predicted_artifact_id": 3,
+        "correct": true,
+        "latency_ms": 6.762
+      },
+      {
+        "text": "Palace of Longevity",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 3,
+        "expected_name_vi": "Cung Trường Sanh",
+        "expected_name_en": "Truong Sanh Palace",
+        "predicted_artifact_id": null,
+        "correct": false,
+        "latency_ms": 5.668
+      },
+      {
+        "text": "Cung Diên Thọ",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 4,
+        "expected_name_vi": "Cung Diên Thọ",
+        "expected_name_en": "Dien Tho Palace",
+        "predicted_artifact_id": 4,
+        "correct": true,
+        "latency_ms": 6.562
+      },
+      {
+        "text": "cung dien tho",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 4,
+        "expected_name_vi": "Cung Diên Thọ",
+        "expected_name_en": "Dien Tho Palace",
+        "predicted_artifact_id": 4,
+        "correct": true,
+        "latency_ms": 7.216
+      },
+      {
+        "text": "Dien Tho Palace",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 4,
+        "expected_name_vi": "Cung Diên Thọ",
+        "expected_name_en": "Dien Tho Palace",
+        "predicted_artifact_id": 4,
+        "correct": true,
+        "latency_ms": 7.226
+      },
+      {
+        "text": "Dien Tho residence",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 4,
+        "expected_name_vi": "Cung Diên Thọ",
+        "expected_name_en": "Dien Tho Palace",
+        "predicted_artifact_id": null,
+        "correct": false,
+        "latency_ms": 4.81
+      },
+      {
+        "text": "Cửa Chương Đức",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 5,
+        "expected_name_vi": "Cửa Chương Đức",
+        "expected_name_en": "Chuong Duc Gate",
+        "predicted_artifact_id": 5,
+        "correct": true,
+        "latency_ms": 7.338
+      },
+      {
+        "text": "cua chuong duc",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 5,
+        "expected_name_vi": "Cửa Chương Đức",
+        "expected_name_en": "Chuong Duc Gate",
+        "predicted_artifact_id": null,
+        "correct": false,
+        "latency_ms": 5.237
+      },
+      {
+        "text": "Chuong Duc Gate",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 5,
+        "expected_name_vi": "Cửa Chương Đức",
+        "expected_name_en": "Chuong Duc Gate",
+        "predicted_artifact_id": 5,
+        "correct": true,
+        "latency_ms": 6.451
+      },
+      {
+        "text": "Chuong Duc western gate",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 5,
+        "expected_name_vi": "Cửa Chương Đức",
+        "expected_name_en": "Chuong Duc Gate",
+        "predicted_artifact_id": 5,
+        "correct": true,
+        "latency_ms": 7.477
+      },
+      {
+        "text": "Hưng Miếu",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 6,
+        "expected_name_vi": "Hưng Miếu",
+        "expected_name_en": "Hung Mieu Temple",
+        "predicted_artifact_id": 6,
+        "correct": true,
+        "latency_ms": 6.999
+      },
+      {
+        "text": "hung to mieu",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 6,
+        "expected_name_vi": "Hưng Miếu",
+        "expected_name_en": "Hung Mieu Temple",
+        "predicted_artifact_id": 6,
+        "correct": true,
+        "latency_ms": 7.273
+      },
+      {
+        "text": "Hung Mieu Temple",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 6,
+        "expected_name_vi": "Hưng Miếu",
+        "expected_name_en": "Hung Mieu Temple",
+        "predicted_artifact_id": 6,
+        "correct": true,
+        "latency_ms": 7.415
+      },
+      {
+        "text": "Hung To Temple",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 6,
+        "expected_name_vi": "Hưng Miếu",
+        "expected_name_en": "Hung Mieu Temple",
+        "predicted_artifact_id": null,
+        "correct": false,
+        "latency_ms": 6.85
+      },
+      {
+        "text": "Thế Miếu",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 7,
+        "expected_name_vi": "Thế Miếu",
+        "expected_name_en": "The Mieu Temple",
+        "predicted_artifact_id": 7,
+        "correct": true,
+        "latency_ms": 8.374
+      },
+      {
+        "text": "the to mieu",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 7,
+        "expected_name_vi": "Thế Miếu",
+        "expected_name_en": "The Mieu Temple",
+        "predicted_artifact_id": 7,
+        "correct": true,
+        "latency_ms": 7.876
+      },
+      {
+        "text": "The Mieu Temple",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 7,
+        "expected_name_vi": "Thế Miếu",
+        "expected_name_en": "The Mieu Temple",
+        "predicted_artifact_id": 7,
+        "correct": true,
+        "latency_ms": 7.063
+      },
+      {
+        "text": "Temple of the Generations",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 7,
+        "expected_name_vi": "Thế Miếu",
+        "expected_name_en": "The Mieu Temple",
+        "predicted_artifact_id": null,
+        "correct": false,
+        "latency_ms": 6.076
+      },
+      {
+        "text": "Điện Thái Hòa",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 8,
+        "expected_name_vi": "Điện Thái Hòa",
+        "expected_name_en": "Thai Hoa Palace",
+        "predicted_artifact_id": 8,
+        "correct": true,
+        "latency_ms": 7.765
+      },
+      {
+        "text": "dien thai hoa",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 8,
+        "expected_name_vi": "Điện Thái Hòa",
+        "expected_name_en": "Thai Hoa Palace",
+        "predicted_artifact_id": null,
+        "correct": false,
+        "latency_ms": 4.408
+      },
+      {
+        "text": "Thai Hoa Palace",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 8,
+        "expected_name_vi": "Điện Thái Hòa",
+        "expected_name_en": "Thai Hoa Palace",
+        "predicted_artifact_id": 8,
+        "correct": true,
+        "latency_ms": 7.79
+      },
+      {
+        "text": "Palace of Supreme Harmony",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 8,
+        "expected_name_vi": "Điện Thái Hòa",
+        "expected_name_en": "Thai Hoa Palace",
+        "predicted_artifact_id": null,
+        "correct": false,
+        "latency_ms": 6.112
+      },
+      {
+        "text": "Nền điện Cần Chánh",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 9,
+        "expected_name_vi": "Nền điện Cần Chánh",
+        "expected_name_en": "Can Chanh Palace Foundation",
+        "predicted_artifact_id": 9,
+        "correct": true,
+        "latency_ms": 7.826
+      },
+      {
+        "text": "nen dien can chanh",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 9,
+        "expected_name_vi": "Nền điện Cần Chánh",
+        "expected_name_en": "Can Chanh Palace Foundation",
+        "predicted_artifact_id": null,
+        "correct": false,
+        "latency_ms": 6.245
+      },
+      {
+        "text": "Can Chanh Palace Foundation",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 9,
+        "expected_name_vi": "Nền điện Cần Chánh",
+        "expected_name_en": "Can Chanh Palace Foundation",
+        "predicted_artifact_id": 9,
+        "correct": true,
+        "latency_ms": 7.205
+      },
+      {
+        "text": "Can Chanh foundation",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 9,
+        "expected_name_vi": "Nền điện Cần Chánh",
+        "expected_name_en": "Can Chanh Palace Foundation",
+        "predicted_artifact_id": 9,
+        "correct": true,
+        "latency_ms": 9.276
+      },
+      {
+        "text": "Duyệt Thị Đường",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 10,
+        "expected_name_vi": "Duyệt Thị Đường",
+        "expected_name_en": "Duyet Thi Duong Royal Theater",
+        "predicted_artifact_id": 10,
+        "correct": true,
+        "latency_ms": 7.455
+      },
+      {
+        "text": "duyet thi duong",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 10,
+        "expected_name_vi": "Duyệt Thị Đường",
+        "expected_name_en": "Duyet Thi Duong Royal Theater",
+        "predicted_artifact_id": 10,
+        "correct": true,
+        "latency_ms": 9.003
+      },
+      {
+        "text": "Duyet Thi Duong",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 10,
+        "expected_name_vi": "Duyệt Thị Đường",
+        "expected_name_en": "Duyet Thi Duong Royal Theater",
+        "predicted_artifact_id": 10,
+        "correct": true,
+        "latency_ms": 7.469
+      },
+      {
+        "text": "Hue Royal Theater",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 10,
+        "expected_name_vi": "Duyệt Thị Đường",
+        "expected_name_en": "Duyet Thi Duong Royal Theater",
+        "predicted_artifact_id": null,
+        "correct": false,
+        "latency_ms": 7.456
+      },
+      {
+        "text": "Phủ Nội Vụ",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 11,
+        "expected_name_vi": "Phủ Nội Vụ",
+        "expected_name_en": "Ministry of the Interior",
+        "predicted_artifact_id": 11,
+        "correct": true,
+        "latency_ms": 7.424
+      },
+      {
+        "text": "phu noi vu",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 11,
+        "expected_name_vi": "Phủ Nội Vụ",
+        "expected_name_en": "Ministry of the Interior",
+        "predicted_artifact_id": 11,
+        "correct": true,
+        "latency_ms": 7.908
+      },
+      {
+        "text": "Ministry of the Interior",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 11,
+        "expected_name_vi": "Phủ Nội Vụ",
+        "expected_name_en": "Ministry of the Interior",
+        "predicted_artifact_id": null,
+        "correct": false,
+        "latency_ms": 5.423
+      },
+      {
+        "text": "Phu Noi Vu",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 11,
+        "expected_name_vi": "Phủ Nội Vụ",
+        "expected_name_en": "Ministry of the Interior",
+        "predicted_artifact_id": 11,
+        "correct": true,
+        "latency_ms": 5.891
+      },
+      {
+        "text": "Vườn Cơ Hạ",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 12,
+        "expected_name_vi": "Vườn Cơ Hạ",
+        "expected_name_en": "Co Ha Garden",
+        "predicted_artifact_id": 12,
+        "correct": true,
+        "latency_ms": 9.311
+      },
+      {
+        "text": "vuon co ha",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 12,
+        "expected_name_vi": "Vườn Cơ Hạ",
+        "expected_name_en": "Co Ha Garden",
+        "predicted_artifact_id": null,
+        "correct": false,
+        "latency_ms": 5.614
+      },
+      {
+        "text": "Co Ha Garden",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 12,
+        "expected_name_vi": "Vườn Cơ Hạ",
+        "expected_name_en": "Co Ha Garden",
+        "predicted_artifact_id": 12,
+        "correct": true,
+        "latency_ms": 8.378
+      },
+      {
+        "text": "Imperial Co Ha Garden",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 12,
+        "expected_name_vi": "Vườn Cơ Hạ",
+        "expected_name_en": "Co Ha Garden",
+        "predicted_artifact_id": 12,
+        "correct": true,
+        "latency_ms": 6.503
+      },
+      {
+        "text": "Triệu Miếu",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 13,
+        "expected_name_vi": "Triệu Miếu",
+        "expected_name_en": "Trieu Mieu Temple",
+        "predicted_artifact_id": 13,
+        "correct": true,
+        "latency_ms": 9.128
+      },
+      {
+        "text": "trieu to mieu",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 13,
+        "expected_name_vi": "Triệu Miếu",
+        "expected_name_en": "Trieu Mieu Temple",
+        "predicted_artifact_id": 13,
+        "correct": true,
+        "latency_ms": 6.636
+      },
+      {
+        "text": "Trieu Mieu Temple",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 13,
+        "expected_name_vi": "Triệu Miếu",
+        "expected_name_en": "Trieu Mieu Temple",
+        "predicted_artifact_id": 13,
+        "correct": true,
+        "latency_ms": 7.032
+      },
+      {
+        "text": "Trieu To Temple",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 13,
+        "expected_name_vi": "Triệu Miếu",
+        "expected_name_en": "Trieu Mieu Temple",
+        "predicted_artifact_id": null,
+        "correct": false,
+        "latency_ms": 5.25
+      },
+      {
+        "text": "Thái Miếu",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 14,
+        "expected_name_vi": "Thái Miếu",
+        "expected_name_en": "Thai Mieu Temple",
+        "predicted_artifact_id": 14,
+        "correct": true,
+        "latency_ms": 4.751
+      },
+      {
+        "text": "thai to mieu",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 14,
+        "expected_name_vi": "Thái Miếu",
+        "expected_name_en": "Thai Mieu Temple",
+        "predicted_artifact_id": 14,
+        "correct": true,
+        "latency_ms": 5.184
+      },
+      {
+        "text": "Thai Mieu Temple",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 14,
+        "expected_name_vi": "Thái Miếu",
+        "expected_name_en": "Thai Mieu Temple",
+        "predicted_artifact_id": 14,
+        "correct": true,
+        "latency_ms": 7.219
+      },
+      {
+        "text": "Thai To Temple",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 14,
+        "expected_name_vi": "Thái Miếu",
+        "expected_name_en": "Thai Mieu Temple",
+        "predicted_artifact_id": null,
+        "correct": false,
+        "latency_ms": 4.857
+      },
+      {
+        "text": "Cửa Hiển Nhơn",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 15,
+        "expected_name_vi": "Cửa Hiển Nhơn",
+        "expected_name_en": "Hien Nhon Gate",
+        "predicted_artifact_id": 15,
+        "correct": true,
+        "latency_ms": 7.648
+      },
+      {
+        "text": "cua hien nhon",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 15,
+        "expected_name_vi": "Cửa Hiển Nhơn",
+        "expected_name_en": "Hien Nhon Gate",
+        "predicted_artifact_id": null,
+        "correct": false,
+        "latency_ms": 4.836
+      },
+      {
+        "text": "Hien Nhon Gate",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 15,
+        "expected_name_vi": "Cửa Hiển Nhơn",
+        "expected_name_en": "Hien Nhon Gate",
+        "predicted_artifact_id": 15,
+        "correct": true,
+        "latency_ms": 6.126
+      },
+      {
+        "text": "Gate of Manifest Benevolence",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 15,
+        "expected_name_vi": "Cửa Hiển Nhơn",
+        "expected_name_en": "Hien Nhon Gate",
+        "predicted_artifact_id": null,
+        "correct": false,
+        "latency_ms": 5.586
+      },
+      {
+        "text": "Điện Long An",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 16,
+        "expected_name_vi": "Điện Long An",
+        "expected_name_en": "Long An Palace",
+        "predicted_artifact_id": 16,
+        "correct": true,
+        "latency_ms": 6.353
+      },
+      {
+        "text": "bao tang co vat cung dinh hue",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 16,
+        "expected_name_vi": "Điện Long An",
+        "expected_name_en": "Long An Palace",
+        "predicted_artifact_id": null,
+        "correct": false,
+        "latency_ms": 3.84
+      },
+      {
+        "text": "Long An Palace",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 16,
+        "expected_name_vi": "Điện Long An",
+        "expected_name_en": "Long An Palace",
+        "predicted_artifact_id": 16,
+        "correct": true,
+        "latency_ms": 7.5
+      },
+      {
+        "text": "Hue Museum of Royal Antiquities",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 16,
+        "expected_name_vi": "Điện Long An",
+        "expected_name_en": "Long An Palace",
+        "predicted_artifact_id": null,
+        "correct": false,
+        "latency_ms": 5.293
+      },
+      {
+        "text": "Ngọ Môn",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 17,
+        "expected_name_vi": "Ngọ Môn",
+        "expected_name_en": "Ngo Mon Gate",
+        "predicted_artifact_id": 17,
+        "correct": true,
+        "latency_ms": 5.569
+      },
+      {
+        "text": "ngo mon",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 17,
+        "expected_name_vi": "Ngọ Môn",
+        "expected_name_en": "Ngo Mon Gate",
+        "predicted_artifact_id": 17,
+        "correct": true,
+        "latency_ms": 8.034
+      },
+      {
+        "text": "Ngo Mon Gate",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 17,
+        "expected_name_vi": "Ngọ Môn",
+        "expected_name_en": "Ngo Mon Gate",
+        "predicted_artifact_id": 17,
+        "correct": true,
+        "latency_ms": 6.264
+      },
+      {
+        "text": "Meridian Gate Hue",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 17,
+        "expected_name_vi": "Ngọ Môn",
+        "expected_name_en": "Ngo Mon Gate",
+        "predicted_artifact_id": null,
+        "correct": false,
+        "latency_ms": 6.339
+      }
+    ],
+    "vector_positive": [
+      {
+        "text": "Cửa Hòa Bình",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 1,
+        "expected_name_vi": "Cửa Hòa Bình",
+        "expected_name_en": "Hoa Binh Gate",
+        "ranked_artifact_ids": [
+          1,
+          5,
+          2
+        ],
+        "graph_context_artifact_ids": [
+          1,
+          5,
+          2,
+          17
+        ],
+        "best_distance": 0.3415756829001617,
+        "distances": [
+          0.3415756829001617,
+          0.42895939522739523,
+          0.4590106977801027
+        ],
+        "latency_ms": 35.747
+      },
+      {
+        "text": "cua hoa binh",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 1,
+        "expected_name_vi": "Cửa Hòa Bình",
+        "expected_name_en": "Hoa Binh Gate",
+        "ranked_artifact_ids": [
+          1,
+          5,
+          15
+        ],
+        "graph_context_artifact_ids": [
+          1,
+          5,
+          15,
+          17,
+          2
+        ],
+        "best_distance": 0.3138989788799562,
+        "distances": [
+          0.3138989788799562,
+          0.4018393398427559,
+          0.43430084773290367
+        ],
+        "latency_ms": 10.047
+      },
+      {
+        "text": "Hoa Binh Gate",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 1,
+        "expected_name_vi": "Cửa Hòa Bình",
+        "expected_name_en": "Hoa Binh Gate",
+        "ranked_artifact_ids": [
+          1,
+          15,
+          5
+        ],
+        "graph_context_artifact_ids": [
+          1,
+          15,
+          5,
+          17,
+          2
+        ],
+        "best_distance": 0.1602453029666634,
+        "distances": [
+          0.1602453029666634,
+          0.29469614875568906,
+          0.2990468200044277
+        ],
+        "latency_ms": 8.241
+      },
+      {
+        "text": "Gate of Peace",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 1,
+        "expected_name_vi": "Cửa Hòa Bình",
+        "expected_name_en": "Hoa Binh Gate",
+        "ranked_artifact_ids": [
+          1,
+          5,
+          15
+        ],
+        "graph_context_artifact_ids": [
+          1,
+          5,
+          15,
+          17,
+          2
+        ],
+        "best_distance": 0.34007485868330345,
+        "distances": [
+          0.34007485868330345,
+          0.4178202778977982,
+          0.45934285829321486
+        ],
+        "latency_ms": 7.851
+      },
+      {
+        "text": "Cổng nào nằm ở phía bắc Hoàng thành Huế?",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 1,
+        "expected_name_vi": "Cửa Hòa Bình",
+        "expected_name_en": "Hoa Binh Gate",
+        "ranked_artifact_ids": [
+          1,
+          5,
+          17
+        ],
+        "graph_context_artifact_ids": [
+          1,
+          5,
+          17,
+          2
+        ],
+        "best_distance": 0.2262106651255077,
+        "distances": [
+          0.2262106651255077,
+          0.2311222277733953,
+          0.23352773389382142
+        ],
+        "latency_ms": 8.24
+      },
+      {
+        "text": "Tôi muốn tìm cánh cổng mang ý nghĩa hòa bình ở Đại Nội.",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 1,
+        "expected_name_vi": "Cửa Hòa Bình",
+        "expected_name_en": "Hoa Binh Gate",
+        "ranked_artifact_ids": [
+          1,
+          5,
+          17
+        ],
+        "graph_context_artifact_ids": [
+          1,
+          5,
+          17,
+          2
+        ],
+        "best_distance": 0.33155614153538127,
+        "distances": [
+          0.33155614153538127,
+          0.3566858939306816,
+          0.373941451563489
+        ],
+        "latency_ms": 9.389
+      },
+      {
+        "text": "Which gate forms the northern entrance of the Imperial City?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 1,
+        "expected_name_vi": "Cửa Hòa Bình",
+        "expected_name_en": "Hoa Binh Gate",
+        "ranked_artifact_ids": [
+          17,
+          5,
+          1
+        ],
+        "graph_context_artifact_ids": [
+          17,
+          5,
+          1,
+          2
+        ],
+        "best_distance": 0.23036418067305775,
+        "distances": [
+          0.23036418067305775,
+          0.23838914584773674,
+          0.2452581401274524
+        ],
+        "latency_ms": 8.42
+      },
+      {
+        "text": "Where is the citadel entrance whose name means peace?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 1,
+        "expected_name_vi": "Cửa Hòa Bình",
+        "expected_name_en": "Hoa Binh Gate",
+        "ranked_artifact_ids": [
+          1,
+          5,
+          15
+        ],
+        "graph_context_artifact_ids": [
+          1,
+          5,
+          15,
+          17,
+          2
+        ],
+        "best_distance": 0.2787626082382503,
+        "distances": [
+          0.2787626082382503,
+          0.32499645352446227,
+          0.3285179146793935
+        ],
+        "latency_ms": 8.214
+      },
+      {
+        "text": "Điện Kiến Trung",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 2,
+        "expected_name_vi": "Điện Kiến Trung",
+        "expected_name_en": "Kien Trung Palace",
+        "ranked_artifact_ids": [
+          2,
+          9,
+          11
+        ],
+        "graph_context_artifact_ids": [
+          2,
+          9,
+          11,
+          1,
+          5,
+          8
+        ],
+        "best_distance": 0.34181771625169055,
+        "distances": [
+          0.34181771625169055,
+          0.37739277673829574,
+          0.42800836873502524
+        ],
+        "latency_ms": 8.308
+      },
+      {
+        "text": "dien kien trung",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 2,
+        "expected_name_vi": "Điện Kiến Trung",
+        "expected_name_en": "Kien Trung Palace",
+        "ranked_artifact_ids": [
+          2,
+          9,
+          4
+        ],
+        "graph_context_artifact_ids": [
+          2,
+          9,
+          4,
+          1,
+          5,
+          8
+        ],
+        "best_distance": 0.3035142682611085,
+        "distances": [
+          0.3035142682611085,
+          0.360064411172921,
+          0.37251983903762065
+        ],
+        "latency_ms": 8.827
+      },
+      {
+        "text": "Kien Trung Palace",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 2,
+        "expected_name_vi": "Điện Kiến Trung",
+        "expected_name_en": "Kien Trung Palace",
+        "ranked_artifact_ids": [
+          2,
+          4,
+          12
+        ],
+        "graph_context_artifact_ids": [
+          2,
+          4,
+          12,
+          1,
+          5,
+          8
+        ],
+        "best_distance": 0.132249811962177,
+        "distances": [
+          0.132249811962177,
+          0.27930091845409477,
+          0.2801209163954007
+        ],
+        "latency_ms": 7.022
+      },
+      {
+        "text": "Kien Trung",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 2,
+        "expected_name_vi": "Điện Kiến Trung",
+        "expected_name_en": "Kien Trung Palace",
+        "ranked_artifact_ids": [
+          2,
+          3,
+          12
+        ],
+        "graph_context_artifact_ids": [
+          2,
+          3,
+          12,
+          1,
+          5,
+          8
+        ],
+        "best_distance": 0.14535756808335099,
+        "distances": [
+          0.14535756808335099,
+          0.27643194213715083,
+          0.2817244970697802
+        ],
+        "latency_ms": 8.859
+      },
+      {
+        "text": "Cung điện nào kết hợp kiến trúc Á Đông và châu Âu với nghệ thuật khảm sành sứ?",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 2,
+        "expected_name_vi": "Điện Kiến Trung",
+        "expected_name_en": "Kien Trung Palace",
+        "ranked_artifact_ids": [
+          2,
+          3,
+          16
+        ],
+        "graph_context_artifact_ids": [
+          2,
+          3,
+          16,
+          1,
+          5,
+          8
+        ],
+        "best_distance": 0.24498373270032647,
+        "distances": [
+          0.24498373270032647,
+          0.3337294061506455,
+          0.3371895749214274
+        ],
+        "latency_ms": 7.873
+      },
+      {
+        "text": "Tôi muốn xem cung điện được phục dựng có mặt tiền trang trí rất cầu kỳ.",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 2,
+        "expected_name_vi": "Điện Kiến Trung",
+        "expected_name_en": "Kien Trung Palace",
+        "ranked_artifact_ids": [
+          2,
+          16,
+          9
+        ],
+        "graph_context_artifact_ids": [
+          2,
+          16,
+          9,
+          1,
+          5,
+          8
+        ],
+        "best_distance": 0.33062835469921936,
+        "distances": [
+          0.33062835469921936,
+          0.350294831447868,
+          0.3505309433061343
+        ],
+        "latency_ms": 9.773
+      },
+      {
+        "text": "Which restored palace combines European and Vietnamese architecture?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 2,
+        "expected_name_vi": "Điện Kiến Trung",
+        "expected_name_en": "Kien Trung Palace",
+        "ranked_artifact_ids": [
+          2,
+          17,
+          3
+        ],
+        "graph_context_artifact_ids": [
+          2,
+          17,
+          3,
+          1,
+          5,
+          8
+        ],
+        "best_distance": 0.2337253806171079,
+        "distances": [
+          0.2337253806171079,
+          0.26271962512985747,
+          0.2636130983289994
+        ],
+        "latency_ms": 8.687
+      },
+      {
+        "text": "What palace is known for its ornate ceramic mosaic facade?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 2,
+        "expected_name_vi": "Điện Kiến Trung",
+        "expected_name_en": "Kien Trung Palace",
+        "ranked_artifact_ids": [
+          2,
+          8,
+          13
+        ],
+        "graph_context_artifact_ids": [
+          2,
+          8,
+          13,
+          1,
+          5
+        ],
+        "best_distance": 0.2660734855690632,
+        "distances": [
+          0.2660734855690632,
+          0.32722129551917667,
+          0.3323134387429053
+        ],
+        "latency_ms": 8.411
+      },
+      {
+        "text": "Cung Trường Sanh",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 3,
+        "expected_name_vi": "Cung Trường Sanh",
+        "expected_name_en": "Truong Sanh Palace",
+        "ranked_artifact_ids": [
+          3,
+          4,
+          16
+        ],
+        "graph_context_artifact_ids": [
+          3,
+          4,
+          16,
+          2,
+          8
+        ],
+        "best_distance": 0.19400305712237698,
+        "distances": [
+          0.19400305712237698,
+          0.24266517162320844,
+          0.2810667846679463
+        ],
+        "latency_ms": 7.695
+      },
+      {
+        "text": "cung truong sanh",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 3,
+        "expected_name_vi": "Cung Trường Sanh",
+        "expected_name_en": "Truong Sanh Palace",
+        "ranked_artifact_ids": [
+          3,
+          4,
+          16
+        ],
+        "graph_context_artifact_ids": [
+          3,
+          4,
+          16,
+          2,
+          8
+        ],
+        "best_distance": 0.133527135814269,
+        "distances": [
+          0.133527135814269,
+          0.19280779468888998,
+          0.22888604561587322
+        ],
+        "latency_ms": 8.862
+      },
+      {
+        "text": "Truong Sanh Palace",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 3,
+        "expected_name_vi": "Cung Trường Sanh",
+        "expected_name_en": "Truong Sanh Palace",
+        "ranked_artifact_ids": [
+          3,
+          4,
+          12
+        ],
+        "graph_context_artifact_ids": [
+          3,
+          4,
+          12,
+          2,
+          8
+        ],
+        "best_distance": 0.11125972531426953,
+        "distances": [
+          0.11125972531426953,
+          0.16246709861923492,
+          0.18819177502621398
+        ],
+        "latency_ms": 7.473
+      },
+      {
+        "text": "Palace of Longevity",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 3,
+        "expected_name_vi": "Cung Trường Sanh",
+        "expected_name_en": "Truong Sanh Palace",
+        "ranked_artifact_ids": [
+          3,
+          4,
+          8
+        ],
+        "graph_context_artifact_ids": [
+          3,
+          4,
+          8,
+          2
+        ],
+        "best_distance": 0.22393951130629453,
+        "distances": [
+          0.22393951130629453,
+          0.2271166173080168,
+          0.2610511597838403
+        ],
+        "latency_ms": 8.64
+      },
+      {
+        "text": "Cung điện vườn nào từng là nơi nghỉ dưỡng của các bà hoàng thái hậu?",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 3,
+        "expected_name_vi": "Cung Trường Sanh",
+        "expected_name_en": "Truong Sanh Palace",
+        "ranked_artifact_ids": [
+          3,
+          12,
+          4
+        ],
+        "graph_context_artifact_ids": [
+          3,
+          12,
+          4,
+          2,
+          8
+        ],
+        "best_distance": 0.24234113188491146,
+        "distances": [
+          0.24234113188491146,
+          0.2710167008032368,
+          0.29176175594329834
+        ],
+        "latency_ms": 6.873
+      },
+      {
+        "text": "Nơi nào trong Tử Cấm Thành nổi bật với không gian yên tĩnh và hành lang bao quanh vườn?",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 3,
+        "expected_name_vi": "Cung Trường Sanh",
+        "expected_name_en": "Truong Sanh Palace",
+        "ranked_artifact_ids": [
+          12,
+          11,
+          4
+        ],
+        "graph_context_artifact_ids": [
+          12,
+          11,
+          4,
+          1,
+          2,
+          5
+        ],
+        "best_distance": 0.2999516010399368,
+        "distances": [
+          0.2999516010399368,
+          0.3001237094474546,
+          0.30099188065717974
+        ],
+        "latency_ms": 6.037
+      },
+      {
+        "text": "Which garden palace served as a retreat for queen mothers?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 3,
+        "expected_name_vi": "Cung Trường Sanh",
+        "expected_name_en": "Truong Sanh Palace",
+        "ranked_artifact_ids": [
+          3,
+          12,
+          4
+        ],
+        "graph_context_artifact_ids": [
+          3,
+          12,
+          4,
+          2,
+          8
+        ],
+        "best_distance": 0.2513427284939165,
+        "distances": [
+          0.2513427284939165,
+          0.28427728601964874,
+          0.2877697732379886
+        ],
+        "latency_ms": 8.702
+      },
+      {
+        "text": "What quiet royal residence is known for gardens and covered corridors?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 3,
+        "expected_name_vi": "Cung Trường Sanh",
+        "expected_name_en": "Truong Sanh Palace",
+        "ranked_artifact_ids": [
+          4,
+          3,
+          12
+        ],
+        "graph_context_artifact_ids": [
+          4,
+          3,
+          12,
+          2,
+          8
+        ],
+        "best_distance": 0.3102164185820927,
+        "distances": [
+          0.3102164185820927,
+          0.3170853984116081,
+          0.3281874224040099
+        ],
+        "latency_ms": 7.688
+      },
+      {
+        "text": "Cung Diên Thọ",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 4,
+        "expected_name_vi": "Cung Diên Thọ",
+        "expected_name_en": "Dien Tho Palace",
+        "ranked_artifact_ids": [
+          4,
+          3,
+          16
+        ],
+        "graph_context_artifact_ids": [
+          4,
+          3,
+          16,
+          2,
+          8
+        ],
+        "best_distance": 0.16094046626345504,
+        "distances": [
+          0.16094046626345504,
+          0.19417204613711236,
+          0.23147535765738914
+        ],
+        "latency_ms": 7.365
+      },
+      {
+        "text": "cung dien tho",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 4,
+        "expected_name_vi": "Cung Diên Thọ",
+        "expected_name_en": "Dien Tho Palace",
+        "ranked_artifact_ids": [
+          4,
+          14,
+          7
+        ],
+        "graph_context_artifact_ids": [
+          4,
+          14,
+          7,
+          1,
+          2,
+          5
+        ],
+        "best_distance": 0.31644476064030547,
+        "distances": [
+          0.31644476064030547,
+          0.3284023800014295,
+          0.3300600462901102
+        ],
+        "latency_ms": 9.919
+      },
+      {
+        "text": "Dien Tho Palace",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 4,
+        "expected_name_vi": "Cung Diên Thọ",
+        "expected_name_en": "Dien Tho Palace",
+        "ranked_artifact_ids": [
+          4,
+          3,
+          16
+        ],
+        "graph_context_artifact_ids": [
+          4,
+          3,
+          16,
+          2,
+          8
+        ],
+        "best_distance": 0.1041342926425598,
+        "distances": [
+          0.1041342926425598,
+          0.1445775118217989,
+          0.17409504231940565
+        ],
+        "latency_ms": 10.444
+      },
+      {
+        "text": "Dien Tho residence",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 4,
+        "expected_name_vi": "Cung Diên Thọ",
+        "expected_name_en": "Dien Tho Palace",
+        "ranked_artifact_ids": [
+          4,
+          3,
+          11
+        ],
+        "graph_context_artifact_ids": [
+          4,
+          3,
+          11,
+          2,
+          8
+        ],
+        "best_distance": 0.10538743670130768,
+        "distances": [
+          0.10538743670130768,
+          0.13855872886667364,
+          0.16743866135752694
+        ],
+        "latency_ms": 8.762
+      },
+      {
+        "text": "Khu cung điện nào là nơi ở của Hoàng thái hậu triều Nguyễn?",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 4,
+        "expected_name_vi": "Cung Diên Thọ",
+        "expected_name_en": "Dien Tho Palace",
+        "ranked_artifact_ids": [
+          3,
+          4,
+          2
+        ],
+        "graph_context_artifact_ids": [
+          3,
+          4,
+          2,
+          1,
+          5,
+          8
+        ],
+        "best_distance": 0.20167989690783095,
+        "distances": [
+          0.20167989690783095,
+          0.2187135452415313,
+          0.2651024399788974
+        ],
+        "latency_ms": 7.012
+      },
+      {
+        "text": "Tôi muốn tham quan nơi có điện chính, hồ và hành lang dành cho hoàng thái hậu.",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 4,
+        "expected_name_vi": "Cung Diên Thọ",
+        "expected_name_en": "Dien Tho Palace",
+        "ranked_artifact_ids": [
+          4,
+          3,
+          12
+        ],
+        "graph_context_artifact_ids": [
+          4,
+          3,
+          12,
+          2,
+          8
+        ],
+        "best_distance": 0.31005808411297553,
+        "distances": [
+          0.31005808411297553,
+          0.32175002460924407,
+          0.32776063531168764
+        ],
+        "latency_ms": 8.039
+      },
+      {
+        "text": "Which palace complex was the residence of Nguyen dynasty queen mothers?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 4,
+        "expected_name_vi": "Cung Diên Thọ",
+        "expected_name_en": "Dien Tho Palace",
+        "ranked_artifact_ids": [
+          3,
+          4,
+          8
+        ],
+        "graph_context_artifact_ids": [
+          3,
+          4,
+          8,
+          2
+        ],
+        "best_distance": 0.17523373955875887,
+        "distances": [
+          0.17523373955875887,
+          0.1841828383963493,
+          0.23270447449111364
+        ],
+        "latency_ms": 11.379
+      },
+      {
+        "text": "What royal residence includes a main hall, garden courtyard, and covered corridor?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 4,
+        "expected_name_vi": "Cung Diên Thọ",
+        "expected_name_en": "Dien Tho Palace",
+        "ranked_artifact_ids": [
+          12,
+          8,
+          9
+        ],
+        "graph_context_artifact_ids": [
+          12,
+          8,
+          9,
+          1,
+          2,
+          6
+        ],
+        "best_distance": 0.27181793418817723,
+        "distances": [
+          0.27181793418817723,
+          0.2736032762507886,
+          0.2858144385590974
+        ],
+        "latency_ms": 13.186
+      },
+      {
+        "text": "Cửa Chương Đức",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 5,
+        "expected_name_vi": "Cửa Chương Đức",
+        "expected_name_en": "Chuong Duc Gate",
+        "ranked_artifact_ids": [
+          5,
+          1,
+          15
+        ],
+        "graph_context_artifact_ids": [
+          5,
+          1,
+          15,
+          17,
+          2
+        ],
+        "best_distance": 0.2782174115724805,
+        "distances": [
+          0.2782174115724805,
+          0.3727651390117197,
+          0.39141272459993737
+        ],
+        "latency_ms": 12.181
+      },
+      {
+        "text": "cua chuong duc",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 5,
+        "expected_name_vi": "Cửa Chương Đức",
+        "expected_name_en": "Chuong Duc Gate",
+        "ranked_artifact_ids": [
+          5,
+          1,
+          15
+        ],
+        "graph_context_artifact_ids": [
+          5,
+          1,
+          15,
+          17,
+          2
+        ],
+        "best_distance": 0.3282836061537048,
+        "distances": [
+          0.3282836061537048,
+          0.38134717941282426,
+          0.40150326490400523
+        ],
+        "latency_ms": 8.386
+      },
+      {
+        "text": "Chuong Duc Gate",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 5,
+        "expected_name_vi": "Cửa Chương Đức",
+        "expected_name_en": "Chuong Duc Gate",
+        "ranked_artifact_ids": [
+          5,
+          1,
+          15
+        ],
+        "graph_context_artifact_ids": [
+          5,
+          1,
+          15,
+          17,
+          2
+        ],
+        "best_distance": 0.130610756362169,
+        "distances": [
+          0.130610756362169,
+          0.20578136685292148,
+          0.20880311989853473
+        ],
+        "latency_ms": 10.664
+      },
+      {
+        "text": "Chuong Duc western gate",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 5,
+        "expected_name_vi": "Cửa Chương Đức",
+        "expected_name_en": "Chuong Duc Gate",
+        "ranked_artifact_ids": [
+          5,
+          1,
+          15
+        ],
+        "graph_context_artifact_ids": [
+          5,
+          1,
+          15,
+          17,
+          2
+        ],
+        "best_distance": 0.1352685463876797,
+        "distances": [
+          0.1352685463876797,
+          0.19019806969275677,
+          0.19823697931503448
+        ],
+        "latency_ms": 13.556
+      },
+      {
+        "text": "Cổng phía tây nào của Hoàng thành có trang trí phượng và khảm sành sứ?",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 5,
+        "expected_name_vi": "Cửa Chương Đức",
+        "expected_name_en": "Chuong Duc Gate",
+        "ranked_artifact_ids": [
+          17,
+          5,
+          1
+        ],
+        "graph_context_artifact_ids": [
+          17,
+          5,
+          1,
+          2
+        ],
+        "best_distance": 0.28346829268961926,
+        "distances": [
+          0.28346829268961926,
+          0.29631754865719295,
+          0.30546210375650995
+        ],
+        "latency_ms": 10.531
+      },
+      {
+        "text": "Tôi đang tìm cánh cổng ba lối đi ở phía tây Đại Nội.",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 5,
+        "expected_name_vi": "Cửa Chương Đức",
+        "expected_name_en": "Chuong Duc Gate",
+        "ranked_artifact_ids": [
+          5,
+          15,
+          17
+        ],
+        "graph_context_artifact_ids": [
+          5,
+          15,
+          17,
+          1
+        ],
+        "best_distance": 0.40925454011598494,
+        "distances": [
+          0.40925454011598494,
+          0.4105756452443915,
+          0.42129392066408433
+        ],
+        "latency_ms": 12.605
+      },
+      {
+        "text": "Which western imperial gate is decorated with phoenix motifs and ceramic mosaics?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 5,
+        "expected_name_vi": "Cửa Chương Đức",
+        "expected_name_en": "Chuong Duc Gate",
+        "ranked_artifact_ids": [
+          17,
+          1,
+          3
+        ],
+        "graph_context_artifact_ids": [
+          17,
+          1,
+          3,
+          5,
+          2
+        ],
+        "best_distance": 0.22691070883977071,
+        "distances": [
+          0.22691070883977071,
+          0.29559366808088083,
+          0.29772990440667546
+        ],
+        "latency_ms": 8.935
+      },
+      {
+        "text": "What three-passage gate stands on the west side of the Imperial City?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 5,
+        "expected_name_vi": "Cửa Chương Đức",
+        "expected_name_en": "Chuong Duc Gate",
+        "ranked_artifact_ids": [
+          5,
+          15,
+          17
+        ],
+        "graph_context_artifact_ids": [
+          5,
+          15,
+          17,
+          1
+        ],
+        "best_distance": 0.28701839346674085,
+        "distances": [
+          0.28701839346674085,
+          0.2913134445325666,
+          0.2963530145427885
+        ],
+        "latency_ms": 10.15
+      },
+      {
+        "text": "Hưng Miếu",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 6,
+        "expected_name_vi": "Hưng Miếu",
+        "expected_name_en": "Hung Mieu Temple",
+        "ranked_artifact_ids": [
+          6,
+          13,
+          7
+        ],
+        "graph_context_artifact_ids": [
+          6,
+          13,
+          7,
+          1
+        ],
+        "best_distance": 0.09785352259723135,
+        "distances": [
+          0.09785352259723135,
+          0.15164300530724462,
+          0.1606959503527834
+        ],
+        "latency_ms": 8.593
+      },
+      {
+        "text": "hung to mieu",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 6,
+        "expected_name_vi": "Hưng Miếu",
+        "expected_name_en": "Hung Mieu Temple",
+        "ranked_artifact_ids": [
+          6,
+          13,
+          14
+        ],
+        "graph_context_artifact_ids": [
+          6,
+          13,
+          14,
+          7,
+          1
+        ],
+        "best_distance": 0.157696265899666,
+        "distances": [
+          0.157696265899666,
+          0.22120950601269662,
+          0.22196616719943307
+        ],
+        "latency_ms": 8.363
+      },
+      {
+        "text": "Hung Mieu Temple",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 6,
+        "expected_name_vi": "Hưng Miếu",
+        "expected_name_en": "Hung Mieu Temple",
+        "ranked_artifact_ids": [
+          6,
+          13,
+          7
+        ],
+        "graph_context_artifact_ids": [
+          6,
+          13,
+          7,
+          1
+        ],
+        "best_distance": 0.09312540292729554,
+        "distances": [
+          0.09312540292729554,
+          0.12313488170266484,
+          0.1259081553457697
+        ],
+        "latency_ms": 8.399
+      },
+      {
+        "text": "Hung To Temple",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 6,
+        "expected_name_vi": "Hưng Miếu",
+        "expected_name_en": "Hung Mieu Temple",
+        "ranked_artifact_ids": [
+          6,
+          14,
+          13
+        ],
+        "graph_context_artifact_ids": [
+          6,
+          14,
+          13,
+          7,
+          1
+        ],
+        "best_distance": 0.25987729312452157,
+        "distances": [
+          0.25987729312452157,
+          0.3265086205611777,
+          0.3413383161223926
+        ],
+        "latency_ms": 6.981
+      },
+      {
+        "text": "Ngôi miếu thờ cha mẹ vua Gia Long nằm trong Đại Nội là nơi nào?",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 6,
+        "expected_name_vi": "Hưng Miếu",
+        "expected_name_en": "Hung Mieu Temple",
+        "ranked_artifact_ids": [
+          6,
+          7,
+          14
+        ],
+        "graph_context_artifact_ids": [
+          6,
+          7,
+          14,
+          1
+        ],
+        "best_distance": 0.20704616140209686,
+        "distances": [
+          0.20704616140209686,
+          0.2256732775556467,
+          0.23053394819922557
+        ],
+        "latency_ms": 8.267
+      },
+      {
+        "text": "Tôi muốn tìm miếu thờ tổ tiên gần Thế Miếu.",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 6,
+        "expected_name_vi": "Hưng Miếu",
+        "expected_name_en": "Hung Mieu Temple",
+        "ranked_artifact_ids": [
+          7,
+          13,
+          6
+        ],
+        "graph_context_artifact_ids": [
+          7,
+          13,
+          6,
+          1
+        ],
+        "best_distance": 0.26791792680787707,
+        "distances": [
+          0.26791792680787707,
+          0.2730252687870609,
+          0.2938597097731128
+        ],
+        "latency_ms": 7.454
+      },
+      {
+        "text": "Which ancestral temple honors the parents of Emperor Gia Long?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 6,
+        "expected_name_vi": "Hưng Miếu",
+        "expected_name_en": "Hung Mieu Temple",
+        "ranked_artifact_ids": [
+          6,
+          13,
+          14
+        ],
+        "graph_context_artifact_ids": [
+          6,
+          13,
+          14,
+          7,
+          1
+        ],
+        "best_distance": 0.16467152973159693,
+        "distances": [
+          0.16467152973159693,
+          0.1928626801263812,
+          0.2253522486754298
+        ],
+        "latency_ms": 6.754
+      },
+      {
+        "text": "What solemn worship hall stands near The Mieu in the Imperial City?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 6,
+        "expected_name_vi": "Hưng Miếu",
+        "expected_name_en": "Hung Mieu Temple",
+        "ranked_artifact_ids": [
+          7,
+          14,
+          13
+        ],
+        "graph_context_artifact_ids": [
+          7,
+          14,
+          13,
+          1,
+          6
+        ],
+        "best_distance": 0.18806729281148282,
+        "distances": [
+          0.18806729281148282,
+          0.22149699606041962,
+          0.22805344640408087
+        ],
+        "latency_ms": 6.821
+      },
+      {
+        "text": "Thế Miếu",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 7,
+        "expected_name_vi": "Thế Miếu",
+        "expected_name_en": "The Mieu Temple",
+        "ranked_artifact_ids": [
+          7,
+          14,
+          13
+        ],
+        "graph_context_artifact_ids": [
+          7,
+          14,
+          13,
+          1,
+          6
+        ],
+        "best_distance": 0.1936125755310001,
+        "distances": [
+          0.1936125755310001,
+          0.244678539797617,
+          0.25253994778036626
+        ],
+        "latency_ms": 6.892
+      },
+      {
+        "text": "the to mieu",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 7,
+        "expected_name_vi": "Thế Miếu",
+        "expected_name_en": "The Mieu Temple",
+        "ranked_artifact_ids": [
+          7,
+          14,
+          13
+        ],
+        "graph_context_artifact_ids": [
+          7,
+          14,
+          13,
+          1,
+          6
+        ],
+        "best_distance": 0.15178632762872546,
+        "distances": [
+          0.15178632762872546,
+          0.17120965538482946,
+          0.1733329915998616
+        ],
+        "latency_ms": 8.54
+      },
+      {
+        "text": "The Mieu Temple",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 7,
+        "expected_name_vi": "Thế Miếu",
+        "expected_name_en": "The Mieu Temple",
+        "ranked_artifact_ids": [
+          7,
+          13,
+          14
+        ],
+        "graph_context_artifact_ids": [
+          7,
+          13,
+          14,
+          1,
+          6
+        ],
+        "best_distance": 0.10610161543882923,
+        "distances": [
+          0.10610161543882923,
+          0.11928588862930911,
+          0.12387935092218483
+        ],
+        "latency_ms": 7.588
+      },
+      {
+        "text": "Temple of the Generations",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 7,
+        "expected_name_vi": "Thế Miếu",
+        "expected_name_en": "The Mieu Temple",
+        "ranked_artifact_ids": [
+          14,
+          6,
+          7
+        ],
+        "graph_context_artifact_ids": [
+          14,
+          6,
+          7,
+          1
+        ],
+        "best_distance": 0.423426185642062,
+        "distances": [
+          0.423426185642062,
+          0.44018559450339545,
+          0.4410059855569378
+        ],
+        "latency_ms": 8.52
+      },
+      {
+        "text": "Ngôi miếu nào thờ các vị vua triều Nguyễn và nằm gần Cửu Đỉnh?",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 7,
+        "expected_name_vi": "Thế Miếu",
+        "expected_name_en": "The Mieu Temple",
+        "ranked_artifact_ids": [
+          6,
+          7,
+          13
+        ],
+        "graph_context_artifact_ids": [
+          6,
+          7,
+          13,
+          1
+        ],
+        "best_distance": 0.1991074805279166,
+        "distances": [
+          0.1991074805279166,
+          0.2041202162979744,
+          0.23053550274255585
+        ],
+        "latency_ms": 7.791
+      },
+      {
+        "text": "Tôi muốn tìm nơi đặt án thờ các hoàng đế nhà Nguyễn.",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 7,
+        "expected_name_vi": "Thế Miếu",
+        "expected_name_en": "The Mieu Temple",
+        "ranked_artifact_ids": [
+          7,
+          13,
+          14
+        ],
+        "graph_context_artifact_ids": [
+          7,
+          13,
+          14,
+          1,
+          6
+        ],
+        "best_distance": 0.25635367328944947,
+        "distances": [
+          0.25635367328944947,
+          0.2677933286837135,
+          0.27150758844521494
+        ],
+        "latency_ms": 7.336
+      },
+      {
+        "text": "Which temple honors the emperors of the Nguyen dynasty beside the Nine Dynastic Urns?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 7,
+        "expected_name_vi": "Thế Miếu",
+        "expected_name_en": "The Mieu Temple",
+        "ranked_artifact_ids": [
+          7,
+          6,
+          14
+        ],
+        "graph_context_artifact_ids": [
+          7,
+          6,
+          14,
+          1
+        ],
+        "best_distance": 0.18844195638750927,
+        "distances": [
+          0.18844195638750927,
+          0.20879127560075628,
+          0.2206810589545558
+        ],
+        "latency_ms": 7.51
+      },
+      {
+        "text": "Where are the ancestral altars of the Nguyen emperors located?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 7,
+        "expected_name_vi": "Thế Miếu",
+        "expected_name_en": "The Mieu Temple",
+        "ranked_artifact_ids": [
+          7,
+          14,
+          13
+        ],
+        "graph_context_artifact_ids": [
+          7,
+          14,
+          13,
+          1,
+          6
+        ],
+        "best_distance": 0.19994213582119758,
+        "distances": [
+          0.19994213582119758,
+          0.20806656787398448,
+          0.217290603668169
+        ],
+        "latency_ms": 8.237
+      },
+      {
+        "text": "Điện Thái Hòa",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 8,
+        "expected_name_vi": "Điện Thái Hòa",
+        "expected_name_en": "Thai Hoa Palace",
+        "ranked_artifact_ids": [
+          8,
+          14,
+          7
+        ],
+        "graph_context_artifact_ids": [
+          8,
+          14,
+          7,
+          1,
+          6,
+          13
+        ],
+        "best_distance": 0.20156196430285778,
+        "distances": [
+          0.20156196430285778,
+          0.26229064972377236,
+          0.27131996321181373
+        ],
+        "latency_ms": 7.345
+      },
+      {
+        "text": "dien thai hoa",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 8,
+        "expected_name_vi": "Điện Thái Hòa",
+        "expected_name_en": "Thai Hoa Palace",
+        "ranked_artifact_ids": [
+          8,
+          4,
+          2
+        ],
+        "graph_context_artifact_ids": [
+          8,
+          4,
+          2,
+          1,
+          5
+        ],
+        "best_distance": 0.21277775410143784,
+        "distances": [
+          0.21277775410143784,
+          0.23249878853502537,
+          0.26111229360160615
+        ],
+        "latency_ms": 7.836
+      },
+      {
+        "text": "Thai Hoa Palace",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 8,
+        "expected_name_vi": "Điện Thái Hòa",
+        "expected_name_en": "Thai Hoa Palace",
+        "ranked_artifact_ids": [
+          8,
+          14,
+          4
+        ],
+        "graph_context_artifact_ids": [
+          8,
+          14,
+          4,
+          1,
+          2,
+          5
+        ],
+        "best_distance": 0.12189950886381984,
+        "distances": [
+          0.12189950886381984,
+          0.18178543720939766,
+          0.18233726235178693
+        ],
+        "latency_ms": 7.381
+      },
+      {
+        "text": "Palace of Supreme Harmony",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 8,
+        "expected_name_vi": "Điện Thái Hòa",
+        "expected_name_en": "Thai Hoa Palace",
+        "ranked_artifact_ids": [
+          8,
+          4,
+          17
+        ],
+        "graph_context_artifact_ids": [
+          8,
+          4,
+          17,
+          1,
+          2,
+          5
+        ],
+        "best_distance": 0.1640460197843263,
+        "distances": [
+          0.1640460197843263,
+          0.21877306699750587,
+          0.23234612231638074
+        ],
+        "latency_ms": 7.615
+      },
+      {
+        "text": "Điện nào là nơi cử hành lễ đăng quang và các đại lễ của triều Nguyễn?",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 8,
+        "expected_name_vi": "Điện Thái Hòa",
+        "expected_name_en": "Thai Hoa Palace",
+        "ranked_artifact_ids": [
+          8,
+          14,
+          17
+        ],
+        "graph_context_artifact_ids": [
+          8,
+          14,
+          17,
+          1,
+          2,
+          6
+        ],
+        "best_distance": 0.20532567691515047,
+        "distances": [
+          0.20532567691515047,
+          0.2651840617914192,
+          0.26738923438078355
+        ],
+        "latency_ms": 8.517
+      },
+      {
+        "text": "Tôi muốn xem chính điện có ngai vàng của hoàng đế.",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 8,
+        "expected_name_vi": "Điện Thái Hòa",
+        "expected_name_en": "Thai Hoa Palace",
+        "ranked_artifact_ids": [
+          8,
+          9,
+          16
+        ],
+        "graph_context_artifact_ids": [
+          8,
+          9,
+          16,
+          1,
+          2,
+          6
+        ],
+        "best_distance": 0.34721839303800994,
+        "distances": [
+          0.34721839303800994,
+          0.3631731977542544,
+          0.3832538038634139
+        ],
+        "latency_ms": 7.75
+      },
+      {
+        "text": "Which throne hall hosted coronations and major royal ceremonies?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 8,
+        "expected_name_vi": "Điện Thái Hòa",
+        "expected_name_en": "Thai Hoa Palace",
+        "ranked_artifact_ids": [
+          8,
+          10,
+          9
+        ],
+        "graph_context_artifact_ids": [
+          8,
+          10,
+          9,
+          1,
+          2,
+          6
+        ],
+        "best_distance": 0.25930867815754566,
+        "distances": [
+          0.25930867815754566,
+          0.3013705109081972,
+          0.30419217758559725
+        ],
+        "latency_ms": 7.216
+      },
+      {
+        "text": "What palace contains the imperial throne and symbolizes supreme harmony?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 8,
+        "expected_name_vi": "Điện Thái Hòa",
+        "expected_name_en": "Thai Hoa Palace",
+        "ranked_artifact_ids": [
+          8,
+          9,
+          7
+        ],
+        "graph_context_artifact_ids": [
+          8,
+          9,
+          7,
+          1,
+          6,
+          13
+        ],
+        "best_distance": 0.2183907943210326,
+        "distances": [
+          0.2183907943210326,
+          0.2878595265337216,
+          0.2924680490620387
+        ],
+        "latency_ms": 6.238
+      },
+      {
+        "text": "Nền điện Cần Chánh",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 9,
+        "expected_name_vi": "Nền điện Cần Chánh",
+        "expected_name_en": "Can Chanh Palace Foundation",
+        "ranked_artifact_ids": [
+          9,
+          2,
+          8
+        ],
+        "graph_context_artifact_ids": [
+          9,
+          2,
+          8,
+          1,
+          5
+        ],
+        "best_distance": 0.28043831120449614,
+        "distances": [
+          0.28043831120449614,
+          0.3915041399739989,
+          0.4104232185242962
+        ],
+        "latency_ms": 7.081
+      },
+      {
+        "text": "nen dien can chanh",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 9,
+        "expected_name_vi": "Nền điện Cần Chánh",
+        "expected_name_en": "Can Chanh Palace Foundation",
+        "ranked_artifact_ids": [
+          9,
+          2,
+          3
+        ],
+        "graph_context_artifact_ids": [
+          9,
+          2,
+          3,
+          1,
+          5,
+          8
+        ],
+        "best_distance": 0.40245210978259216,
+        "distances": [
+          0.40245210978259216,
+          0.4866913620512997,
+          0.4990044832229472
+        ],
+        "latency_ms": 7.295
+      },
+      {
+        "text": "Can Chanh Palace Foundation",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 9,
+        "expected_name_vi": "Nền điện Cần Chánh",
+        "expected_name_en": "Can Chanh Palace Foundation",
+        "ranked_artifact_ids": [
+          9,
+          12,
+          8
+        ],
+        "graph_context_artifact_ids": [
+          9,
+          12,
+          8,
+          1,
+          2,
+          6
+        ],
+        "best_distance": 0.14760274475725643,
+        "distances": [
+          0.14760274475725643,
+          0.21922456037148308,
+          0.2240940902596662
+        ],
+        "latency_ms": 8.992
+      },
+      {
+        "text": "Can Chanh foundation",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 9,
+        "expected_name_vi": "Nền điện Cần Chánh",
+        "expected_name_en": "Can Chanh Palace Foundation",
+        "ranked_artifact_ids": [
+          9,
+          11,
+          12
+        ],
+        "graph_context_artifact_ids": [
+          9,
+          11,
+          12,
+          2,
+          8,
+          1
+        ],
+        "best_distance": 0.25128450210208086,
+        "distances": [
+          0.25128450210208086,
+          0.390110650396598,
+          0.3928344973522334
+        ],
+        "latency_ms": 7.733
+      },
+      {
+        "text": "Phế tích nào từng là nơi vua làm việc thường ngày và đã bị phá hủy trong chiến tranh?",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 9,
+        "expected_name_vi": "Nền điện Cần Chánh",
+        "expected_name_en": "Can Chanh Palace Foundation",
+        "ranked_artifact_ids": [
+          9,
+          8,
+          2
+        ],
+        "graph_context_artifact_ids": [
+          9,
+          8,
+          2,
+          1,
+          5
+        ],
+        "best_distance": 0.2939533416060489,
+        "distances": [
+          0.2939533416060489,
+          0.3093059616039322,
+          0.32108545303342795
+        ],
+        "latency_ms": 8.775
+      },
+      {
+        "text": "Tôi muốn tìm nền móng của điện thiết triều thường xuyên phía sau Thái Hòa.",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 9,
+        "expected_name_vi": "Nền điện Cần Chánh",
+        "expected_name_en": "Can Chanh Palace Foundation",
+        "ranked_artifact_ids": [
+          9,
+          8,
+          2
+        ],
+        "graph_context_artifact_ids": [
+          9,
+          8,
+          2,
+          1,
+          5
+        ],
+        "best_distance": 0.26136667281179526,
+        "distances": [
+          0.26136667281179526,
+          0.29080409784410177,
+          0.3016532120132651
+        ],
+        "latency_ms": 8.179
+      },
+      {
+        "text": "Which ruined palace foundation marks the emperor's former daily workplace?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 9,
+        "expected_name_vi": "Nền điện Cần Chánh",
+        "expected_name_en": "Can Chanh Palace Foundation",
+        "ranked_artifact_ids": [
+          9,
+          8,
+          12
+        ],
+        "graph_context_artifact_ids": [
+          9,
+          8,
+          12,
+          1,
+          2,
+          6
+        ],
+        "best_distance": 0.2436473094294157,
+        "distances": [
+          0.2436473094294157,
+          0.2661171637284656,
+          0.2861368142742823
+        ],
+        "latency_ms": 7.976
+      },
+      {
+        "text": "What audience hall behind Thai Hoa was destroyed and now survives as a foundation?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 9,
+        "expected_name_vi": "Nền điện Cần Chánh",
+        "expected_name_en": "Can Chanh Palace Foundation",
+        "ranked_artifact_ids": [
+          9,
+          8,
+          14
+        ],
+        "graph_context_artifact_ids": [
+          9,
+          8,
+          14,
+          1,
+          2,
+          6
+        ],
+        "best_distance": 0.18363215240388198,
+        "distances": [
+          0.18363215240388198,
+          0.2134103775024191,
+          0.2269677464885107
+        ],
+        "latency_ms": 5.846
+      },
+      {
+        "text": "Duyệt Thị Đường",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 10,
+        "expected_name_vi": "Duyệt Thị Đường",
+        "expected_name_en": "Duyet Thi Duong Royal Theater",
+        "ranked_artifact_ids": [
+          10,
+          4,
+          2
+        ],
+        "graph_context_artifact_ids": [
+          10,
+          4,
+          2,
+          1,
+          5,
+          8
+        ],
+        "best_distance": 0.1401627737719655,
+        "distances": [
+          0.1401627737719655,
+          0.2512754804017331,
+          0.25897581478013687
+        ],
+        "latency_ms": 7.366
+      },
+      {
+        "text": "duyet thi duong",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 10,
+        "expected_name_vi": "Duyệt Thị Đường",
+        "expected_name_en": "Duyet Thi Duong Royal Theater",
+        "ranked_artifact_ids": [
+          10,
+          4,
+          3
+        ],
+        "graph_context_artifact_ids": [
+          10,
+          4,
+          3,
+          2,
+          8
+        ],
+        "best_distance": 0.31414806842802,
+        "distances": [
+          0.31414806842802,
+          0.34327616264591687,
+          0.3481892943382078
+        ],
+        "latency_ms": 7.161
+      },
+      {
+        "text": "Duyet Thi Duong",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 10,
+        "expected_name_vi": "Duyệt Thị Đường",
+        "expected_name_en": "Duyet Thi Duong Royal Theater",
+        "ranked_artifact_ids": [
+          10,
+          12,
+          4
+        ],
+        "graph_context_artifact_ids": [
+          10,
+          12,
+          4,
+          1,
+          2,
+          5
+        ],
+        "best_distance": 0.1795868461215362,
+        "distances": [
+          0.1795868461215362,
+          0.2254082212430082,
+          0.2297284506456494
+        ],
+        "latency_ms": 6.632
+      },
+      {
+        "text": "Hue Royal Theater",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 10,
+        "expected_name_vi": "Duyệt Thị Đường",
+        "expected_name_en": "Duyet Thi Duong Royal Theater",
+        "ranked_artifact_ids": [
+          10,
+          16,
+          4
+        ],
+        "graph_context_artifact_ids": [
+          10,
+          16,
+          4,
+          1,
+          2,
+          5
+        ],
+        "best_distance": 0.15078987157645307,
+        "distances": [
+          0.15078987157645307,
+          0.23730297916407128,
+          0.2459836905021554
+        ],
+        "latency_ms": 7.822
+      },
+      {
+        "text": "Nhà hát cổ nào trong Đại Nội được dùng để biểu diễn tuồng cung đình?",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 10,
+        "expected_name_vi": "Duyệt Thị Đường",
+        "expected_name_en": "Duyet Thi Duong Royal Theater",
+        "ranked_artifact_ids": [
+          10,
+          2,
+          4
+        ],
+        "graph_context_artifact_ids": [
+          10,
+          2,
+          4,
+          1,
+          5,
+          8
+        ],
+        "best_distance": 0.1998445153189763,
+        "distances": [
+          0.1998445153189763,
+          0.2600517362433197,
+          0.26771012324172205
+        ],
+        "latency_ms": 6.35
+      },
+      {
+        "text": "Tôi muốn xem sân khấu hoàng gia của triều Nguyễn.",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 10,
+        "expected_name_vi": "Duyệt Thị Đường",
+        "expected_name_en": "Duyet Thi Duong Royal Theater",
+        "ranked_artifact_ids": [
+          10,
+          9,
+          4
+        ],
+        "graph_context_artifact_ids": [
+          10,
+          9,
+          4,
+          1,
+          2,
+          5
+        ],
+        "best_distance": 0.2144479049248188,
+        "distances": [
+          0.2144479049248188,
+          0.2765433534428564,
+          0.282695556490284
+        ],
+        "latency_ms": 8.246
+      },
+      {
+        "text": "Which historic theater hosted royal court drama performances?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 10,
+        "expected_name_vi": "Duyệt Thị Đường",
+        "expected_name_en": "Duyet Thi Duong Royal Theater",
+        "ranked_artifact_ids": [
+          10,
+          2,
+          11
+        ],
+        "graph_context_artifact_ids": [
+          10,
+          2,
+          11,
+          1,
+          5,
+          8
+        ],
+        "best_distance": 0.2744339646257614,
+        "distances": [
+          0.2744339646257614,
+          0.3114875633164573,
+          0.3471801864640459
+        ],
+        "latency_ms": 8.168
+      },
+      {
+        "text": "Where is the Nguyen dynasty's royal stage inside the Imperial City?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 10,
+        "expected_name_vi": "Duyệt Thị Đường",
+        "expected_name_en": "Duyet Thi Duong Royal Theater",
+        "ranked_artifact_ids": [
+          10,
+          4,
+          8
+        ],
+        "graph_context_artifact_ids": [
+          10,
+          4,
+          8,
+          1,
+          2,
+          5
+        ],
+        "best_distance": 0.19657925510078667,
+        "distances": [
+          0.19657925510078667,
+          0.22248908535100187,
+          0.22962621097243485
+        ],
+        "latency_ms": 8.893
+      },
+      {
+        "text": "Phủ Nội Vụ",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 11,
+        "expected_name_vi": "Phủ Nội Vụ",
+        "expected_name_en": "Ministry of the Interior",
+        "ranked_artifact_ids": [
+          11,
+          2,
+          9
+        ],
+        "graph_context_artifact_ids": [
+          11,
+          2,
+          9,
+          1,
+          5,
+          8
+        ],
+        "best_distance": 0.26579044288680487,
+        "distances": [
+          0.26579044288680487,
+          0.39289442554909926,
+          0.3971482090453018
+        ],
+        "latency_ms": 7.347
+      },
+      {
+        "text": "phu noi vu",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 11,
+        "expected_name_vi": "Phủ Nội Vụ",
+        "expected_name_en": "Ministry of the Interior",
+        "ranked_artifact_ids": [
+          11,
+          3,
+          4
+        ],
+        "graph_context_artifact_ids": [
+          11,
+          3,
+          4,
+          2,
+          8
+        ],
+        "best_distance": 0.29721035021697706,
+        "distances": [
+          0.29721035021697706,
+          0.4147004833995914,
+          0.4172847594745096
+        ],
+        "latency_ms": 10.437
+      },
+      {
+        "text": "Ministry of the Interior",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 11,
+        "expected_name_vi": "Phủ Nội Vụ",
+        "expected_name_en": "Ministry of the Interior",
+        "ranked_artifact_ids": [
+          11,
+          2,
+          17
+        ],
+        "graph_context_artifact_ids": [
+          11,
+          2,
+          17,
+          1,
+          5,
+          8
+        ],
+        "best_distance": 0.3470357631976738,
+        "distances": [
+          0.3470357631976738,
+          0.4790484178916643,
+          0.4916245189792612
+        ],
+        "latency_ms": 7.324
+      },
+      {
+        "text": "Phu Noi Vu",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 11,
+        "expected_name_vi": "Phủ Nội Vụ",
+        "expected_name_en": "Ministry of the Interior",
+        "ranked_artifact_ids": [
+          11,
+          12,
+          3
+        ],
+        "graph_context_artifact_ids": [
+          11,
+          12,
+          3,
+          4,
+          2,
+          8
+        ],
+        "best_distance": 0.30241554555088956,
+        "distances": [
+          0.30241554555088956,
+          0.40796180536398985,
+          0.41898452504056205
+        ],
+        "latency_ms": 8.07
+      },
+      {
+        "text": "Cơ quan nào trong cung quản lý kho tàng và chế tác đồ dùng hoàng gia?",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 11,
+        "expected_name_vi": "Phủ Nội Vụ",
+        "expected_name_en": "Ministry of the Interior",
+        "ranked_artifact_ids": [
+          11,
+          9,
+          16
+        ],
+        "graph_context_artifact_ids": [
+          11,
+          9,
+          16,
+          2,
+          8,
+          1
+        ],
+        "best_distance": 0.220154214597854,
+        "distances": [
+          0.220154214597854,
+          0.3112249433687867,
+          0.33697571443932284
+        ],
+        "latency_ms": 6.3
+      },
+      {
+        "text": "Tôi muốn tìm khu làm việc của thợ thủ công phục vụ triều đình.",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 11,
+        "expected_name_vi": "Phủ Nội Vụ",
+        "expected_name_en": "Ministry of the Interior",
+        "ranked_artifact_ids": [
+          11,
+          9,
+          12
+        ],
+        "graph_context_artifact_ids": [
+          11,
+          9,
+          12,
+          2,
+          8,
+          1
+        ],
+        "best_distance": 0.3624394700002894,
+        "distances": [
+          0.3624394700002894,
+          0.39915174834287204,
+          0.40644960288111864
+        ],
+        "latency_ms": 5.547
+      },
+      {
+        "text": "Which imperial office managed royal stores and palace workshops?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 11,
+        "expected_name_vi": "Phủ Nội Vụ",
+        "expected_name_en": "Ministry of the Interior",
+        "ranked_artifact_ids": [
+          11,
+          9,
+          8
+        ],
+        "graph_context_artifact_ids": [
+          11,
+          9,
+          8,
+          1,
+          2,
+          6
+        ],
+        "best_distance": 0.2572048902510278,
+        "distances": [
+          0.2572048902510278,
+          0.33492213587060105,
+          0.3447043505133849
+        ],
+        "latency_ms": 8.455
+      },
+      {
+        "text": "Where did court artisans produce and maintain objects for the royal household?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 11,
+        "expected_name_vi": "Phủ Nội Vụ",
+        "expected_name_en": "Ministry of the Interior",
+        "ranked_artifact_ids": [
+          11,
+          9,
+          8
+        ],
+        "graph_context_artifact_ids": [
+          11,
+          9,
+          8,
+          1,
+          2,
+          6
+        ],
+        "best_distance": 0.3004664808093298,
+        "distances": [
+          0.3004664808093298,
+          0.32600889712423686,
+          0.3262723483523562
+        ],
+        "latency_ms": 7.519
+      },
+      {
+        "text": "Vườn Cơ Hạ",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 12,
+        "expected_name_vi": "Vườn Cơ Hạ",
+        "expected_name_en": "Co Ha Garden",
+        "ranked_artifact_ids": [
+          12,
+          9,
+          3
+        ],
+        "graph_context_artifact_ids": [
+          12,
+          9,
+          3,
+          4,
+          2,
+          8
+        ],
+        "best_distance": 0.35627664161169537,
+        "distances": [
+          0.35627664161169537,
+          0.47334467411444503,
+          0.49158610729512275
+        ],
+        "latency_ms": 8.142
+      },
+      {
+        "text": "vuon co ha",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 12,
+        "expected_name_vi": "Vườn Cơ Hạ",
+        "expected_name_en": "Co Ha Garden",
+        "ranked_artifact_ids": [
+          12,
+          3,
+          1
+        ],
+        "graph_context_artifact_ids": [
+          12,
+          3,
+          1,
+          5,
+          17,
+          2
+        ],
+        "best_distance": 0.30252940164236986,
+        "distances": [
+          0.30252940164236986,
+          0.3957766170235373,
+          0.4315035261515966
+        ],
+        "latency_ms": 7.358
+      },
+      {
+        "text": "Co Ha Garden",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 12,
+        "expected_name_vi": "Vườn Cơ Hạ",
+        "expected_name_en": "Co Ha Garden",
+        "ranked_artifact_ids": [
+          12,
+          3,
+          1
+        ],
+        "graph_context_artifact_ids": [
+          12,
+          3,
+          1,
+          5,
+          17,
+          2
+        ],
+        "best_distance": 0.27375653736799743,
+        "distances": [
+          0.27375653736799743,
+          0.38517830460182423,
+          0.410562588673016
+        ],
+        "latency_ms": 7.67
+      },
+      {
+        "text": "Imperial Co Ha Garden",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 12,
+        "expected_name_vi": "Vườn Cơ Hạ",
+        "expected_name_en": "Co Ha Garden",
+        "ranked_artifact_ids": [
+          12,
+          3,
+          8
+        ],
+        "graph_context_artifact_ids": [
+          12,
+          3,
+          8,
+          4,
+          2
+        ],
+        "best_distance": 0.3221761038111306,
+        "distances": [
+          0.3221761038111306,
+          0.4454787273276929,
+          0.46475838859947427
+        ],
+        "latency_ms": 7.712
+      },
+      {
+        "text": "Khu vườn thượng uyển nào là nơi thư giãn và học tập của các hoàng tử?",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 12,
+        "expected_name_vi": "Vườn Cơ Hạ",
+        "expected_name_en": "Co Ha Garden",
+        "ranked_artifact_ids": [
+          12,
+          3,
+          9
+        ],
+        "graph_context_artifact_ids": [
+          12,
+          3,
+          9,
+          4,
+          2,
+          8
+        ],
+        "best_distance": 0.25579947509735834,
+        "distances": [
+          0.25579947509735834,
+          0.31174544622030076,
+          0.32739041018708115
+        ],
+        "latency_ms": 8.179
+      },
+      {
+        "text": "Tôi muốn tham quan khu vườn cung đình có hồ, cây xanh và các công trình nghỉ ngơi.",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 12,
+        "expected_name_vi": "Vườn Cơ Hạ",
+        "expected_name_en": "Co Ha Garden",
+        "ranked_artifact_ids": [
+          12,
+          3,
+          4
+        ],
+        "graph_context_artifact_ids": [
+          12,
+          3,
+          4,
+          2,
+          8
+        ],
+        "best_distance": 0.2787915058221745,
+        "distances": [
+          0.2787915058221745,
+          0.32513620333912274,
+          0.34073930846344813
+        ],
+        "latency_ms": 8.34
+      },
+      {
+        "text": "Which imperial garden was used by princes for study and relaxation?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 12,
+        "expected_name_vi": "Vườn Cơ Hạ",
+        "expected_name_en": "Co Ha Garden",
+        "ranked_artifact_ids": [
+          12,
+          3,
+          9
+        ],
+        "graph_context_artifact_ids": [
+          12,
+          3,
+          9,
+          4,
+          2,
+          8
+        ],
+        "best_distance": 0.23678416328802876,
+        "distances": [
+          0.23678416328802876,
+          0.2814612406355812,
+          0.28701088687796006
+        ],
+        "latency_ms": 9.242
+      },
+      {
+        "text": "What royal garden contains ponds, greenery, and leisure pavilions?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 12,
+        "expected_name_vi": "Vườn Cơ Hạ",
+        "expected_name_en": "Co Ha Garden",
+        "ranked_artifact_ids": [
+          12,
+          3,
+          4
+        ],
+        "graph_context_artifact_ids": [
+          12,
+          3,
+          4,
+          2,
+          8
+        ],
+        "best_distance": 0.25670505940205324,
+        "distances": [
+          0.25670505940205324,
+          0.30163549810084545,
+          0.3148059541378354
+        ],
+        "latency_ms": 8.093
+      },
+      {
+        "text": "Triệu Miếu",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 13,
+        "expected_name_vi": "Triệu Miếu",
+        "expected_name_en": "Trieu Mieu Temple",
+        "ranked_artifact_ids": [
+          13,
+          7,
+          6
+        ],
+        "graph_context_artifact_ids": [
+          13,
+          7,
+          6,
+          1
+        ],
+        "best_distance": 0.314509815748952,
+        "distances": [
+          0.314509815748952,
+          0.38221345053830924,
+          0.38306346343432973
+        ],
+        "latency_ms": 8.273
+      },
+      {
+        "text": "trieu to mieu",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 13,
+        "expected_name_vi": "Triệu Miếu",
+        "expected_name_en": "Trieu Mieu Temple",
+        "ranked_artifact_ids": [
+          13,
+          7,
+          14
+        ],
+        "graph_context_artifact_ids": [
+          13,
+          7,
+          14,
+          1,
+          6
+        ],
+        "best_distance": 0.15749792039342403,
+        "distances": [
+          0.15749792039342403,
+          0.20618496051754298,
+          0.2103881992297829
+        ],
+        "latency_ms": 7.752
+      },
+      {
+        "text": "Trieu Mieu Temple",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 13,
+        "expected_name_vi": "Triệu Miếu",
+        "expected_name_en": "Trieu Mieu Temple",
+        "ranked_artifact_ids": [
+          13,
+          7,
+          14
+        ],
+        "graph_context_artifact_ids": [
+          13,
+          7,
+          14,
+          1,
+          6
+        ],
+        "best_distance": 0.08215050910108523,
+        "distances": [
+          0.08215050910108523,
+          0.12294730812597487,
+          0.1339119193868864
+        ],
+        "latency_ms": 8.813
+      },
+      {
+        "text": "Trieu To Temple",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 13,
+        "expected_name_vi": "Triệu Miếu",
+        "expected_name_en": "Trieu Mieu Temple",
+        "ranked_artifact_ids": [
+          13,
+          6,
+          14
+        ],
+        "graph_context_artifact_ids": [
+          13,
+          6,
+          14,
+          7,
+          1
+        ],
+        "best_distance": 0.1786869764328003,
+        "distances": [
+          0.1786869764328003,
+          0.21856229194627308,
+          0.22376088328852906
+        ],
+        "latency_ms": 7.692
+      },
+      {
+        "text": "Ngôi miếu nào được lập để thờ Nguyễn Kim, tổ tiên của các chúa Nguyễn?",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 13,
+        "expected_name_vi": "Triệu Miếu",
+        "expected_name_en": "Trieu Mieu Temple",
+        "ranked_artifact_ids": [
+          13,
+          6,
+          14
+        ],
+        "graph_context_artifact_ids": [
+          13,
+          6,
+          14,
+          7,
+          1
+        ],
+        "best_distance": 0.17293568123641967,
+        "distances": [
+          0.17293568123641967,
+          0.25239444559729485,
+          0.2704566814692678
+        ],
+        "latency_ms": 9.129
+      },
+      {
+        "text": "Tôi muốn tìm miếu thờ vị tổ khởi đầu dòng họ Nguyễn.",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 13,
+        "expected_name_vi": "Triệu Miếu",
+        "expected_name_en": "Trieu Mieu Temple",
+        "ranked_artifact_ids": [
+          13,
+          6,
+          14
+        ],
+        "graph_context_artifact_ids": [
+          13,
+          6,
+          14,
+          7,
+          1
+        ],
+        "best_distance": 0.2131200540255861,
+        "distances": [
+          0.2131200540255861,
+          0.27563885064504057,
+          0.30942562930877215
+        ],
+        "latency_ms": 6.507
+      },
+      {
+        "text": "Which temple is dedicated to Nguyen Kim, ancestor of the Nguyen lords?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 13,
+        "expected_name_vi": "Triệu Miếu",
+        "expected_name_en": "Trieu Mieu Temple",
+        "ranked_artifact_ids": [
+          13,
+          6,
+          14
+        ],
+        "graph_context_artifact_ids": [
+          13,
+          6,
+          14,
+          7,
+          1
+        ],
+        "best_distance": 0.1800937497222198,
+        "distances": [
+          0.1800937497222198,
+          0.23382126899272115,
+          0.2484242171987704
+        ],
+        "latency_ms": 9.013
+      },
+      {
+        "text": "Where is the shrine honoring the early progenitor of the Nguyen lineage?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 13,
+        "expected_name_vi": "Triệu Miếu",
+        "expected_name_en": "Trieu Mieu Temple",
+        "ranked_artifact_ids": [
+          13,
+          6,
+          14
+        ],
+        "graph_context_artifact_ids": [
+          13,
+          6,
+          14,
+          7,
+          1
+        ],
+        "best_distance": 0.19678268662728238,
+        "distances": [
+          0.19678268662728238,
+          0.23667772352497618,
+          0.2621878825313997
+        ],
+        "latency_ms": 7.858
+      },
+      {
+        "text": "Thái Miếu",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 14,
+        "expected_name_vi": "Thái Miếu",
+        "expected_name_en": "Thai Mieu Temple",
+        "ranked_artifact_ids": [
+          14,
+          7,
+          13
+        ],
+        "graph_context_artifact_ids": [
+          14,
+          7,
+          13,
+          1,
+          6
+        ],
+        "best_distance": 0.09453357155310094,
+        "distances": [
+          0.09453357155310094,
+          0.12575824211025666,
+          0.12935729940014207
+        ],
+        "latency_ms": 8.73
+      },
+      {
+        "text": "thai to mieu",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 14,
+        "expected_name_vi": "Thái Miếu",
+        "expected_name_en": "Thai Mieu Temple",
+        "ranked_artifact_ids": [
+          14,
+          7,
+          13
+        ],
+        "graph_context_artifact_ids": [
+          14,
+          7,
+          13,
+          1,
+          6
+        ],
+        "best_distance": 0.1370706709556957,
+        "distances": [
+          0.1370706709556957,
+          0.1541875099315586,
+          0.16263354237181504
+        ],
+        "latency_ms": 7.89
+      },
+      {
+        "text": "Thai Mieu Temple",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 14,
+        "expected_name_vi": "Thái Miếu",
+        "expected_name_en": "Thai Mieu Temple",
+        "ranked_artifact_ids": [
+          14,
+          7,
+          13
+        ],
+        "graph_context_artifact_ids": [
+          14,
+          7,
+          13,
+          1,
+          6
+        ],
+        "best_distance": 0.10741330572759689,
+        "distances": [
+          0.10741330572759689,
+          0.11252232493554093,
+          0.12405208862293204
+        ],
+        "latency_ms": 7.781
+      },
+      {
+        "text": "Thai To Temple",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 14,
+        "expected_name_vi": "Thái Miếu",
+        "expected_name_en": "Thai Mieu Temple",
+        "ranked_artifact_ids": [
+          14,
+          13,
+          6
+        ],
+        "graph_context_artifact_ids": [
+          14,
+          13,
+          6,
+          7,
+          1
+        ],
+        "best_distance": 0.23944446067015912,
+        "distances": [
+          0.23944446067015912,
+          0.26989697275702496,
+          0.27235642342045907
+        ],
+        "latency_ms": 7.761
+      },
+      {
+        "text": "Ngôi miếu nào thờ các chúa Nguyễn trước thời Gia Long?",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 14,
+        "expected_name_vi": "Thái Miếu",
+        "expected_name_en": "Thai Mieu Temple",
+        "ranked_artifact_ids": [
+          13,
+          6,
+          14
+        ],
+        "graph_context_artifact_ids": [
+          13,
+          6,
+          14,
+          7,
+          1
+        ],
+        "best_distance": 0.21900241828022304,
+        "distances": [
+          0.21900241828022304,
+          0.22103765638644934,
+          0.24061777023272624
+        ],
+        "latency_ms": 8.161
+      },
+      {
+        "text": "Tôi muốn tìm khu thờ tổ tiên các chúa Nguyễn ở phía đông Hoàng thành.",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 14,
+        "expected_name_vi": "Thái Miếu",
+        "expected_name_en": "Thai Mieu Temple",
+        "ranked_artifact_ids": [
+          14,
+          13,
+          7
+        ],
+        "graph_context_artifact_ids": [
+          14,
+          13,
+          7,
+          1,
+          6
+        ],
+        "best_distance": 0.21962116115460395,
+        "distances": [
+          0.21962116115460395,
+          0.22610271338603471,
+          0.24319362802656874
+        ],
+        "latency_ms": 6.699
+      },
+      {
+        "text": "Which ancestral temple honors the Nguyen lords who ruled before Gia Long?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 14,
+        "expected_name_vi": "Thái Miếu",
+        "expected_name_en": "Thai Mieu Temple",
+        "ranked_artifact_ids": [
+          13,
+          6,
+          14
+        ],
+        "graph_context_artifact_ids": [
+          13,
+          6,
+          14,
+          7,
+          1
+        ],
+        "best_distance": 0.18457576131453912,
+        "distances": [
+          0.18457576131453912,
+          0.20998503983284778,
+          0.21583165367524448
+        ],
+        "latency_ms": 6.391
+      },
+      {
+        "text": "Where is the eastern Imperial City temple dedicated to the ancestors of the Nguyen lords?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 14,
+        "expected_name_vi": "Thái Miếu",
+        "expected_name_en": "Thai Mieu Temple",
+        "ranked_artifact_ids": [
+          14,
+          13,
+          7
+        ],
+        "graph_context_artifact_ids": [
+          14,
+          13,
+          7,
+          1,
+          6
+        ],
+        "best_distance": 0.21481433091333912,
+        "distances": [
+          0.21481433091333912,
+          0.2154362109682293,
+          0.21922449951025713
+        ],
+        "latency_ms": 7.762
+      },
+      {
+        "text": "Cửa Hiển Nhơn",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 15,
+        "expected_name_vi": "Cửa Hiển Nhơn",
+        "expected_name_en": "Hien Nhon Gate",
+        "ranked_artifact_ids": [
+          15,
+          17,
+          5
+        ],
+        "graph_context_artifact_ids": [
+          15,
+          17,
+          5,
+          1
+        ],
+        "best_distance": 0.10528939334805609,
+        "distances": [
+          0.10528939334805609,
+          0.16760920030289572,
+          0.17115436964299802
+        ],
+        "latency_ms": 8.157
+      },
+      {
+        "text": "cua hien nhon",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 15,
+        "expected_name_vi": "Cửa Hiển Nhơn",
+        "expected_name_en": "Hien Nhon Gate",
+        "ranked_artifact_ids": [
+          15,
+          5,
+          1
+        ],
+        "graph_context_artifact_ids": [
+          15,
+          5,
+          1,
+          17,
+          2
+        ],
+        "best_distance": 0.43353692989157155,
+        "distances": [
+          0.43353692989157155,
+          0.46570031651546806,
+          0.4780355898290354
+        ],
+        "latency_ms": 9.233
+      },
+      {
+        "text": "Hien Nhon Gate",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 15,
+        "expected_name_vi": "Cửa Hiển Nhơn",
+        "expected_name_en": "Hien Nhon Gate",
+        "ranked_artifact_ids": [
+          15,
+          1,
+          5
+        ],
+        "graph_context_artifact_ids": [
+          15,
+          1,
+          5,
+          17,
+          2
+        ],
+        "best_distance": 0.15245634317388435,
+        "distances": [
+          0.15245634317388435,
+          0.21333351294196734,
+          0.21526197695378824
+        ],
+        "latency_ms": 8.121
+      },
+      {
+        "text": "Gate of Manifest Benevolence",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 15,
+        "expected_name_vi": "Cửa Hiển Nhơn",
+        "expected_name_en": "Hien Nhon Gate",
+        "ranked_artifact_ids": [
+          15,
+          5,
+          17
+        ],
+        "graph_context_artifact_ids": [
+          15,
+          5,
+          17,
+          1
+        ],
+        "best_distance": 0.2608081491426504,
+        "distances": [
+          0.2608081491426504,
+          0.2762819085556387,
+          0.2930341398982088
+        ],
+        "latency_ms": 8.82
+      },
+      {
+        "text": "Cánh cổng phía đông nổi bật của Hoàng thành Huế tên là gì?",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 15,
+        "expected_name_vi": "Cửa Hiển Nhơn",
+        "expected_name_en": "Hien Nhon Gate",
+        "ranked_artifact_ids": [
+          15,
+          5,
+          1
+        ],
+        "graph_context_artifact_ids": [
+          15,
+          5,
+          1,
+          17,
+          2
+        ],
+        "best_distance": 0.20270884037012726,
+        "distances": [
+          0.20270884037012726,
+          0.21802924001738488,
+          0.2287728377389684
+        ],
+        "latency_ms": 7.118
+      },
+      {
+        "text": "Tôi muốn tìm cổng có trang trí sành sứ ở phía đông Đại Nội.",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 15,
+        "expected_name_vi": "Cửa Hiển Nhơn",
+        "expected_name_en": "Hien Nhon Gate",
+        "ranked_artifact_ids": [
+          9,
+          5,
+          8
+        ],
+        "graph_context_artifact_ids": [
+          9,
+          5,
+          8,
+          15,
+          1,
+          17
+        ],
+        "best_distance": 0.35322065199816766,
+        "distances": [
+          0.35322065199816766,
+          0.3555582006753394,
+          0.35838853864860953
+        ],
+        "latency_ms": 9.027
+      },
+      {
+        "text": "Which decorated gate forms the eastern entrance to the Imperial City?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 15,
+        "expected_name_vi": "Cửa Hiển Nhơn",
+        "expected_name_en": "Hien Nhon Gate",
+        "ranked_artifact_ids": [
+          5,
+          17,
+          15
+        ],
+        "graph_context_artifact_ids": [
+          5,
+          17,
+          15,
+          1
+        ],
+        "best_distance": 0.24213802439586818,
+        "distances": [
+          0.24213802439586818,
+          0.24633349543805783,
+          0.2559633836833305
+        ],
+        "latency_ms": 7.665
+      },
+      {
+        "text": "What eastern citadel gate is known as the Gate of Manifest Benevolence?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 15,
+        "expected_name_vi": "Cửa Hiển Nhơn",
+        "expected_name_en": "Hien Nhon Gate",
+        "ranked_artifact_ids": [
+          15,
+          5,
+          17
+        ],
+        "graph_context_artifact_ids": [
+          15,
+          5,
+          17,
+          1
+        ],
+        "best_distance": 0.2128393630922618,
+        "distances": [
+          0.2128393630922618,
+          0.23430317266061818,
+          0.2653965828531778
+        ],
+        "latency_ms": 8.959
+      },
+      {
+        "text": "Điện Long An",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 16,
+        "expected_name_vi": "Điện Long An",
+        "expected_name_en": "Long An Palace",
+        "ranked_artifact_ids": [
+          16,
+          4,
+          9
+        ],
+        "graph_context_artifact_ids": [
+          16,
+          4,
+          9,
+          1,
+          2,
+          5
+        ],
+        "best_distance": 0.314635223876749,
+        "distances": [
+          0.314635223876749,
+          0.36515967899810375,
+          0.38232170659508824
+        ],
+        "latency_ms": 8.688
+      },
+      {
+        "text": "bao tang co vat cung dinh hue",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 16,
+        "expected_name_vi": "Điện Long An",
+        "expected_name_en": "Long An Palace",
+        "ranked_artifact_ids": [
+          16,
+          3,
+          4
+        ],
+        "graph_context_artifact_ids": [
+          16,
+          3,
+          4,
+          2,
+          8
+        ],
+        "best_distance": 0.1823629736898238,
+        "distances": [
+          0.1823629736898238,
+          0.23992836715490118,
+          0.24737938563773054
+        ],
+        "latency_ms": 9.699
+      },
+      {
+        "text": "Long An Palace",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 16,
+        "expected_name_vi": "Điện Long An",
+        "expected_name_en": "Long An Palace",
+        "ranked_artifact_ids": [
+          16,
+          4,
+          3
+        ],
+        "graph_context_artifact_ids": [
+          16,
+          4,
+          3,
+          2,
+          8
+        ],
+        "best_distance": 0.21944972508544192,
+        "distances": [
+          0.21944972508544192,
+          0.23395646630420142,
+          0.23562658894854316
+        ],
+        "latency_ms": 9.501
+      },
+      {
+        "text": "Hue Museum of Royal Antiquities",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 16,
+        "expected_name_vi": "Điện Long An",
+        "expected_name_en": "Long An Palace",
+        "ranked_artifact_ids": [
+          16,
+          4,
+          3
+        ],
+        "graph_context_artifact_ids": [
+          16,
+          4,
+          3,
+          2,
+          8
+        ],
+        "best_distance": 0.16220025837990848,
+        "distances": [
+          0.16220025837990848,
+          0.231852398823985,
+          0.24837838805205126
+        ],
+        "latency_ms": 9.156
+      },
+      {
+        "text": "Cung điện nào hiện là Bảo tàng Cổ vật Cung đình Huế?",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 16,
+        "expected_name_vi": "Điện Long An",
+        "expected_name_en": "Long An Palace",
+        "ranked_artifact_ids": [
+          16,
+          4,
+          3
+        ],
+        "graph_context_artifact_ids": [
+          16,
+          4,
+          3,
+          2,
+          8
+        ],
+        "best_distance": 0.1991924999700473,
+        "distances": [
+          0.1991924999700473,
+          0.2555324143805998,
+          0.25986163259376105
+        ],
+        "latency_ms": 9.547
+      },
+      {
+        "text": "Tôi muốn xem nơi trưng bày đồ dùng, mỹ thuật và cổ vật của triều Nguyễn.",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 16,
+        "expected_name_vi": "Điện Long An",
+        "expected_name_en": "Long An Palace",
+        "ranked_artifact_ids": [
+          16,
+          10,
+          11
+        ],
+        "graph_context_artifact_ids": [
+          16,
+          10,
+          11,
+          2,
+          6,
+          12
+        ],
+        "best_distance": 0.20428023223505143,
+        "distances": [
+          0.20428023223505143,
+          0.2370534453139319,
+          0.2607183405311658
+        ],
+        "latency_ms": 8.058
+      },
+      {
+        "text": "Which palace now houses the Hue Museum of Royal Antiquities?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 16,
+        "expected_name_vi": "Điện Long An",
+        "expected_name_en": "Long An Palace",
+        "ranked_artifact_ids": [
+          16,
+          4,
+          8
+        ],
+        "graph_context_artifact_ids": [
+          16,
+          4,
+          8,
+          1,
+          2,
+          5
+        ],
+        "best_distance": 0.1823575500209943,
+        "distances": [
+          0.1823575500209943,
+          0.22245858117190642,
+          0.23894357154062285
+        ],
+        "latency_ms": 9.529
+      },
+      {
+        "text": "Where can visitors see Nguyen dynasty royal objects and decorative arts?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 16,
+        "expected_name_vi": "Điện Long An",
+        "expected_name_en": "Long An Palace",
+        "ranked_artifact_ids": [
+          16,
+          10,
+          11
+        ],
+        "graph_context_artifact_ids": [
+          16,
+          10,
+          11,
+          2,
+          6,
+          12
+        ],
+        "best_distance": 0.20506293954710864,
+        "distances": [
+          0.20506293954710864,
+          0.22230864568433395,
+          0.24605117667635246
+        ],
+        "latency_ms": 8.624
+      },
+      {
+        "text": "Ngọ Môn",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 17,
+        "expected_name_vi": "Ngọ Môn",
+        "expected_name_en": "Ngo Mon Gate",
+        "ranked_artifact_ids": [
+          17,
+          15,
+          5
+        ],
+        "graph_context_artifact_ids": [
+          17,
+          15,
+          5,
+          1
+        ],
+        "best_distance": 0.11879843679621416,
+        "distances": [
+          0.11879843679621416,
+          0.17183592823100047,
+          0.18871135980809772
+        ],
+        "latency_ms": 9.305
+      },
+      {
+        "text": "ngo mon",
+        "lang": "vi",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 17,
+        "expected_name_vi": "Ngọ Môn",
+        "expected_name_en": "Ngo Mon Gate",
+        "ranked_artifact_ids": [
+          17,
+          15,
+          5
+        ],
+        "graph_context_artifact_ids": [
+          17,
+          15,
+          5,
+          1
+        ],
+        "best_distance": 0.21756069805575495,
+        "distances": [
+          0.21756069805575495,
+          0.2555812431629755,
+          0.2705856786063815
+        ],
+        "latency_ms": 7.418
+      },
+      {
+        "text": "Ngo Mon Gate",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "dev",
+        "expected_artifact_id": 17,
+        "expected_name_vi": "Ngọ Môn",
+        "expected_name_en": "Ngo Mon Gate",
+        "ranked_artifact_ids": [
+          17,
+          15,
+          5
+        ],
+        "graph_context_artifact_ids": [
+          17,
+          15,
+          5,
+          1
+        ],
+        "best_distance": 0.12096624388781207,
+        "distances": [
+          0.12096624388781207,
+          0.16325403354941648,
+          0.1762921775726578
+        ],
+        "latency_ms": 8.95
+      },
+      {
+        "text": "Meridian Gate Hue",
+        "lang": "en",
+        "query_type": "entity",
+        "split": "test",
+        "expected_artifact_id": 17,
+        "expected_name_vi": "Ngọ Môn",
+        "expected_name_en": "Ngo Mon Gate",
+        "ranked_artifact_ids": [
+          17,
+          15,
+          5
+        ],
+        "graph_context_artifact_ids": [
+          17,
+          15,
+          5,
+          1
+        ],
+        "best_distance": 0.11624574798973397,
+        "distances": [
+          0.11624574798973397,
+          0.14569773776582728,
+          0.1655228935425298
+        ],
+        "latency_ms": 8.6
+      },
+      {
+        "text": "Cổng chính phía nam nào có Lầu Ngũ Phụng ở phía trên?",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 17,
+        "expected_name_vi": "Ngọ Môn",
+        "expected_name_en": "Ngo Mon Gate",
+        "ranked_artifact_ids": [
+          17,
+          15,
+          5
+        ],
+        "graph_context_artifact_ids": [
+          17,
+          15,
+          5,
+          1
+        ],
+        "best_distance": 0.2083176970481816,
+        "distances": [
+          0.2083176970481816,
+          0.25351536273955766,
+          0.27380560196604586
+        ],
+        "latency_ms": 9.223
+      },
+      {
+        "text": "Tôi muốn tìm nơi vua Bảo Đại tuyên bố thoái vị năm 1945.",
+        "lang": "vi",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 17,
+        "expected_name_vi": "Ngọ Môn",
+        "expected_name_en": "Ngo Mon Gate",
+        "ranked_artifact_ids": [
+          2,
+          17,
+          8
+        ],
+        "graph_context_artifact_ids": [
+          2,
+          17,
+          8,
+          1,
+          5
+        ],
+        "best_distance": 0.208855427894853,
+        "distances": [
+          0.208855427894853,
+          0.22413099171673112,
+          0.293535741109924
+        ],
+        "latency_ms": 7.519
+      },
+      {
+        "text": "Which southern ceremonial gate is topped by the Five Phoenix Pavilion?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "dev",
+        "expected_artifact_id": 17,
+        "expected_name_vi": "Ngọ Môn",
+        "expected_name_en": "Ngo Mon Gate",
+        "ranked_artifact_ids": [
+          17,
+          15,
+          4
+        ],
+        "graph_context_artifact_ids": [
+          17,
+          15,
+          4,
+          1,
+          2,
+          5
+        ],
+        "best_distance": 0.21080144933500977,
+        "distances": [
+          0.21080144933500977,
+          0.2984431030221606,
+          0.3007819477937823
+        ],
+        "latency_ms": 8.882
+      },
+      {
+        "text": "Where did Emperor Bao Dai announce his abdication in 1945?",
+        "lang": "en",
+        "query_type": "semantic",
+        "split": "test",
+        "expected_artifact_id": 17,
+        "expected_name_vi": "Ngọ Môn",
+        "expected_name_en": "Ngo Mon Gate",
+        "ranked_artifact_ids": [
+          17,
+          2,
+          8
+        ],
+        "graph_context_artifact_ids": [
+          17,
+          2,
+          8,
+          1,
+          5
+        ],
+        "best_distance": 0.20650386422641653,
+        "distances": [
+          0.20650386422641653,
+          0.22586491416260723,
+          0.288995427549096
+        ],
+        "latency_ms": 7.07
+      }
+    ],
+    "vector_ood": [
+      {
+        "text": "Thời tiết ở Hà Nội hôm nay thế nào?",
+        "lang": "vi",
+        "split": "dev",
+        "ranked_artifact_ids": [
+          1,
+          12,
+          5
+        ],
+        "graph_context_artifact_ids": [
+          1,
+          12,
+          5,
+          17,
+          2
+        ],
+        "best_distance": 0.3587957047338386,
+        "distances": [
+          0.3587957047338386,
+          0.41996994194409365,
+          0.42129169500745234
+        ],
+        "latency_ms": 7.225
+      },
+      {
+        "text": "Ai thiết kế tháp Eiffel?",
+        "lang": "vi",
+        "split": "dev",
+        "ranked_artifact_ids": [
+          2,
+          11,
+          17
+        ],
+        "graph_context_artifact_ids": [
+          2,
+          11,
+          17,
+          1,
+          5,
+          8
+        ],
+        "best_distance": 0.4508868829737407,
+        "distances": [
+          0.4508868829737407,
+          0.45459225504691403,
+          0.46288537263279383
+        ],
+        "latency_ms": 7.531
+      },
+      {
+        "text": "Viết cho tôi một chương trình sắp xếp nhanh.",
+        "lang": "vi",
+        "split": "dev",
+        "ranked_artifact_ids": [
+          8,
+          16,
+          12
+        ],
+        "graph_context_artifact_ids": [
+          8,
+          16,
+          12,
+          1,
+          2,
+          6
+        ],
+        "best_distance": 0.5048119119144541,
+        "distances": [
+          0.5048119119144541,
+          0.5049912050339971,
+          0.5079217562581643
+        ],
+        "latency_ms": 7.745
+      },
+      {
+        "text": "Giá Bitcoin hiện tại là bao nhiêu?",
+        "lang": "vi",
+        "split": "dev",
+        "ranked_artifact_ids": [
+          1,
+          2,
+          11
+        ],
+        "graph_context_artifact_ids": [
+          1,
+          2,
+          11,
+          5,
+          17
+        ],
+        "best_distance": 0.47004123121375985,
+        "distances": [
+          0.47004123121375985,
+          0.48627037686273555,
+          0.4905655069170308
+        ],
+        "latency_ms": 6.58
+      },
+      {
+        "text": "Nhà hàng ngon nhất ở Đà Nẵng?",
+        "lang": "vi",
+        "split": "dev",
+        "ranked_artifact_ids": [
+          16,
+          5,
+          17
+        ],
+        "graph_context_artifact_ids": [
+          16,
+          5,
+          17,
+          15,
+          1
+        ],
+        "best_distance": 0.4215064910789281,
+        "distances": [
+          0.4215064910789281,
+          0.4380047508485452,
+          0.43924036984198156
+        ],
+        "latency_ms": 7.1
+      },
+      {
+        "text": "What is the weather in Bangkok today?",
+        "lang": "en",
+        "split": "dev",
+        "ranked_artifact_ids": [
+          1,
+          5,
+          8
+        ],
+        "graph_context_artifact_ids": [
+          1,
+          5,
+          8,
+          17,
+          2
+        ],
+        "best_distance": 0.4239034652709961,
+        "distances": [
+          0.4239034652709961,
+          0.45202429652935705,
+          0.4561299519577605
+        ],
+        "latency_ms": 7.914
+      },
+      {
+        "text": "Who painted the Mona Lisa?",
+        "lang": "en",
+        "split": "dev",
+        "ranked_artifact_ids": [
+          2,
+          16,
+          8
+        ],
+        "graph_context_artifact_ids": [
+          2,
+          16,
+          8,
+          1,
+          5
+        ],
+        "best_distance": 0.42217576236905574,
+        "distances": [
+          0.42217576236905574,
+          0.4429900238442235,
+          0.4461912182683233
+        ],
+        "latency_ms": 7.399
+      },
+      {
+        "text": "Explain the theory of general relativity.",
+        "lang": "en",
+        "split": "dev",
+        "ranked_artifact_ids": [
+          15,
+          5,
+          1
+        ],
+        "graph_context_artifact_ids": [
+          15,
+          5,
+          1,
+          17,
+          2
+        ],
+        "best_distance": 0.47107967217200997,
+        "distances": [
+          0.47107967217200997,
+          0.4731976168983685,
+          0.47991627694172845
+        ],
+        "latency_ms": 8.796
+      },
+      {
+        "text": "What is the current stock price of Apple?",
+        "lang": "en",
+        "split": "dev",
+        "ranked_artifact_ids": [
+          5,
+          10,
+          11
+        ],
+        "graph_context_artifact_ids": [
+          5,
+          10,
+          11,
+          15,
+          1,
+          17
+        ],
+        "best_distance": 0.4853154810995125,
+        "distances": [
+          0.4853154810995125,
+          0.4909676432801451,
+          0.4936232129300542
+        ],
+        "latency_ms": 8.324
+      },
+      {
+        "text": "Recommend a hotel in Singapore.",
+        "lang": "en",
+        "split": "dev",
+        "ranked_artifact_ids": [
+          17,
+          1,
+          15
+        ],
+        "graph_context_artifact_ids": [
+          17,
+          1,
+          15,
+          5,
+          2
+        ],
+        "best_distance": 0.43968116518028155,
+        "distances": [
+          0.43968116518028155,
+          0.4559204368211883,
+          0.4597634625152287
+        ],
+        "latency_ms": 8.623
+      },
+      {
+        "text": "Kết quả bóng đá tối qua là gì?",
+        "lang": "vi",
+        "split": "test",
+        "ranked_artifact_ids": [
+          2,
+          9,
+          1
+        ],
+        "graph_context_artifact_ids": [
+          2,
+          9,
+          1,
+          5,
+          17
+        ],
+        "best_distance": 0.4769556128197253,
+        "distances": [
+          0.4769556128197253,
+          0.4950410121728196,
+          0.4950545731154258
+        ],
+        "latency_ms": 7.822
+      },
+      {
+        "text": "Hướng dẫn tôi nấu phở bò.",
+        "lang": "vi",
+        "split": "test",
+        "ranked_artifact_ids": [
+          6,
+          17,
+          13
+        ],
+        "graph_context_artifact_ids": [
+          6,
+          17,
+          13,
+          7,
+          1
+        ],
+        "best_distance": 0.4178591944280985,
+        "distances": [
+          0.4178591944280985,
+          0.41887938774090305,
+          0.4214415126607992
+        ],
+        "latency_ms": 8.861
+      },
+      {
+        "text": "Tổng thống Hoa Kỳ hiện tại là ai?",
+        "lang": "vi",
+        "split": "test",
+        "ranked_artifact_ids": [
+          13,
+          2,
+          1
+        ],
+        "graph_context_artifact_ids": [
+          13,
+          2,
+          1,
+          5,
+          17
+        ],
+        "best_distance": 0.441552554635667,
+        "distances": [
+          0.441552554635667,
+          0.46345155995497234,
+          0.47010739439284754
+        ],
+        "latency_ms": 7.773
+      },
+      {
+        "text": "Tính đạo hàm của hàm số bậc ba.",
+        "lang": "vi",
+        "split": "test",
+        "ranked_artifact_ids": [
+          8,
+          6,
+          11
+        ],
+        "graph_context_artifact_ids": [
+          8,
+          6,
+          11,
+          7,
+          1
+        ],
+        "best_distance": 0.48724307157863833,
+        "distances": [
+          0.48724307157863833,
+          0.4890529069586611,
+          0.4906852352701996
+        ],
+        "latency_ms": 8.351
+      },
+      {
+        "text": "Cho tôi lịch chiếu phim cuối tuần.",
+        "lang": "vi",
+        "split": "test",
+        "ranked_artifact_ids": [
+          10,
+          2,
+          17
+        ],
+        "graph_context_artifact_ids": [
+          10,
+          2,
+          17,
+          1,
+          5,
+          8
+        ],
+        "best_distance": 0.4609926296463419,
+        "distances": [
+          0.4609926296463419,
+          0.4639800319743004,
+          0.4807679521350846
+        ],
+        "latency_ms": 7.775
+      },
+      {
+        "text": "How do I install a graphics driver?",
+        "lang": "en",
+        "split": "test",
+        "ranked_artifact_ids": [
+          11,
+          2,
+          1
+        ],
+        "graph_context_artifact_ids": [
+          11,
+          2,
+          1,
+          5,
+          17
+        ],
+        "best_distance": 0.4803747604937181,
+        "distances": [
+          0.4803747604937181,
+          0.4867392166541745,
+          0.49352154097087164
+        ],
+        "latency_ms": 8.276
+      },
+      {
+        "text": "Write a poem about the ocean.",
+        "lang": "en",
+        "split": "test",
+        "ranked_artifact_ids": [
+          1,
+          16,
+          8
+        ],
+        "graph_context_artifact_ids": [
+          1,
+          16,
+          8,
+          5,
+          17,
+          2
+        ],
+        "best_distance": 0.45288151502609253,
+        "distances": [
+          0.45288151502609253,
+          0.4535481929779053,
+          0.4690819820488088
+        ],
+        "latency_ms": 7.403
+      },
+      {
+        "text": "Who won the latest Formula One race?",
+        "lang": "en",
+        "split": "test",
+        "ranked_artifact_ids": [
+          6,
+          2,
+          17
+        ],
+        "graph_context_artifact_ids": [
+          6,
+          2,
+          17,
+          1,
+          5,
+          8
+        ],
+        "best_distance": 0.4831513862899587,
+        "distances": [
+          0.4831513862899587,
+          0.48817107856977704,
+          0.4971629088228977
+        ],
+        "latency_ms": 9.033
+      },
+      {
+        "text": "Explain how photosynthesis works.",
+        "lang": "en",
+        "split": "test",
+        "ranked_artifact_ids": [
+          3,
+          17,
+          9
+        ],
+        "graph_context_artifact_ids": [
+          3,
+          17,
+          9,
+          4,
+          2,
+          8
+        ],
+        "best_distance": 0.4514247352749705,
+        "distances": [
+          0.4514247352749705,
+          0.45176079006685155,
+          0.4588680589873746
+        ],
+        "latency_ms": 7.516
+      },
+      {
+        "text": "Find me a cheap flight to Tokyo.",
+        "lang": "en",
+        "split": "test",
+        "ranked_artifact_ids": [
+          17,
+          1,
+          15
+        ],
+        "graph_context_artifact_ids": [
+          17,
+          1,
+          15,
+          5,
+          2
+        ],
+        "best_distance": 0.455432934930045,
+        "distances": [
+          0.455432934930045,
+          0.458119017446333,
+          0.46576539702254527
+        ],
+        "latency_ms": 8.554
+      }
+    ]
+  }
+}

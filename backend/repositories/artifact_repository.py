@@ -83,9 +83,12 @@ async def graph_augmented_search(query: str, top_k: int = 3) -> List[ArtifactInf
         async with async_session_factory() as session:
             # Step 2: Graph Traversal (Get neighbors of entry points)
             # We want artifacts related by SAME_AUTHOR, SAME_PERIOD, or LOCATED_NEAR
-            related_stmt = select(ArtifactRelation.target_artifact_id).where(
-                ArtifactRelation.source_artifact_id.in_(entry_artifact_ids)
-            ).limit(top_k)
+            related_stmt = (
+                select(ArtifactRelation.target_artifact_id)
+                .where(ArtifactRelation.source_artifact_id.in_(entry_artifact_ids))
+                .order_by(ArtifactRelation.weight.desc(), ArtifactRelation.id.asc())
+                .limit(top_k)
+            )
             
             rel_result = await session.execute(related_stmt)
             related_ids = rel_result.scalars().all()
